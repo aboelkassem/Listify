@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.WebAPI", "Listify.WebAPI\Listify.WebAPI.csproj", "{D83825C6-CF72-448E-A872-87DF7EDE18EA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Identity", "Listify.Identity\Listify.Identity.csproj", "{6641871A-11E3-4FF4-8CE8-28A1D5051B90}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D83825C6-CF72-448E-A872-87DF7EDE18EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D83825C6-CF72-448E-A872-87DF7EDE18EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D83825C6-CF72-448E-A872-87DF7EDE18EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D83825C6-CF72-448E-A872-87DF7EDE18EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6641871A-11E3-4FF4-8CE8-28A1D5051B90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6641871A-11E3-4FF4-8CE8-28A1D5051B90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6641871A-11E3-4FF4-8CE8-28A1D5051B90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6641871A-11E3-4FF4-8CE8-28A1D5051B90}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {877D12E3-062F-43D3-B007-63AC2CF6792E}
+	EndGlobalSection
+EndGlobal
