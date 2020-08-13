@@ -1,4 +1,4 @@
-﻿using Listify.WebAPI.Models.Entities;
+﻿using Listify.Doimain.Lib.Entities;
 using Listify.WebAPI.Models.Requests;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -10,7 +10,7 @@ namespace Listify.WebAPI.Hubs
 {
     public class ChatHub : Hub
     {
-        public async Task SendMessage(Message message)
+        public async Task SendMessage(ChatMessage message)
         {
             await Clients.All.SendAsync("RecieveMessage", message);
         }

@@ -11,8 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Listify.WebAPI.Data;
 using Listify.WebAPI.Hubs;
+using Listify.Domain.CodeFirst;
 
 namespace Listify.WebAPI
 {
