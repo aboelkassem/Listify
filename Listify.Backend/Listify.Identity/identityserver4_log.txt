@@ -9796,3 +9796,88 @@ System.ArgumentException: Value cannot be null or empty. (Parameter 'url')
 2020-08-13 16:06:49.639 +02:00 [DBG] Start key discovery request
 2020-08-13 16:08:17.005 +02:00 [INF] Removing 0 grants
 2020-08-13 16:08:17.123 +02:00 [INF] Removing 0 device flow codes
+2020-08-13 16:13:17.127 +02:00 [INF] Removing 0 grants
+2020-08-13 16:13:17.360 +02:00 [INF] Removing 0 device flow codes
+2020-08-13 16:15:38.708 +02:00 [DBG] CORS request made for path: /.well-known/openid-configuration from origin: http://localhost:4200
+2020-08-13 16:15:38.927 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:15:38.928 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:15:38.928 +02:00 [DBG] Request path /.well-known/openid-configuration matched to endpoint type Discovery
+2020-08-13 16:15:38.928 +02:00 [DBG] Endpoint enabled: Discovery, successfully created handler: IdentityServer4.Endpoints.DiscoveryEndpoint
+2020-08-13 16:15:38.928 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.DiscoveryEndpoint for /.well-known/openid-configuration
+2020-08-13 16:15:38.928 +02:00 [DBG] Start discovery request
+2020-08-13 16:15:39.040 +02:00 [DBG] Found ["profile","openid","roles","listifyWebAPI"] as all scopes in database
+2020-08-13 16:15:39.316 +02:00 [DBG] CORS request made for path: /.well-known/openid-configuration/jwks from origin: http://localhost:4200
+2020-08-13 16:15:39.338 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:15:39.338 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:15:39.338 +02:00 [DBG] Request path /.well-known/openid-configuration/jwks matched to endpoint type Discovery
+2020-08-13 16:15:39.339 +02:00 [DBG] Endpoint enabled: Discovery, successfully created handler: IdentityServer4.Endpoints.DiscoveryKeyEndpoint
+2020-08-13 16:15:39.339 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.DiscoveryKeyEndpoint for /.well-known/openid-configuration/jwks
+2020-08-13 16:15:39.339 +02:00 [DBG] Start key discovery request
+2020-08-13 16:16:17.407 +02:00 [DBG] Request path /connect/authorize matched to endpoint type Authorize
+2020-08-13 16:16:17.409 +02:00 [DBG] Endpoint enabled: Authorize, successfully created handler: IdentityServer4.Endpoints.AuthorizeEndpoint
+2020-08-13 16:16:17.409 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.AuthorizeEndpoint for /connect/authorize
+2020-08-13 16:16:17.409 +02:00 [DBG] Start authorize request
+2020-08-13 16:16:17.491 +02:00 [DBG] User in authorize request: 95b3f912-82da-423d-9c3f-d80659c4318e
+2020-08-13 16:16:17.491 +02:00 [DBG] Start authorize request protocol validation
+2020-08-13 16:16:18.767 +02:00 [DBG] listify.webapp found in database: true
+2020-08-13 16:16:18.767 +02:00 [DBG] client configuration validation for client listify.webapp succeeded.
+2020-08-13 16:16:18.799 +02:00 [DBG] Found ["profile","openid","roles"] identity scopes in database
+2020-08-13 16:16:18.818 +02:00 [DBG] Found ["listifyWebAPI"] API scopes in database
+2020-08-13 16:16:18.827 +02:00 [DBG] Found ["profile","openid","roles"] identity scopes in database
+2020-08-13 16:16:18.846 +02:00 [DBG] Found ["listifyWebAPI"] API scopes in database
+2020-08-13 16:16:18.846 +02:00 [DBG] Calling into custom validator: IdentityServer4.Validation.DefaultCustomAuthorizeRequestValidator
+2020-08-13 16:16:18.847 +02:00 [DBG] ValidatedAuthorizeRequest
+{"ClientId":"listify.webapp","ClientName":"The Listify WebApplication","RedirectUri":"http://localhost:4200","AllowedRedirectUris":["http://localhost:4200"],"SubjectId":"95b3f912-82da-423d-9c3f-d80659c4318e","ResponseType":"id_token token","ResponseMode":"fragment","GrantType":"implicit","RequestedScopes":"profile openid roles listifyWebAPI","State":"aUkxVk11dGNqaWxYVWkxUk5FRUpROC11SjJmeGJZRzBKU0xlOUJUTEtTZzFa","UiLocales":null,"Nonce":"aUkxVk11dGNqaWxYVWkxUk5FRUpROC11SjJmeGJZRzBKU0xlOUJUTEtTZzFa","AuthenticationContextReferenceClasses":null,"DisplayMode":null,"PromptMode":null,"MaxAge":null,"LoginHint":null,"SessionId":"OkJFq6OzhslqrMutfTbWMg","Raw":{"response_type":"id_token token","client_id":"listify.webapp","state":"aUkxVk11dGNqaWxYVWkxUk5FRUpROC11SjJmeGJZRzBKU0xlOUJUTEtTZzFa","redirect_uri":"http://localhost:4200","scope":"profile openid roles listifyWebAPI","nonce":"aUkxVk11dGNqaWxYVWkxUk5FRUpROC11SjJmeGJZRzBKU0xlOUJUTEtTZzFa"},"$type":"AuthorizeRequestValidationLog"}
+2020-08-13 16:16:18.942 +02:00 [DBG] Client is configured to not require consent, no consent is required
+2020-08-13 16:16:18.943 +02:00 [DBG] Creating Implicit Flow response.
+2020-08-13 16:16:18.944 +02:00 [DBG] Getting claims for access token for client: listify.webapp
+2020-08-13 16:16:18.944 +02:00 [DBG] Getting claims for access token for subject: 95b3f912-82da-423d-9c3f-d80659c4318e
+2020-08-13 16:16:19.095 +02:00 [DBG] Getting claims for identity token for subject: 95b3f912-82da-423d-9c3f-d80659c4318e and client: listify.webapp
+2020-08-13 16:16:19.095 +02:00 [DBG] In addition to an id_token, an access_token was requested. No claims other than sub are included in the id_token. To obtain more user claims, either use the user info endpoint or set AlwaysIncludeUserClaimsInIdToken on the client configuration.
+2020-08-13 16:16:19.097 +02:00 [INF] {"ClientId":"listify.webapp","ClientName":"The Listify WebApplication","RedirectUri":"http://localhost:4200","Endpoint":"Authorize","SubjectId":"95b3f912-82da-423d-9c3f-d80659c4318e","Scopes":"profile openid roles listifyWebAPI","GrantType":"implicit","Tokens":[{"TokenType":"id_token","TokenValue":"****C3rg","$type":"Token"},{"TokenType":"access_token","TokenValue":"****vh3g","$type":"Token"}],"Category":"Token","Name":"Token Issued Success","EventType":"Success","Id":2000,"Message":null,"ActivityId":"80000053-0004-fe00-b63f-84710c7967bb","TimeStamp":"2020-08-13T14:16:19.0000000Z","ProcessId":20604,"LocalIpAddress":"127.0.0.1:5000","RemoteIpAddress":"127.0.0.1","$type":"TokenIssuedSuccessEvent"}
+2020-08-13 16:16:19.097 +02:00 [DBG] Authorize endpoint response
+{"SubjectId":"95b3f912-82da-423d-9c3f-d80659c4318e","ClientId":"listify.webapp","RedirectUri":"http://localhost:4200","State":"aUkxVk11dGNqaWxYVWkxUk5FRUpROC11SjJmeGJZRzBKU0xlOUJUTEtTZzFa","Scope":"profile openid roles listifyWebAPI","Error":null,"ErrorDescription":null,"$type":"AuthorizeResponseLog"}
+2020-08-13 16:16:19.440 +02:00 [DBG] CORS request made for path: /.well-known/openid-configuration from origin: http://localhost:4200
+2020-08-13 16:16:19.444 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:16:19.445 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:16:19.445 +02:00 [DBG] Request path /.well-known/openid-configuration matched to endpoint type Discovery
+2020-08-13 16:16:19.445 +02:00 [DBG] Endpoint enabled: Discovery, successfully created handler: IdentityServer4.Endpoints.DiscoveryEndpoint
+2020-08-13 16:16:19.446 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.DiscoveryEndpoint for /.well-known/openid-configuration
+2020-08-13 16:16:19.446 +02:00 [DBG] Start discovery request
+2020-08-13 16:16:19.465 +02:00 [DBG] Found ["profile","openid","roles","listifyWebAPI"] as all scopes in database
+2020-08-13 16:16:19.626 +02:00 [DBG] CORS request made for path: /.well-known/openid-configuration/jwks from origin: http://localhost:4200
+2020-08-13 16:16:19.632 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:16:19.632 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:16:19.632 +02:00 [DBG] Request path /.well-known/openid-configuration/jwks matched to endpoint type Discovery
+2020-08-13 16:16:19.633 +02:00 [DBG] Endpoint enabled: Discovery, successfully created handler: IdentityServer4.Endpoints.DiscoveryKeyEndpoint
+2020-08-13 16:16:19.633 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.DiscoveryKeyEndpoint for /.well-known/openid-configuration/jwks
+2020-08-13 16:16:19.633 +02:00 [DBG] Start key discovery request
+2020-08-13 16:16:19.779 +02:00 [DBG] CORS request made for path: /connect/userinfo from origin: http://localhost:4200
+2020-08-13 16:16:19.825 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:16:19.826 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:16:19.829 +02:00 [DBG] CORS request made for path: /connect/userinfo from origin: http://localhost:4200
+2020-08-13 16:16:19.835 +02:00 [DBG] Origin http://localhost:4200 is allowed: true
+2020-08-13 16:16:19.835 +02:00 [DBG] CorsPolicyService allowed origin: http://localhost:4200
+2020-08-13 16:16:19.865 +02:00 [DBG] Request path /connect/userinfo matched to endpoint type Userinfo
+2020-08-13 16:16:19.872 +02:00 [DBG] Endpoint enabled: Userinfo, successfully created handler: IdentityServer4.Endpoints.UserInfoEndpoint
+2020-08-13 16:16:19.873 +02:00 [INF] Invoking IdentityServer endpoint: IdentityServer4.Endpoints.UserInfoEndpoint for /connect/userinfo
+2020-08-13 16:16:19.874 +02:00 [DBG] Start userinfo request
+2020-08-13 16:16:19.875 +02:00 [DBG] Bearer token found in header
+2020-08-13 16:16:19.983 +02:00 [DBG] listify.webapp found in database: true
+2020-08-13 16:16:19.983 +02:00 [DBG] client configuration validation for client listify.webapp succeeded.
+2020-08-13 16:16:20.033 +02:00 [DBG] listify.webapp found in database: true
+2020-08-13 16:16:20.033 +02:00 [DBG] client configuration validation for client listify.webapp succeeded.
+2020-08-13 16:16:20.049 +02:00 [DBG] Calling into custom token validator: IdentityServer4.Validation.DefaultCustomTokenValidator
+2020-08-13 16:16:20.050 +02:00 [DBG] Token validation success
+{"ClientId":null,"ClientName":null,"ValidateLifetime":true,"AccessTokenType":"Jwt","ExpectedScope":"openid","TokenHandle":null,"JwtId":null,"Claims":{"nbf":1597328179,"exp":1597331779,"iss":"http://localhost:5000","aud":"listifyWebAPI","client_id":"listify.webapp","sub":"95b3f912-82da-423d-9c3f-d80659c4318e","auth_time":1597327581,"idp":"Facebook","scope":["profile","openid","roles","listifyWebAPI"],"amr":"external"},"$type":"TokenValidationLog"}
+2020-08-13 16:16:20.050 +02:00 [DBG] Creating userinfo response
+2020-08-13 16:16:20.050 +02:00 [DBG] Scopes in access token: profile openid roles listifyWebAPI
+2020-08-13 16:16:20.051 +02:00 [DBG] Scopes in access token: profile openid roles listifyWebAPI
+2020-08-13 16:16:20.066 +02:00 [DBG] Found ["profile","openid","roles"] identity scopes in database
+2020-08-13 16:16:20.066 +02:00 [DBG] Requested claim types: preferred_username nickname middle_name given_name family_name name profile picture website gender birthdate zoneinfo locale updated_at sub role
+2020-08-13 16:16:20.066 +02:00 [DBG] Scopes in access token: profile openid roles listifyWebAPI
+2020-08-13 16:16:20.075 +02:00 [DBG] Found ["profile","openid","roles"] identity scopes in database
+2020-08-13 16:16:20.098 +02:00 [INF] Profile service returned the following claim types: sub name preferred_username
+2020-08-13 16:16:20.098 +02:00 [DBG] End userinfo request
+2020-08-13 16:18:17.516 +02:00 [INF] Removing 0 grants
+2020-08-13 16:18:17.654 +02:00 [INF] Removing 0 device flow codes
