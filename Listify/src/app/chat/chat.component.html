@@ -1,0 +1,32 @@
+<div class="container-fluid">
+  <h3>Send a Message</h3>
+  <div class="row">
+    <form class="form-inline" (ngSubmit)="sendMessage()" #messageForm="ngForm">
+      <div class="form-group">
+        <label class="sr-only" for="message">Message</label>
+        <input type="text" class="form-control" id="message" placeholder="Enter message here ...." name="message" [(ngModel)]="message" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="!messageForm.valid">Send Message</button>
+    </form>
+  </div>
+
+  <div class="row" *ngIf="messages.length > 0">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <tr>
+          <th>Messages</th>
+        </tr>
+      </table>
+      <tbody>
+        <tr *ngFor="let message of messages; let i = index">
+          <td><b>{{message.user.userName}}:</b> {{message.message}}</td>
+        </tr>
+      </tbody>
+    </div>
+  </div>
+
+  <div class="row" *ngIf="messages.length <= 0">
+    <span>No Messages</span>
+  </div>
+
+</div>

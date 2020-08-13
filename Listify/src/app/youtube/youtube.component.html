@@ -1,0 +1,22 @@
+<!-- <div class="col-4">
+  <youtube-component
+    [videoId]="videoId"
+    (ready) = "onReady($event)"
+    (change)= "onChange($event)"
+  ></youtube-component>
+</div> -->
+
+<div class="col-4">
+  <youtube-component
+    (ready) = "onReady($event)"
+    (change)= "onChange($event)"
+  ></youtube-component>
+</div>
+
+
+<input [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+<input [(ngModel)]="quantityWagered" placeholder="Wager Amount"/>
+<button (click)="requestSong()">Request Song</button>
+<button (click)="skip()">Skip Song</button>
+<button (click)="addToPlaylist()">Add to Default Playlist</button>
+<button (click)="playerState()">Get Player State</button>

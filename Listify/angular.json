@@ -119,6 +119,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "Listify"
+    }
+  },
+  "defaultProject": "Listify",
+  "cli": {
+    "analytics": "29343e4c-beef-41f6-9e0e-7ff18d0cb6f9"
+  }
 }
