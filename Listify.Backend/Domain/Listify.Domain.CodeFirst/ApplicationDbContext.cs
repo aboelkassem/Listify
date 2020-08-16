@@ -17,6 +17,9 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<ApplicationUserRoomConnection> ApplicationUsersRoomsConnections { get; set; }
         public virtual DbSet<ApplicationUserRoomCurrency> ApplicationUsersRoomsCurrencies { get; set; }
         public virtual DbSet<Currency> Currencies { get; set; }
+        public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+        public virtual DbSet<LogError> LogsErrors { get; set; }
+        public virtual DbSet<LogAPI> LogsAPI { get; set; }
         public virtual DbSet<Playlist> Playlists { get; set; }
         public virtual DbSet<Room> Rooms { get; set; }
         public virtual DbSet<Song> Songs { get; set; }
@@ -29,6 +32,22 @@ namespace Listify.Domain.CodeFirst
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUser>()
+                .HasIndex(s => s.AspNetUserId)
+                .IsUnique(true);
+
+            builder.Entity<Room>()
+                .HasIndex(s => s.RoomCode)
+                .IsUnique(true);
+
+            builder.Entity<ApplicationUser>()
+                .HasIndex(s => s.Username)
+                .IsUnique(true);
+
+            builder.Entity<ApplicationUserRoomConnection>()
+                .HasIndex(s => s.ConnectionId)
+                .IsUnique(true);
 
             builder.Entity<Room>()
                 .HasMany(s => s.ApplicationUsersRooms)

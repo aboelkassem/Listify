@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Listify.Domain.CodeFirst.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200813232251_Init")]
+    [Migration("20200816004000_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,41 +21,17 @@ namespace Listify.Domain.CodeFirst.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Listify.Doimain.Lib.Entities.ChatMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ApplicationUserRoomId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserRoomId");
-
-                    b.ToTable("ChatMessages","Listify");
-                });
-
             modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
                     b.Property<string>("AspNetUserId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("PlaylistCountMax")
                         .HasColumnType("int");
@@ -67,9 +43,17 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AspNetUserId")
+                        .IsUnique()
+                        .HasFilter("[AspNetUserId] IS NOT NULL");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasFilter("[Username] IS NOT NULL");
 
                     b.ToTable("ApplicationUsers","Listify");
                 });
@@ -80,11 +64,17 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ApplciationUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uniqueidentifier");
@@ -107,11 +97,14 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ApplicationUserRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConnectionId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("HasPingBeenSent")
                         .HasColumnType("bit");
@@ -126,6 +119,10 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasIndex("ApplicationUserRoomId");
 
+                    b.HasIndex("ConnectionId")
+                        .IsUnique()
+                        .HasFilter("[ConnectionId] IS NOT NULL");
+
                     b.ToTable("ApplicationUsersRoomsConnections","Listify");
                 });
 
@@ -134,6 +131,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ApplicationUserRoomId")
                         .HasColumnType("uniqueidentifier");
@@ -156,11 +156,44 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.ToTable("ApplicationUsersRoomsCurrencies","Listify");
                 });
 
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApplicationUserRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ApplicationUserRoomId");
+
+                    b.ToTable("ChatMessages","Listify");
+                });
+
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Currency", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<string>("CurrencyName")
                         .HasColumnType("nvarchar(max)");
@@ -190,11 +223,73 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.ToTable("Currencies","Listify");
                 });
 
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.LogAPI", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("EndPointType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ResponseCode")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("LogsAPI","Listify");
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.LogError", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Exception")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IPAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("LogErrors","Listify");
+                });
+
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Playlist", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
@@ -221,6 +316,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -231,7 +329,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("RoomCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
@@ -241,6 +339,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasIndex("ApplicationUserId")
                         .IsUnique();
 
+                    b.HasIndex("RoomCode")
+                        .IsUnique()
+                        .HasFilter("[RoomCode] IS NOT NULL");
+
                     b.ToTable("Rooms","Listify");
                 });
 
@@ -249,6 +351,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<int>("SongLengthSeconds")
                         .HasColumnType("int");
@@ -272,6 +377,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
@@ -298,10 +406,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ApplicationUserRoomCurrencyId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
 
-                    b.Property<Guid>("ApplicationUserRoomId")
+                    b.Property<Guid>("ApplicationUserRoomCurrencyId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Discriminator")
@@ -320,8 +428,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationUserRoomCurrencyId");
-
-                    b.HasIndex("ApplicationUserRoomId");
 
                     b.ToTable("Transactions","Listify");
 
@@ -381,19 +487,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasDiscriminator().HasValue("TransactionSongQueued");
                 });
 
-            modelBuilder.Entity("Listify.Doimain.Lib.Entities.ChatMessage", b =>
-                {
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", null)
-                        .WithMany("ChatMessages")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
-                        .WithMany("ChatMessages")
-                        .HasForeignKey("ApplicationUserRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUserRoom", b =>
                 {
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", "ApplicationUser")
@@ -431,11 +524,42 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.ChatMessage", b =>
+                {
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", null)
+                        .WithMany("ChatMessages")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
+                        .WithMany("ChatMessages")
+                        .HasForeignKey("ApplicationUserRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Currency", b =>
                 {
                     b.HasOne("Listify.Domain.Lib.Entities.Room", "Room")
                         .WithMany("Currencies")
                         .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.LogAPI", b =>
+                {
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany("LogsAPI")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.LogError", b =>
+                {
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany("LogsErrors")
+                        .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -469,13 +593,9 @@ namespace Listify.Domain.CodeFirst.Migrations
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Transaction", b =>
                 {
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrency", null)
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrency", "ApplicationUserRoomCurrency")
                         .WithMany("Transactions")
-                        .HasForeignKey("ApplicationUserRoomCurrencyId");
-
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserRoomId")
+                        .HasForeignKey("ApplicationUserRoomCurrencyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

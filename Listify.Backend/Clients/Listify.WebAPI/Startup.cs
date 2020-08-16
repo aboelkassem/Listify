@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Listify.WebAPI.Hubs;
 using Listify.Domain.CodeFirst;
+using Listify.Domain.BLL;
+using Listify.DAL;
 
 namespace Listify.WebAPI
 {
@@ -57,6 +52,11 @@ namespace Listify.WebAPI
                 });
 
             services.AddControllers();
+
+            //services.AddTransient<IPathsListify, PathsListify>();
+            services.AddTransient<IListifyServices, ListifyServices>();
+
+            services.AddSingleton(AutoMap.CreateAutoMapper());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

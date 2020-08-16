@@ -1,8 +1,5 @@
-﻿using Listify.Doimain.Lib.Entities;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
@@ -33,5 +30,11 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
+
+        public ICollection<LogAPI> LogsAPI { get; set; } =
+            new List<LogAPI>();
+
+        public ICollection<LogError> LogsErrors { get; set; } =
+            new List<LogError>();
     }
 }

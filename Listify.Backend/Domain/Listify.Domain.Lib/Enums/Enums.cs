@@ -6,10 +6,27 @@ namespace Listify.Domain.Lib.Enums
 {
     public enum TransactionType
     {
-        SongRequest,
+        Request,
         Upvote,
         Downvote,
-        CurrencyPolling,
-        CurrencyAwarded
+        PollingCurrency,
+        AwardCurrency
+    }
+
+    public enum EndpointType
+    {
+
+    }
+
+    public enum WagerType
+    {
+        Upvote,
+        Downvote,
+    }
+
+    public enum PollingEventType
+    {
+        CurrencyPoll,
+        PingPoll
     }
 }

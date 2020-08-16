@@ -16,6 +16,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     AspNetUserId = table.Column<string>(nullable: true),
                     Username = table.Column<string>(nullable: true),
@@ -33,6 +34,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     SongName = table.Column<string>(nullable: true),
                     YoutubeId = table.Column<string>(nullable: true),
@@ -44,11 +46,61 @@ namespace Listify.Domain.CodeFirst.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "LogErrors",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    Exception = table.Column<string>(nullable: true),
+                    IPAddress = table.Column<string>(nullable: true),
+                    ApplicationUserId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LogErrors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LogErrors_ApplicationUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalSchema: "Listify",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LogsAPI",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    EndPointType = table.Column<int>(nullable: false),
+                    ResponseCode = table.Column<int>(nullable: false),
+                    IPAddress = table.Column<string>(nullable: true),
+                    ApplicationUserId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LogsAPI", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LogsAPI_ApplicationUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalSchema: "Listify",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Playlists",
                 schema: "Listify",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     PlaylistName = table.Column<string>(nullable: true),
                     IsSelected = table.Column<bool>(nullable: false),
@@ -72,6 +124,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     RoomCode = table.Column<string>(nullable: true),
                     IsRoomPublic = table.Column<bool>(nullable: false),
@@ -96,7 +149,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
+                    IsOnline = table.Column<bool>(nullable: false),
                     ApplciationUserId = table.Column<Guid>(nullable: false),
                     RoomId = table.Column<Guid>(nullable: false),
                     ApplicationUserId = table.Column<Guid>(nullable: true)
@@ -126,6 +181,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     CurrencyName = table.Column<string>(nullable: true),
                     Weight = table.Column<int>(nullable: false),
@@ -152,6 +208,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     SongId = table.Column<Guid>(nullable: false),
                     Discriminator = table.Column<string>(nullable: false),
@@ -200,6 +257,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     ConnectionId = table.Column<string>(nullable: true),
                     IsOnline = table.Column<bool>(nullable: false),
@@ -224,6 +282,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     Message = table.Column<string>(nullable: true),
                     ApplicationUserRoomId = table.Column<Guid>(nullable: false),
@@ -254,6 +313,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     Quantity = table.Column<int>(nullable: false),
                     ApplicationUserRoomId = table.Column<Guid>(nullable: false),
@@ -284,11 +344,11 @@ namespace Listify.Domain.CodeFirst.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     TransactionType = table.Column<int>(nullable: false),
                     QuantityChange = table.Column<int>(nullable: false),
-                    ApplicationUserRoomId = table.Column<Guid>(nullable: false),
-                    ApplicationUserRoomCurrencyId = table.Column<Guid>(nullable: true),
+                    ApplicationUserRoomCurrencyId = table.Column<Guid>(nullable: false),
                     Discriminator = table.Column<string>(nullable: false),
                     SongQueuedId = table.Column<Guid>(nullable: true)
                 },
@@ -301,13 +361,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                         principalSchema: "Listify",
                         principalTable: "ApplicationUsersRoomsCurrencies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Transactions_ApplicationUsersRooms_ApplicationUserRoomId",
-                        column: x => x.ApplicationUserRoomId,
-                        principalSchema: "Listify",
-                        principalTable: "ApplicationUsersRooms",
-                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Transactions_SongRequests_SongQueuedId",
@@ -317,6 +370,22 @@ namespace Listify.Domain.CodeFirst.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUsers_AspNetUserId",
+                schema: "Listify",
+                table: "ApplicationUsers",
+                column: "AspNetUserId",
+                unique: true,
+                filter: "[AspNetUserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUsers_Username",
+                schema: "Listify",
+                table: "ApplicationUsers",
+                column: "Username",
+                unique: true,
+                filter: "[Username] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApplicationUsersRooms_ApplicationUserId",
@@ -335,6 +404,14 @@ namespace Listify.Domain.CodeFirst.Migrations
                 schema: "Listify",
                 table: "ApplicationUsersRoomsConnections",
                 column: "ApplicationUserRoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUsersRoomsConnections_ConnectionId",
+                schema: "Listify",
+                table: "ApplicationUsersRoomsConnections",
+                column: "ConnectionId",
+                unique: true,
+                filter: "[ConnectionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ApplicationUsersRoomsCurrencies_ApplicationUserRoomId",
@@ -367,6 +444,18 @@ namespace Listify.Domain.CodeFirst.Migrations
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LogErrors_ApplicationUserId",
+                schema: "Listify",
+                table: "LogErrors",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LogsAPI_ApplicationUserId",
+                schema: "Listify",
+                table: "LogsAPI",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Playlists_ApplicationUserId",
                 schema: "Listify",
                 table: "Playlists",
@@ -378,6 +467,14 @@ namespace Listify.Domain.CodeFirst.Migrations
                 table: "Rooms",
                 column: "ApplicationUserId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rooms_RoomCode",
+                schema: "Listify",
+                table: "Rooms",
+                column: "RoomCode",
+                unique: true,
+                filter: "[RoomCode] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SongRequests_PlaylistId",
@@ -410,12 +507,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                 column: "ApplicationUserRoomCurrencyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_ApplicationUserRoomId",
-                schema: "Listify",
-                table: "Transactions",
-                column: "ApplicationUserRoomId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_SongQueuedId",
                 schema: "Listify",
                 table: "Transactions",
@@ -430,6 +521,14 @@ namespace Listify.Domain.CodeFirst.Migrations
 
             migrationBuilder.DropTable(
                 name: "ChatMessages",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
+                name: "LogErrors",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
+                name: "LogsAPI",
                 schema: "Listify");
 
             migrationBuilder.DropTable(

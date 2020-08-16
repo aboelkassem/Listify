@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.0">
@@ -19,9 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Domain\Listify.Domain.BLL\Listify.Domain.BLL.csproj" />
     <ProjectReference Include="..\..\Domain\Listify.Domain.CodeFirst\Listify.Domain.CodeFirst.csproj" />
     <ProjectReference Include="..\..\Domain\Listify.Domain.Lib\Listify.Domain.Lib.csproj" />
     <ProjectReference Include="..\..\Domain\Listify.Paths\Listify.Paths.csproj" />
+    <ProjectReference Include="..\..\Modules\Listify.DAL\Listify.DAL.csproj" />
+    <ProjectReference Include="..\..\Modules\Listify.Lib\Listify.Lib.csproj" />
     <ProjectReference Include="..\Listify.Identity\Listify.Identity.csproj" />
   </ItemGroup>
 

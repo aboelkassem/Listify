@@ -1,9 +1,7 @@
-﻿using Listify.Doimain.Lib.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
@@ -12,8 +10,8 @@ namespace Listify.Domain.Lib.Entities
     {
         // the identifier for the room that can be chosen by the user
         public string RoomCode { get; set; }
-        public bool IsRoomPublic { get; set; }
-        public bool IsRoomOnline { get; set; }
+        public bool IsRoomPublic { get; set; } = true;
+        public bool IsRoomOnline { get; set; } = true;
 
         // This is the Room Owner
         public Guid ApplicationUserId { get; set; }

@@ -1,14 +1,14 @@
-﻿using Listify.Doimain.Lib.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
     [Table("ApplicationUsersRooms", Schema = "Listify")]
     public class ApplicationUserRoom : BaseEntity
     {
+        public bool IsOnline { get; set; }
+
         public Guid ApplciationUserId { get; set; }
         public Guid RoomId { get; set; }
 
