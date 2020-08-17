@@ -8,6 +8,7 @@ using Listify.WebAPI.Hubs;
 using Listify.Domain.CodeFirst;
 using Listify.Domain.BLL;
 using Listify.DAL;
+using Listify.Paths;
 
 namespace Listify.WebAPI
 {

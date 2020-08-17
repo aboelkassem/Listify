@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Listify.Domain.CodeFirst.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200816004000_Init")]
+    [Migration("20200817013742_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,10 +67,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("ApplciationUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ApplicationUserId")
+                    b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsOnline")
@@ -491,7 +488,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                 {
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("ApplicationUsersRooms")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Listify.Domain.Lib.Entities.Room", "Room")
                         .WithMany("ApplicationUsersRooms")

@@ -19,7 +19,7 @@
       </table>
       <tbody>
         <tr *ngFor="let message of messages; let i = index">
-          <td><b>{{message.user.userName}}:</b> {{message.message}}</td>
+          <td><b>{{message.applicationUserRoom.applicationUser.username}}:</b> {{message.message}}</td>
         </tr>
       </tbody>
     </div>

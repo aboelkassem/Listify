@@ -9,7 +9,7 @@ namespace Listify.Domain.Lib.Entities
     {
         public bool IsOnline { get; set; }
 
-        public Guid ApplciationUserId { get; set; }
+        public Guid ApplicationUserId { get; set; }
         public Guid RoomId { get; set; }
 
         public ApplicationUser ApplicationUser { get; set; }

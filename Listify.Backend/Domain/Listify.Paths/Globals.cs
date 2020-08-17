@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Listify.WebAPI
+namespace Listify.Paths
 {
     public static class Globals
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Listify.Domain.Lib.Entities;
-using Listify.WebAPI;
+using Listify.Paths;
 
 namespace Listify.Domain.CodeFirst
 {

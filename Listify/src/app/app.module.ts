@@ -11,6 +11,7 @@ import { YoutubeComponent } from './youtube/youtube.component';
 import { HomeComponent } from './home/home.component';
 import { SearchComponent } from './shared/search/search.component';
 import { ChatComponent } from './chat/chat.component';
+import { AccountComponent } from './account/account.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { ChatComponent } from './chat/chat.component';
     YoutubeComponent,
     HomeComponent,
     SearchComponent,
-    ChatComponent
+    ChatComponent,
+    AccountComponent
   ],
   imports: [
     BrowserModule,

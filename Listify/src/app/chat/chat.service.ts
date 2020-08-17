@@ -1,24 +1,26 @@
 import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
-import { IUser, IRoom, IMessage, ISongQueuedCreateRequest, IChatData } from '../interfaces';
+import { IRoom, IChatMessage, ISongQueuedCreateRequest, IChatData, IApplicationUser, IApplicationUserRoom } from '../interfaces';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
 
-  messages: IMessage[] = [];
-  message: string;
+  messages: IChatMessage[] = [];
   roomCurrent: IRoom;
+  applicationUserRoomCurrent: IApplicationUserRoom;
+  applicationUser: IApplicationUser;
 
   // event for asynchronous room for using in other places (observable)
   $roomReceived = new Subject<IRoom>();
+  $userInfoReceived = new Subject<IApplicationUser>();
 
   private _hubConnection: singalR.HubConnection;
-  private _user: IUser;
+  private _applicationUser: IApplicationUser;
   private _roomCode: string = "";
   private _rooms: IRoom[] = [];
 
@@ -37,15 +39,20 @@ export class ChatService {
       .build();
 
     // Subscribe my hub invoked functions here
-    this._hubConnection.on('ReceiveMessage', (message: IMessage) => {
+    this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
       this.receiveMessage(message);
     });
 
     this._hubConnection.on('ReceiveData', (data: IChatData) => {
-      this._user = data.user;
-      this.roomCurrent = data.room;
-
+      this.applicationUserRoomCurrent = data.applicationUserRoom;
+      this.roomCurrent = this.applicationUserRoomCurrent.room;
+      // console.log(data);
       this.$roomReceived.next(this.roomCurrent);
+    });
+
+    this._hubConnection.on('ReceiveUserInformation', (applicationUser: IApplicationUser) => {
+      this.applicationUser = applicationUser;
+      this.$userInfoReceived.next(applicationUser);
     });
 
     this._hubConnection.on('ReceiveRooms', (rooms: IRoom[]) => {
@@ -63,29 +70,39 @@ export class ChatService {
       this._hubConnection.stop();
     });
 
-    this._hubConnection.start().catch(err => console.error(err.ToString()));
+    this._hubConnection.start();
   }
 
-  receiveMessage(message: IMessage): void {
+  getUserInfo(): Observable<IApplicationUser> {
+    return this.$userInfoReceived.asObservable();
+  }
+
+  receiveMessage(message: IChatMessage): void {
     this.messages.push(message);
   }
 
-  receiveUser(user: IUser): void {
-    this._user = user;
+  // receiveUser(applicationUser: IApplicationUser): void {
+  //   this._applicationUser = applicationUser;
 
-    // set the default room for this user
-    if (this._roomCode === undefined || this._roomCode === '') {
-      this._roomCode = user.room.roomCode;
-    }
+  //   // set the default room for this user
+  //   if (this._roomCode === undefined || this._roomCode === '') {
+  //     this._roomCode = applicationUser.room.roomCode;
+  //   }
 
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('JoinRoom', this._roomCode);
+  //   }
+  // }
+
+  requestUserInformation(): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('JoinRoom', this._roomCode);
+      this._hubConnection.invoke('RequestUserInformation');
     }
   }
 
   sendMessage(message: string): void {
-    const data: IMessage = {
-      user: this._user,
+    const data: IChatMessage = {
+      applicationUserRoom: this.applicationUserRoomCurrent,
       message: message
     };
 

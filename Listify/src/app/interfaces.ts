@@ -1,3 +1,8 @@
+export interface IChatMessage {
+  applicationUserRoom: IApplicationUserRoom;
+  message: string;
+}
+
 export interface ISongQueuedCreateRequest {
   searchSnippet: string;
 }
@@ -6,24 +11,27 @@ export interface ISongSearchResult {
   name: string;
 }
 
-export interface IUser {
+export interface IApplicationUser {
+  id: string;
   aspNetUserId: string;
-  userName: string;
-  displayName: string;
+  username: string;
   room: IRoom;
+  songPoolCountMax: number;
+  playlistCount: number;
 }
 
 export interface IRoom {
+  id: string;
   roomCode: string;
-  isPublic: boolean;
+  isRoomPublic: boolean;
 }
-
-export interface IMessage {
-  user: IUser;
-  message: string;
+export interface IApplicationUserRoom {
+  id: string;
+  applicationUser: IApplicationUser;
+  room: IRoom;
+  isOnline: boolean;
 }
 
 export interface IChatData {
-  user: IUser;
-  room: IRoom;
+  applicationUserRoom: IApplicationUserRoom;
 }

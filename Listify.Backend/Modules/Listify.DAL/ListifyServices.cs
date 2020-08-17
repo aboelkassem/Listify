@@ -25,6 +25,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserVM> ReadApplicationUserAsync(Guid id)
         {
             var entity = await _context.ApplicationUsers
+                .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
@@ -32,6 +33,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId)
         {
             var entity = await _context.ApplicationUsers
+                .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.AspNetUserId == aspNetUserId && s.Active);
 
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
@@ -93,7 +95,19 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRooms
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+            var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
+            return entity != null ? vm : null;
+        }
+        public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId)
+        {
+            var entity = await _context.ApplicationUsersRooms
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId &&
+                s.RoomId == roomId && s.Active);
 
             return entity != null ? _mapper.Map<ApplicationUserRoomVM>(entity) : null;
         }
@@ -101,7 +115,7 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<ApplicationUserRoom>(request);
 
-            entity.ApplciationUserId = applicationUserId;
+            entity.ApplicationUserId = applicationUserId;
             _context.ApplicationUsersRooms.Add(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomAsync(entity.Id) : null;
@@ -227,6 +241,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
+                .Include(s => s.ApplicationUserRoom)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             return entity != null ? _mapper.Map<ApplicationUserRoomConnectionVM>(entity) : null;
@@ -234,6 +249,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
+                .Include(s => s.ApplicationUserRoom)
                 .FirstOrDefaultAsync(s => s.ConnectionId == connectionId && s.Active);
 
             return entity != null ? _mapper.Map<ApplicationUserRoomConnectionVM>(entity) : null;
@@ -653,6 +669,13 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<RoomVM>(entity) : null;
         }
+        public virtual async Task<RoomVM> ReadRoomAsync(string roomCode)
+        {
+            var entity = await _context.Rooms
+                .FirstOrDefaultAsync(s => s.RoomCode.Trim().ToLower() == roomCode.Trim().ToLower() && s.Active);
+
+            return entity != null ? _mapper.Map<RoomVM>(entity) : null;
+        }
         public virtual async Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request)
         {
             var entity = await _context.Rooms
@@ -753,6 +776,10 @@ namespace Listify.DAL
             }
 
             return false;
+        }
+
+        public virtual void Dispose()
+        {
         }
     }
 }

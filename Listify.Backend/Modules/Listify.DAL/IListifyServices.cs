@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Listify.DAL
 {
-    public interface IListifyServices
+    public interface IListifyServices : IDisposable
     {
         Task<ApplicationUserVM> CreateApplicationUserAsync(ApplicationUserCreateRequest request);
         Task<ApplicationUserRoomVM> CreateApplicationUserRoomAsync(ApplicationUserRoomCreateRequest request, Guid applicationUserId);
@@ -37,6 +37,7 @@ namespace Listify.DAL
         Task<ApplicationUserVM> ReadApplicationUserAsync(Guid id);
         Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId);
         Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id);
+        Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId);
         Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id);
@@ -45,6 +46,7 @@ namespace Listify.DAL
         Task<LogAPIVM> ReadLogAPIAsync(Guid id);
         Task<LogErrorVM> ReadLogErrorAsync(Guid id);
         Task<PlaylistVM> ReadPlaylistAsync(Guid id);
+        Task<RoomVM> ReadRoomAsync(string roomCode);
         Task<RoomVM> ReadRoomAsync(Guid id);
         Task<SongVM> ReadSongAsync(Guid id);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);

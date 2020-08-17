@@ -152,9 +152,8 @@ namespace Listify.Domain.CodeFirst.Migrations
                     Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     IsOnline = table.Column<bool>(nullable: false),
-                    ApplciationUserId = table.Column<Guid>(nullable: false),
-                    RoomId = table.Column<Guid>(nullable: false),
-                    ApplicationUserId = table.Column<Guid>(nullable: true)
+                    ApplicationUserId = table.Column<Guid>(nullable: false),
+                    RoomId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -165,7 +164,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                         principalSchema: "Listify",
                         principalTable: "ApplicationUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ApplicationUsersRooms_Rooms_RoomId",
                         column: x => x.RoomId,
