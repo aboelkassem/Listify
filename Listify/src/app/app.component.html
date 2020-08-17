@@ -3,7 +3,20 @@
 <nav>
   <a routerLink="/home">Home</a> |
   <a routerLink="/account">Account</a> |
-  <a routerLink="/youtube">Youtube</a>
+  <a routerLink="/rooms">Rooms</a>
 </nav>
+<div *ngIf="isAuthenticated">
+  <h2>Welcome, {{claims['name']}}!</h2>
+  <button (click)="logout()">Logout</button>
+  <!-- <app-youtube></app-youtube> -->
 
-<router-outlet></router-outlet>
+  <router-outlet></router-outlet>
+
+  <app-chat></app-chat>
+</div>
+
+<div *ngIf="!isAuthenticated">
+  <button (click)="login()">Login</button>
+</div>
+
+

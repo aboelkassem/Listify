@@ -1,0 +1,18 @@
+<div class="row" *ngIf="rooms.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Rooms</th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let room of rooms; let i = index">
+        <td><a [routerLink]="['/room']" [queryParams]="{id: room.roomCode}">{{room.roomCode}}</a></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+
+<div class="row" *ngIf="rooms.length <= 0">
+  <span>No Rooms</span>
+</div>

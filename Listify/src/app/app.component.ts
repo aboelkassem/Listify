@@ -11,6 +11,8 @@ import { Router } from '@angular/router';
 })
 export class AppComponent {
   title = 'Listify';
+  claims: any;
+  hasLoadedProfile: boolean;
 
   constructor(private oauthService: OAuthService, private router: Router) {
     this.configureWithNewConfigApi();
@@ -21,5 +23,28 @@ export class AppComponent {
     this.oauthService.configure(authConfig);
     this.oauthService.tokenValidationHandler = new JwksValidationHandler();
     this.oauthService.loadDiscoveryDocumentAndTryLogin();
+  }
+
+  login(): void {
+    this.oauthService.initImplicitFlow();
+  }
+
+  logout(): void {
+    this.oauthService.logOut();
+  }
+
+  get isAuthenticated(): boolean {
+    this.claims = this.oauthService.getIdentityClaims();
+    if (this.claims !== undefined && this.claims != null) {
+
+      if (!this.hasLoadedProfile) {
+        this.hasLoadedProfile = true;
+        this.oauthService.loadUserProfile();
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

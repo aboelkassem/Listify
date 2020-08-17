@@ -1,5 +1,5 @@
+import { HubService } from './../hub.service';
 import { Subscription } from 'rxjs';
-import { ChatService } from './../chat/chat.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 @Component({
@@ -15,16 +15,16 @@ export class AccountComponent implements OnInit, OnDestroy {
   subscription: Subscription;
 
   constructor(
-    private chatService: ChatService) {
-      this.subscription = this.chatService.getUserInfo().subscribe(user => {
+    private hubService: HubService) {
+      this.subscription = this.hubService.getUserInfo().subscribe(user => {
         this.username = user.username;
-        this.songPoolCountMax = user.songPoolCountMax;
-        this.playlistCount = user.playlistCount;
+        this.songPoolCountMax = user.songPoolCountSongsMax;
+        this.playlistCount = user.playlistCountMax;
       });
     }
 
   ngOnInit(): void {
-    this.chatService.requestUserInformation();
+    this.hubService.requestUserInformation();
   }
 
   ngOnDestroy(): void {

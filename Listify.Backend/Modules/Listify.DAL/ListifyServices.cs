@@ -3,10 +3,13 @@ using Listify.Domain.CodeFirst;
 using Listify.Domain.Lib.Entities;
 using Listify.Domain.Lib.Requests;
 using Listify.Domain.Lib.VMs;
+using Listify.Lib.DTOs;
 using Listify.Lib.Requests;
 using Listify.Lib.VMs;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Listify.DAL
@@ -662,6 +665,18 @@ namespace Listify.DAL
             return await _context.SaveChangesAsync() > 0 ? await ReadLogErrorAsync(entity.Id) : null;
         }
 
+        public virtual async Task<RoomDTO[]> ReadRoomsAsync()
+        {
+            var entities = await _context.Rooms
+                        .Where(s => s.IsRoomOnline && s.IsRoomPublic && s.Active)
+                        .ToListAsync();
+
+            var dtos = new List<RoomDTO>();
+
+            entities.ForEach(s => dtos.Add(_mapper.Map<RoomDTO>(s)));
+
+            return dtos.ToArray();
+        }
         public virtual async Task<RoomVM> ReadRoomAsync(Guid id)
         {
             var entity = await _context.Rooms

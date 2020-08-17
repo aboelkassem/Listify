@@ -1,4 +1,5 @@
-﻿using Listify.Lib.Requests;
+﻿using Listify.Lib.DTOs;
+using Listify.Lib.Requests;
 using Listify.Lib.VMs;
 using System;
 using System.Threading.Tasks;
@@ -47,6 +48,7 @@ namespace Listify.DAL
         Task<LogErrorVM> ReadLogErrorAsync(Guid id);
         Task<PlaylistVM> ReadPlaylistAsync(Guid id);
         Task<RoomVM> ReadRoomAsync(string roomCode);
+        Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
         Task<SongVM> ReadSongAsync(Guid id);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);

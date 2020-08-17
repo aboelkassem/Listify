@@ -7,20 +7,28 @@ import { AppRoutingModule } from './app-routing.module';
 import { YoutubeModule } from 'angularx-youtube';
 
 import { AppComponent } from './app.component';
-import { YoutubeComponent } from './youtube/youtube.component';
-import { HomeComponent } from './home/home.component';
 import { SearchComponent } from './shared/search/search.component';
 import { ChatComponent } from './chat/chat.component';
 import { AccountComponent } from './account/account.component';
+import { RoomsComponent } from './rooms/rooms.component';
+import { RoomComponent } from './room/room.component';
+import { HomeComponent } from './home/home.component';
+import { QueueComponent } from './queue/queue.component';
+import { CurrencyComponent } from './currency/currency.component';
+import { CurrenciesComponent } from './currencies/currencies.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    YoutubeComponent,
-    HomeComponent,
     SearchComponent,
     ChatComponent,
-    AccountComponent
+    AccountComponent,
+    RoomsComponent,
+    RoomComponent,
+    HomeComponent,
+    QueueComponent,
+    CurrencyComponent,
+    CurrenciesComponent
   ],
   imports: [
     BrowserModule,

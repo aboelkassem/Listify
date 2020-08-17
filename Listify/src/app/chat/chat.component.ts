@@ -1,4 +1,4 @@
-import { ChatService } from './chat.service';
+import { HubService } from './../hub.service';
 import { IChatMessage } from './../interfaces';
 import { Component, OnInit } from '@angular/core';
 
@@ -10,17 +10,17 @@ import { Component, OnInit } from '@angular/core';
 export class ChatComponent implements OnInit {
 
 
-  messages: IChatMessage[] = this.chatService.messages;
+  messages: IChatMessage[] = this.hubService.messages;
   message = '';
 
-  constructor(private chatService: ChatService) { }
+  constructor(private hubService: HubService) { }
 
   ngOnInit(): void {
-    this.chatService.connectToHub('https://localhost:44315/chathub');
+    this.hubService.connectToHub('https://localhost:44315/chathub');
   }
 
   sendMessage(): void {
-    this.chatService.sendMessage(this.message);
+    this.hubService.sendMessage(this.message);
     this.message = '';
   }
 

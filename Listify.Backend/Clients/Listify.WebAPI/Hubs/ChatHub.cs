@@ -56,6 +56,24 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
+        public async Task RequestRoom()
+        {
+
+        }
+        public async Task RequestRooms()
+        {
+            try
+            {
+                var rooms = await _services.ReadRoomsAsync();
+                await Clients.Caller.SendAsync("ReceiveRooms", rooms);
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }
+        }
+        
         public override async Task OnConnectedAsync()
         {
             try

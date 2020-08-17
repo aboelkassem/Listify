@@ -16,8 +16,8 @@ export interface IApplicationUser {
   aspNetUserId: string;
   username: string;
   room: IRoom;
-  songPoolCountMax: number;
-  playlistCount: number;
+  songPoolCountSongsMax: number;
+  playlistCountMax: number;
 }
 
 export interface IRoom {
