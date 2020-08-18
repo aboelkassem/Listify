@@ -1,0 +1,22 @@
+<a [routerLink]="['/playlist']">New Playlist</a>
+
+<div class="row" *ngIf="playlists.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Playlists</th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let playlist of playlists; let i = index">
+        <td><a [routerLink]="['/playlist']" [queryParams]="{id: playlist.id}">{{playlist.playlistName}}</a></td>
+        <td><button (click)="deletePlaylist(playlist.id)">Delete Playlist</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+
+<div class="row" *ngIf="playlists.length <= 0">
+  <span>No playlists</span>
+</div>

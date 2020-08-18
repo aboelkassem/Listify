@@ -51,7 +51,6 @@ namespace Listify.Domain.BLL
                 c.CreateMap<Playlist, PlaylistVM>().ReverseMap();
                 c.CreateMap<PlaylistVM, PlaylistDTO>().ReverseMap();
                 c.CreateMap<PlaylistCreateRequest, Playlist>();
-                c.CreateMap<PlaylistUpdateRequest, Playlist>();
 
                 c.CreateMap<Room, RoomDTO>().ReverseMap();
                 c.CreateMap<Room, RoomVM>().ReverseMap();

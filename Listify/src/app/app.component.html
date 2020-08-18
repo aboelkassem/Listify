@@ -3,6 +3,7 @@
 <nav>
   <a routerLink="/home">Home</a> |
   <a routerLink="/account">Account</a> |
+  <a routerLink="/playlists">Playlists</a> |
   <a routerLink="/rooms">Rooms</a>
 </nav>
 <div *ngIf="isAuthenticated">
@@ -11,8 +12,6 @@
   <!-- <app-youtube></app-youtube> -->
 
   <router-outlet></router-outlet>
-
-  <app-chat></app-chat>
 </div>
 
 <div *ngIf="!isAuthenticated">

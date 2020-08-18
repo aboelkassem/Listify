@@ -351,11 +351,26 @@ namespace Listify.DAL
             }
             return false;
         }
+        
+        // return all playlists for current user
+        public virtual async Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId)
+        {
+            var entities = await _context.Playlists
+                .Include(s => s.SongPlaylists)
+                .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
+                .ToListAsync();
 
-        public virtual async Task<PlaylistVM> ReadPlaylistAsync(Guid id)
+            var dtos = new List<PlaylistDTO>();
+
+            entities.ForEach(s => dtos.Add(_mapper.Map<PlaylistDTO>(s)));
+
+            return dtos.ToArray();
+        }
+        public virtual async Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.Playlists
-                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+                .Include(s => s.SongPlaylists)
+                .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
             return entity != null ? _mapper.Map<PlaylistVM>(entity) : null;
         }
@@ -365,7 +380,7 @@ namespace Listify.DAL
                 .Include(s => s.Playlists)
                 .FirstOrDefaultAsync(s => s.Id == applicationUserId);
 
-            if (user.Playlists.Count < user.PlaylistCountMax)
+            if (user.Playlists.Where(s => s.Active).ToList().Count < user.PlaylistCountMax)
             {
                 var entity = _mapper.Map<Playlist>(request);
 
@@ -374,16 +389,16 @@ namespace Listify.DAL
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
-                    return await ReadPlaylistAsync(entity.Id);
+                    return await ReadPlaylistAsync(entity.Id, applicationUserId);
                 }
             }
 
             return null;
         }
-        public virtual async Task<PlaylistVM> UpdatePlaylistAsync(PlaylistUpdateRequest request)
+        public virtual async Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId)
         {
             var entity = await _context.Playlists
-                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == request.Id && s.ApplicationUserId == applicationUserId && s.Active);
 
             if (entity != null)
             {
@@ -393,15 +408,15 @@ namespace Listify.DAL
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
-                    return await ReadPlaylistAsync(entity.Id);
+                    return await ReadPlaylistAsync(entity.Id, applicationUserId);
                 }
             }
             return null;
         }
-        public virtual async Task<bool> DeletePlaylistAsync(Guid id)
+        public virtual async Task<bool> DeletePlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.Playlists
-                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
             if (entity != null)
             {

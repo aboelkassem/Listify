@@ -44,9 +44,8 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
-                var applicationUser = await _services.ReadApplicationUserAsync(applicationUserRoom.ApplicationUser.Id);
+                var userId = await GetUserIdAsync();
+                var applicationUser = await _services.ReadApplicationUserAsync(userId);
 
                 await Clients.Caller.SendAsync("ReceiveUserInformation", applicationUser);
             }
@@ -56,10 +55,6 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
-        public async Task RequestRoom()
-        {
-
-        }
         public async Task RequestRooms()
         {
             try
@@ -73,7 +68,92 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-        
+        public async Task RequestRoom(string id)
+        {
+            try
+            {
+                if (Guid.TryParse(id, out var guid))
+                {
+                    var room = await _services.ReadRoomAsync(guid);
+                    await Clients.Caller.SendAsync("ReceiveRoom", room);
+                }
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        // for the owner/current user
+        public async Task RequestPlaylists()
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var playlists = await _services.ReadPlaylistsAsync(userId);
+                await Clients.Caller.SendAsync("ReceivePlaylists", playlists);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestPlaylist(string id)
+        {
+            try
+            {
+                if (Guid.TryParse(id, out var guid))
+                {
+                    var userId = await GetUserIdAsync();
+
+                    var playlist = await _services.ReadPlaylistAsync(guid, userId);
+                    await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task CreatePlaylist(PlaylistCreateRequest request)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+
+                // Create or update the playlist
+                PlaylistVM playlist = request.Id == Guid.Empty
+                    ? await _services.CreatePlaylistAsync(request, userId)
+                    : await _services.UpdatePlaylistAsync(request, userId);
+
+                await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task DeletePlaylist(string id)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                if (Guid.TryParse(id, out var guid))
+                {
+                    if (await _services.DeletePlaylistAsync(guid, userId))
+                    {
+                        await Clients.Caller.SendAsync("ReceivePlaylists");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+
         public override async Task OnConnectedAsync()
         {
             try
@@ -164,6 +244,13 @@ namespace Listify.WebAPI.Hubs
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        protected virtual async Task<Guid> GetUserIdAsync()
+        {
+            var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+            return applicationUserRoom.ApplicationUser.Id;
         }
     }
 }

@@ -1,0 +1,15 @@
+<form (ngSubmit)="savePlaylist()" #editForm="ngForm">
+  <div>
+    <label for="playlistName">Playlist Name:</label>
+    <input [(ngModel)]="playlistName" #tPlayList="ngModel" name="playlistName" id="playlistName" placeholder="Playlist Name" required />
+    <div *ngIf="tPlayList.touched && !tPlayList.valid" style="color: red">Place Name is Required</div>
+  </div>
+  <div>
+    <label for="isSelected">Is Selected:</label>
+    <input type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected"/>
+  </div>
+  <button type="button" id="back" routerLink="/playlists">Back</button>
+  <!-- <button type="button" id="addSong" (click)="addSong()" routerLink="/songRequest">Add Song</button> -->
+  <button type="button" id="addSong" routerLink="/songRequest">Add Song</button>
+  <button type="submit" id="save" [disabled]="!editForm.form.valid">Save</button>
+</form>

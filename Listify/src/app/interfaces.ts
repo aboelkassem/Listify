@@ -1,8 +1,3 @@
-export interface IChatMessage {
-  applicationUserRoom: IApplicationUserRoom;
-  message: string;
-}
-
 export interface ISongQueuedCreateRequest {
   searchSnippet: string;
 }
@@ -34,4 +29,34 @@ export interface IApplicationUserRoom {
 
 export interface IChatData {
   applicationUserRoom: IApplicationUserRoom;
+}
+
+export interface IChatMessage {
+  applicationUserRoom: IApplicationUserRoom;
+  message: string;
+}
+
+export interface IPlaylist {
+  id: string;
+  playlistName: string;
+  isSelected: boolean;
+  applicationUser: IApplicationUser;
+  songsPlaylists: ISongPlaylist[];
+}
+
+export interface ISongPlaylist {
+  playCount: number;
+  song: ISong;
+}
+
+export interface ISong {
+  songName: string;
+  youtubeId: string;
+  songLengthSec: number;
+}
+
+export interface IPlaylistCreateRequest{
+  id: string;
+  playlistName: string;
+  isSelected: boolean;
 }

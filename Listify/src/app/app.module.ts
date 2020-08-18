@@ -8,14 +8,17 @@ import { YoutubeModule } from 'angularx-youtube';
 
 import { AppComponent } from './app.component';
 import { SearchComponent } from './shared/search/search.component';
-import { ChatComponent } from './chat/chat.component';
+import { ChatComponent } from './shared/chat/chat.component';
 import { AccountComponent } from './account/account.component';
 import { RoomsComponent } from './rooms/rooms.component';
 import { RoomComponent } from './room/room.component';
 import { HomeComponent } from './home/home.component';
-import { QueueComponent } from './queue/queue.component';
+import { QueueComponent } from './shared/queue/queue.component';
 import { CurrencyComponent } from './currency/currency.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
+import { PlaylistComponent } from './playlist/playlist.component';
+import { PlaylistsComponent } from './playlists/playlists.component';
+import { SongrequestComponent } from './shared/songrequest/songrequest.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +31,10 @@ import { CurrenciesComponent } from './currencies/currencies.component';
     HomeComponent,
     QueueComponent,
     CurrencyComponent,
-    CurrenciesComponent
+    CurrenciesComponent,
+    PlaylistComponent,
+    PlaylistsComponent,
+    SongrequestComponent
   ],
   imports: [
     BrowserModule,
