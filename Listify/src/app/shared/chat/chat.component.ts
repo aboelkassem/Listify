@@ -1,4 +1,4 @@
-import { HubService } from './../../hub.service';
+import { HubService } from './../../services/hub.service';
 import { IChatMessage } from './../../interfaces';
 import { Component, OnInit } from '@angular/core';
 

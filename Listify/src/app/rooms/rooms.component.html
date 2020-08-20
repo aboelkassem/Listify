@@ -7,7 +7,7 @@
     </table>
     <tbody>
       <tr *ngFor="let room of rooms; let i = index">
-        <td><a [routerLink]="['/room']" [queryParams]="{id: room.roomCode}">{{room.roomCode}}</a></td>
+        <td><a [routerLink]="['/', room.roomCode]">{{room.roomCode}}</a></td>
       </tr>
     </tbody>
   </div>

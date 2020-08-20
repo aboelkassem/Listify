@@ -1,1 +1,22 @@
-<p>currencies works!</p>
+<a [routerLink]="['/currency']">New Currency</a>
+
+<div class="row" *ngIf="currencies.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Currencies</th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let currency of currencies; let i = index">
+        <td><a [routerLink]="['/currency', currency.id]">{{currency.currencyName}}</a></td>
+        <td><button (click)="deleteCurrency(currency.id)">Delete Currency</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+
+<div class="row" *ngIf="currencies.length <= 0">
+  <span>No Currencies</span>
+</div>

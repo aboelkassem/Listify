@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Listify.Lib.Responses;
 
 namespace Listify.DAL
 {
@@ -60,14 +61,18 @@ namespace Listify.DAL
 
             return null;
         }
-        public virtual async Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request)
+        public virtual async Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request, Guid applicationUserId)
         {
             var entity = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(s => s.Id == request.Id);
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Id == applicationUserId && s.Active);
 
             if (entity != null)
             {
                 entity.Username = request.Username;
+                entity.PlaylistCountMax = request.PlaylistCountMax;
+                entity.SongPoolCountSongsMax = request.SongPoolCountSongsMax;
+                entity.Room.RoomCode = request.RoomCode;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -77,10 +82,10 @@ namespace Listify.DAL
             }
             return null;
         }
-        public virtual async Task<bool> DeleteApplicationUserAsync(Guid id)
+        public virtual async Task<bool> DeleteApplicationUserAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == id && s.Id == applicationUserId && s.Active);
 
             if (entity != null)
             {
@@ -300,6 +305,19 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<CurrencyDTO[]> ReadCurrenciesAsync()
+        {
+            var entities = await _context.Currencies
+                .Where(s => s.Active)
+                .ToListAsync();
+
+            var dtos = new List<CurrencyDTO>();
+
+            entities.ForEach(s => dtos.Add(_mapper.Map<CurrencyDTO>(s)));
+
+            return dtos.ToArray();
+        }
+
         public virtual async Task<CurrencyVM> ReadCurrencyAsync(Guid id)
         {
             var entity = await _context.Currencies
@@ -307,7 +325,7 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<CurrencyVM>(entity) : null;
         }
-        public virtual async Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request)
+        public virtual async Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
         {
             var entity = _mapper.Map<Currency>(request);
 
@@ -315,7 +333,7 @@ namespace Listify.DAL
 
             return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyAsync(entity.Id) : null;
         }
-        public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyUpdateRequest request)
+        public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request)
         {
             var entity = await _context.Currencies
                 .FirstOrDefaultAsync(s => s.Id == request.Id);
@@ -384,6 +402,24 @@ namespace Listify.DAL
             {
                 var entity = _mapper.Map<Playlist>(request);
 
+                // this validation so only 1 playlist is listed as default
+                var otherPlaylists = await _context.Playlists
+                    .Where(s => s.ApplicationUserId == applicationUserId)
+                    .ToListAsync();
+                // if this playlist is default
+                if (entity.IsSelected)
+                {
+                    foreach (var otherPlaylist in otherPlaylists)
+                    {
+                        otherPlaylist.IsSelected = false;
+                        _context.Entry(otherPlaylist).State = EntityState.Modified;
+                    }
+                }
+                else if (otherPlaylists.Count() <= 0 || !otherPlaylists.Any(s => s.IsSelected))
+                {
+                    entity.IsSelected = true;
+                }
+
                 entity.ApplicationUserId = applicationUserId;
                 _context.Playlists.Add(entity);
 
@@ -405,6 +441,24 @@ namespace Listify.DAL
                 entity.PlaylistName = request.PlaylistName;
                 entity.IsSelected = request.IsSelected;
                 _context.Entry(entity).State = EntityState.Modified;
+
+                // this validation so only 1 playlist is listed as default
+                var otherPlaylists = await _context.Playlists
+                    .Where(s => s.ApplicationUserId == applicationUserId && s.Id != entity.Id)
+                    .ToListAsync();
+                // if this playlist is default
+                if (entity.IsSelected)
+                {
+                    foreach (var otherPlaylist in otherPlaylists)
+                    {
+                        otherPlaylist.IsSelected = false;
+                        _context.Entry(otherPlaylist).State = EntityState.Modified;
+                    }
+                }
+                else if (otherPlaylists.Count() <= 0 || !otherPlaylists.Any(s => s.IsSelected))
+                {
+                    entity.IsSelected = true;
+                }
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
@@ -497,8 +551,87 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<SongPlaylistVM>(entity) : null;
         }
-        public virtual async Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request)
+        public virtual async Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request, Guid applicationUserId)
         {
+
+            //var song = await _context.Songs
+            //    .FirstOrDefaultAsync(s => s.YoutubeId == request.SongSearchResult.VideoId);
+
+            //var playlist = await _context.Playlists
+            //    .FirstOrDefaultAsync(s => s.Id == request.PlaylistId && s.ApplicationUserId == applicationUserId && s.Active);
+
+            //if (playlist != null)
+            //{
+            //    if (songs != null)
+            //    {
+            //        // Create the Song
+            //        YoutubeSearchResponse response;
+            //        using (var httpClient = new HttpClient())
+            //        {
+            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=";
+            //            var result = await httpClient.GetStringAsync(url);
+            //            response = JsonConverter.DeserializeObject<YoutubeSearchResponse>(result);
+            //        }
+
+            //        var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+            //        var hours = 0f;
+            //        var minutes = 0f;
+            //        var seconds = 0f;
+
+            //        if (parsedLength.IndexOf("H") > 0)
+            //        {
+            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
+            //            {
+            //                hours = hoursInt;
+            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
+            //            }
+            //        }
+
+            //        if (parsedLength.IndexOf("M") > 0)
+            //        {
+            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+            //            {
+            //                minutes = minutesInt;
+            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+            //            }
+            //        }
+
+            //        if (parsedLength.IndexOf("S") > 0)
+            //        {
+            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+            //            {
+            //                seconds = secondsInt;
+            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+            //            }
+            //        }
+
+            //        var time = int.Parse(Math.Round((TimeSpan.FromHours(hours) + (TimeSpan.FromMinutes(minutes) + (TimeSpan.FromSeconds(seconds))));
+            //        var songVM = await CreateSongAsync(new SongCreateRequest
+            //        {
+            //            YoutubeId = request.SongSearchResult.VideoId,
+            //            SongLengthSeconds = time,
+            //            SongName = request.SongSearchResult.SongName
+            //        });
+
+            //        song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songVM.Id);
+            //    }
+
+            //    if (!await _context.SongsPlaylists.AnyAsync(s => s.SongId == song.Id && s.Active))
+            //    {
+            //        var songPlaylist = new SongPlaylist
+            //        {
+            //            Playlist = playlist,
+            //            Song = song
+            //        };
+
+            //        _context.SongsPlaylists.Add(songPlaylist);
+            //        if (await _context.SaveChangesAsync() > 0)
+            //        {
+            //            return _mapper.Map<SongPlaylistVM>(songPlaylist);
+            //        }
+            //    }
+            //}
+            //return null;
 
             var entity = _mapper.Map<SongPlaylist>(request);
 
@@ -740,6 +873,19 @@ namespace Listify.DAL
                 }
             }
             return false;
+        }
+
+        public virtual async Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet)
+        {
+
+        }
+        public virtual async Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet)
+        {
+
+        }
+        public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid applicationUserId)
+        {
+
         }
 
         protected virtual async Task<V> CreateAsync<T, U, V>(T request)

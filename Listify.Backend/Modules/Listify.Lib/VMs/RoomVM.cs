@@ -22,8 +22,5 @@ namespace Listify.Lib.VMs
         // SongRequest in the playlist.
         public ICollection<SongQueuedDTO> SongsQueued { get; set; } =
             new List<SongQueuedDTO>();
-
-        public ICollection<CurrencyDTO> Currencies { get; set; } =
-            new List<CurrencyDTO>();
     }
 }

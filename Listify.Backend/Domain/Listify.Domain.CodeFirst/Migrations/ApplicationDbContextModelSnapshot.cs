@@ -196,9 +196,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<int>("QuantityIncreasePerTick")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("RoomId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("TimeSecBetweenTick")
                         .HasColumnType("int");
 
@@ -212,8 +209,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RoomId");
 
                     b.ToTable("Currencies","Listify");
                 });
@@ -530,15 +525,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
                         .WithMany("ChatMessages")
                         .HasForeignKey("ApplicationUserRoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Listify.Domain.Lib.Entities.Currency", b =>
-                {
-                    b.HasOne("Listify.Domain.Lib.Entities.Room", "Room")
-                        .WithMany("Currencies")
-                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

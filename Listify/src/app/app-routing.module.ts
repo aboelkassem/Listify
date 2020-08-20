@@ -13,14 +13,17 @@ import { PlaylistComponent } from './playlist/playlist.component';
 const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'},
   {path: 'home', component: HomeComponent},
-  {path: 'room', component: RoomComponent},
+  // {path: 'room', component: RoomComponent},
   {path: 'rooms', component: RoomsComponent},
   {path: 'playlist', component: PlaylistComponent},
+  {path: 'playlist/:id', component: PlaylistComponent},
   {path: 'playlists', component: PlaylistsComponent},
   {path: 'currency', component: CurrencyComponent},
+  {path: 'currency/:id', component: CurrencyComponent},
   {path: 'currencies', component: CurrenciesComponent},
   {path: 'songrequest', component: SongrequestComponent},
   {path: 'account', component: AccountComponent},
+  {path: ':id', component: RoomComponent},
 ];
 
 @NgModule({

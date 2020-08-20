@@ -26,8 +26,5 @@ namespace Listify.Domain.Lib.Entities
         // SongRequest in the playlist.
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
-
-        public ICollection<Currency> Currencies { get; set; } =
-            new List<Currency>();
     }
 }

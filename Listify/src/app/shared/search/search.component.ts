@@ -14,7 +14,7 @@ export class SearchComponent implements OnInit {
 
   query: string;
   searchResults: Array<ISongSearchResult>;
-  sub: Subscription;
+  // sub: Subscription;
 
 
   constructor(
@@ -26,10 +26,10 @@ export class SearchComponent implements OnInit {
   }
 
   search(): void {
-    this.searchService.search(this.query).subscribe((data: any) => {
-      this.searchResults = data;
-    },
-    error => console.log(error));
+  //   this.searchService.search(this.query).subscribe((data: any) => {
+  //     this.searchResults = data;
+  //   },
+  //   error => console.log(error));
   }
 
 }

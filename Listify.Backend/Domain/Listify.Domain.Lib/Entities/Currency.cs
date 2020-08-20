@@ -17,9 +17,6 @@ namespace Listify.Domain.Lib.Entities
         public int TimeSecBetweenTick { get; set; }
         public DateTime TimestampLastUpdated { get; set; } = DateTime.UtcNow;
 
-        public Guid RoomId { get; set; }
-        public Room Room { get; set; }
-
         public ICollection<ApplicationUserRoomCurrency> ApplicationUsersRoomsCurrencies { get; set; } =
             new List<ApplicationUserRoomCurrency>();
     }

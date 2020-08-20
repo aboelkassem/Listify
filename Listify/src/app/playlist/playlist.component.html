@@ -10,6 +10,30 @@
   </div>
   <button type="button" id="back" routerLink="/playlists">Back</button>
   <!-- <button type="button" id="addSong" (click)="addSong()" routerLink="/songRequest">Add Song</button> -->
-  <button type="button" id="addSong" routerLink="/songRequest">Add Song</button>
+  <!-- <button type="button" id="addSong" routerLink="/songRequest">Add Song</button> -->
   <button type="submit" id="save" [disabled]="!editForm.form.valid">Save</button>
 </form>
+
+<div class="row" *ngIf="songsPlaylist.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Songs in Playlist</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let songPlaylist of songsPlaylist; let i = index">
+        <td>{{songPlaylist.song.songName}}</td>
+        <td>{{songPlaylist.song.songLengthSec}} seconds long</td>
+        <td><button (click)="removeSongFromPlaylist(songPlaylist)">Remove Song From Playlist</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+<div class="row" *ngIf="songsPlaylist.length <= 0">
+  <span>No Songs in this Playlist</span>
+</div>
+
+<app-songrequest [playlist] = "playlist"></app-songrequest>

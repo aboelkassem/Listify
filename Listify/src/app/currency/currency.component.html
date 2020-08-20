@@ -1,1 +1,25 @@
-<p>currency works!</p>
+<form (ngSubmit)="saveCurrency()" #editForm="ngForm">
+  <div>
+    <label for="currencyName">Currency Name:</label>
+    <input [(ngModel)]="currencyName" #tCurrency="ngModel" name="currencyName" id="currencyName" placeholder="Currency Name" required />
+    <div *ngIf="tCurrency.touched && !tCurrency.valid" style="color: red">Currency Name is Required</div>
+  </div>
+  <div>
+    <label for="weight">Weight:</label>
+    <input [(ngModel)]="weight" #tWeight="ngModel" name="weight" id="weight" placeholder="Weight" required />
+    <div *ngIf="tWeight.touched && !tWeight.valid" style="color: red">Weight is Required</div>
+  </div>
+  <div>
+    <label for="quantityIncreasePerTick">Quantity Increase Per Tick:</label>
+    <input [(ngModel)]="quantityIncreasePerTick" #tQuantityIncreasePerTick="ngModel" name="quantityIncreasePerTick" id="quantityIncreasePerTick" placeholder="Quantity Increase Per Tick" required />
+    <div *ngIf="tQuantityIncreasePerTick.touched && !tQuantityIncreasePerTick.valid" style="color: red">Quantity Increase Per Tick is Required</div>
+  </div>
+  <div>
+    <label for="timeSecBetweenTick">Time By Seconds Between Tick:</label>
+    <input [(ngModel)]="timeSecBetweenTick" #tTimeSecBetweenTick="ngModel" name="timeSecBetweenTick" id="timeSecBetweenTick" placeholder="Time By Seconds Between Tick" required />
+    <div *ngIf="tTimeSecBetweenTick.touched && !tTimeSecBetweenTick.valid" style="color: red">Time By Seconds Between Tick is Required</div>
+  </div>
+  <button type="button" id="back" routerLink="/currencies">Back</button>
+  <!-- <button type="button" id="addSong" (click)="addSong()" routerLink="/songRequest">Add Song</button> -->
+  <button type="submit" id="save" [disabled]="!editForm.form.valid">Save</button>
+</form>

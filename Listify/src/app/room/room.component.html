@@ -7,20 +7,48 @@
 </div> -->
 
 <h3>Room Code : {{roomCode}}</h3>
+<div class="row">
+  <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+    <youtube-component
+      (ready) = "onReady($event)"
+      (change)= "onChange($event)"
+    ></youtube-component>
+  </div>
+  <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+    <app-queue [room]="room"></app-queue>
+  </div>
+</div>
 
-<div class="col-4">
-  <youtube-component
-    (ready) = "onReady($event)"
-    (change)= "onChange($event)"
-  ></youtube-component>
+<div class="row">
+  <input [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+  <input [(ngModel)]="quantityWagered" placeholder="Wager Amount"/>
+  <button (click)="requestSong()">Request Song</button>
+  <button (click)="skip()">Skip Song</button>
+  <button (click)="addToPlaylist()">Add to Default Playlist</button>
+  <button (click)="playerState()">Get Player State</button>
+</div>
+
+<div class="row" *ngIf="songSearchResults.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Search Results</th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let searchResult of songSearchResults; let i = index">
+        <td>{{searchResult.songName}}</td>
+        <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+<div class="row" *ngIf="songSearchResults.length <= 0">
+  <span>No Results</span>
 </div>
 
 
-<input [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
-<input [(ngModel)]="quantityWagered" placeholder="Wager Amount"/>
-<button (click)="requestSong()">Request Song</button>
-<button (click)="skip()">Skip Song</button>
-<button (click)="addToPlaylist()">Add to Default Playlist</button>
-<button (click)="playerState()">Get Player State</button>
-
-<app-chat></app-chat>
+<div class="row">
+  <app-chat></app-chat>
+</div>

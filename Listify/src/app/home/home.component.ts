@@ -1,4 +1,3 @@
-import { HubService } from './../hub.service';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -8,10 +7,9 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(private hubService: HubService) { }
+  constructor() { }
 
   ngOnInit(): void {
-    this.hubService.connectToHub('https://localhost:44315/chathub');
   }
 
 }

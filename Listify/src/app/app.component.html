@@ -1,21 +1,25 @@
-<h1>{{title}}</h1>
+<div class="container">
+  <div class="col-12">
 
-<nav>
-  <a routerLink="/home">Home</a> |
-  <a routerLink="/account">Account</a> |
-  <a routerLink="/playlists">Playlists</a> |
-  <a routerLink="/rooms">Rooms</a>
-</nav>
-<div *ngIf="isAuthenticated">
-  <h2>Welcome, {{claims['name']}}!</h2>
-  <button (click)="logout()">Logout</button>
-  <!-- <app-youtube></app-youtube> -->
+    <h1>{{title}}</h1>
+    <nav>
+      <a routerLink="/home">Home</a> |
+      <a routerLink="/account">Account</a> |
+      <a routerLink="/playlists">Playlists</a> |
+      <a routerLink="/currencies">Currencies</a> |
+      <a routerLink="/rooms">Rooms</a>
+    </nav>
+    <div *ngIf="isAuthenticated">
+      <h2>Welcome, {{claims['name']}}!</h2>
+      <button (click)="logout()">Logout</button>
+      <!-- <app-youtube></app-youtube> -->
+      <router-outlet></router-outlet>
+    </div>
 
-  <router-outlet></router-outlet>
+    <div *ngIf="!isAuthenticated">
+      <button (click)="login()">Login</button>
+    </div>
+
+  </div>
 </div>
-
-<div *ngIf="!isAuthenticated">
-  <button (click)="login()">Login</button>
-</div>
-
 

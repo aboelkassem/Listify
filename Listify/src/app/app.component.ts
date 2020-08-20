@@ -1,5 +1,7 @@
+import { HubService } from './services/hub.service';
+import { Subscription } from 'rxjs';
 import { authConfig } from './authConfig';
-import { OAuthService} from 'angular-oauth2-oidc';
+import { OAuthService, OAuthEvent} from 'angular-oauth2-oidc';
 import { JwksValidationHandler } from 'angular-oauth2-oidc-jwks';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
@@ -14,9 +16,28 @@ export class AppComponent {
   claims: any;
   hasLoadedProfile: boolean;
 
-  constructor(private oauthService: OAuthService, private router: Router) {
-    this.configureWithNewConfigApi();
-    this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
+  private $oauthSubscription: Subscription;
+  private $disconnectSubscription: Subscription;
+
+  constructor(
+    private oauthService: OAuthService,
+    private router: Router,
+    private hubService: HubService) {
+      this.$disconnectSubscription = this.hubService.getForceDisconnect().subscribe((data: string) => {
+        alert('Force disconnected');
+        if (data === 'Disconnect') {
+          this.logout();
+        }
+      });
+
+      this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
+        if (event.type === 'token_received') {
+          this.hubService.connectToHub('https://localhost:44315/chathub');
+        }
+      });
+
+      this.configureWithNewConfigApi();
+      this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
 
   private configureWithNewConfigApi(): void {

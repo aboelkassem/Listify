@@ -1,7 +1,7 @@
 import { Subscription } from 'rxjs';
-import { IPlaylistCreateRequest, IPlaylist } from './../interfaces';
-import { HubService } from './../hub.service';
-import { Component, OnInit } from '@angular/core';
+import { IPlaylistCreateRequest, IPlaylist, ISongPlaylist } from './../interfaces';
+import { HubService } from './../services/hub.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -9,27 +9,41 @@ import { Router, ActivatedRoute } from '@angular/router';
   templateUrl: './playlist.component.html',
   styleUrls: ['./playlist.component.css']
 })
-export class PlaylistComponent implements OnInit {
+export class PlaylistComponent implements OnInit, OnDestroy {
 
   // @Input() playlist: IPlaylist;
   id: string;
   playlistName: string;
   isSelected: boolean;
+  playlist: IPlaylist;
+  songsPlaylist: ISongPlaylist[] = [];
 
-  getPlaylistSub: Subscription;
+  $playlistSubscription: Subscription;
+  $songPlaylistSubscription: Subscription;
+  $songsPlaylistSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
     private router: Router,
     private route: ActivatedRoute) {
-    this.getPlaylistSub = this.hubService.getPlaylist().subscribe(playlist => {
+    this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
       this.id = playlist.id;
       this.playlistName = playlist.playlistName;
       this.isSelected = playlist.isSelected;
+      this.playlist = playlist;
+      this.songsPlaylist = playlist.songsPlaylists;
     });
 
-    this.route.queryParams.subscribe(params => {
-      const id = params['id'];
+    this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe(songPlaylist => {
+      // this.getPlaylist(this.id);
+    });
+
+    this.$songsPlaylistSubscription = this.hubService.getSongsPlaylist().subscribe(songsPlaylist => {
+      this.songsPlaylist = songsPlaylist;
+    });
+
+    this.route.params.subscribe(params => {
+      const id = params['id']; // + params converts id to numbers
       if (id != null) {
         this.getPlaylist(id);
       }
@@ -40,6 +54,12 @@ export class PlaylistComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  ngOnDestroy(): void {
+    this.$playlistSubscription.unsubscribe();
+    this.$songPlaylistSubscription.unsubscribe();
+    this.$songsPlaylistSubscription.unsubscribe();
+  }
+
   savePlaylist(): void {
     const request: IPlaylistCreateRequest = {
       id: this.id,
@@ -48,13 +68,16 @@ export class PlaylistComponent implements OnInit {
     };
     this.hubService.savePlaylist(request);
 
-    // returning back/playlists-page after creating playlist
     this.router.navigateByUrl('/playlists');
     // this.location.back();
   }
 
   getPlaylist(id: string): void {
     this.hubService.requestPlaylist(id);
+  }
+
+  removeSongFromPlaylist(songPlaylist: ISongPlaylist): void {
+    this.hubService.deleteSongPlaylist(songPlaylist.id);
   }
 
   // back(): void {

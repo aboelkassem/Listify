@@ -1,1 +1,24 @@
-<p>songrequest works!</p>
+<form (ngSubmit)="searchForSong()" #editForm="ngForm">
+  <input [(ngModel)]="searchSnippet" name="searchSnippet" id="searchSnippet" placeholder="Enter songs to search ..." required />
+  <button type="submit" id="submit" [disabled] ="!editForm.valid">Search For Song</button>
+</form>
+
+<div class="row" *ngIf="songSearchResults.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Search Results</th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let searchResult of songSearchResults; let i = index">
+        <td>{{searchResult.songName}}</td>
+        <td><button (click)="addSongToPlaylist(searchResult)">Add Song To Playlist</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+<div class="row" *ngIf="songSearchResults.length <= 0">
+  <span>No Results</span>
+</div>

@@ -1,1 +1,21 @@
-<p>queue works!</p>
+<div class="row" *ngIf="songsQueued.length > 0">
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <tr>
+        <th>Songs in Queue</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </table>
+    <tbody>
+      <tr *ngFor="let songQueued of songsQueued; let i = index">
+        <td>{{songQueued.song.songName}}</td>
+        <td>{{songQueued.song.songLengthSec}} seconds long</td>
+        <td><button (click)="removeSongFromQueue(songQueued)">Remove Song From Queue</button></td>
+      </tr>
+    </tbody>
+  </div>
+</div>
+<div class="row" *ngIf="songsQueued.length <= 0">
+  <span>No Songs in Queue</span>
+</div>

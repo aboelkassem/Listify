@@ -1,6 +1,6 @@
-import { HubService } from './../hub.service';
+import { HubService } from './../services/hub.service';
 import { IRoom } from './../interfaces';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -8,14 +8,14 @@ import { Subscription } from 'rxjs';
   templateUrl: './rooms.component.html',
   styleUrls: ['./rooms.component.css']
 })
-export class RoomsComponent implements OnInit {
+export class RoomsComponent implements OnInit, OnDestroy {
 
   rooms: IRoom[] = [];
   roomCurrent: IRoom;
-  subscription: Subscription;
+  $RoomsSubscription: Subscription;
 
   constructor(private hubService: HubService) {
-    this.subscription = this.hubService.getRooms().subscribe(rooms => {
+    this.$RoomsSubscription = this.hubService.getRooms().subscribe(rooms => {
       this.rooms = rooms;
     });
 
@@ -26,4 +26,7 @@ export class RoomsComponent implements OnInit {
     this.hubService.requestRooms();
   }
 
+  ngOnDestroy(): void {
+    this.$RoomsSubscription.unsubscribe();
+  }
 }

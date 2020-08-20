@@ -1,4 +1,5 @@
-import { HubService } from './../hub.service';
+import { IApplicationUserRequest } from './../interfaces';
+import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
@@ -9,29 +10,42 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 })
 export class AccountComponent implements OnInit, OnDestroy {
 
+  id: string;
   username: string;
   songPoolCountMax: number;
   playlistCount: number;
-  subscription: Subscription;
+  roomCode: string;
+
+  $userInformationSubscription: Subscription;
 
   constructor(
     private hubService: HubService) {
-      this.subscription = this.hubService.getUserInfo().subscribe(user => {
+      this.$userInformationSubscription = this.hubService.getUserInfo().subscribe(user => {
+        this.id = user.id;
         this.username = user.username;
         this.songPoolCountMax = user.songPoolCountSongsMax;
         this.playlistCount = user.playlistCountMax;
+        this.roomCode = user.room.roomCode;
       });
     }
 
   ngOnInit(): void {
-    this.hubService.requestUserInformation();
+    this.hubService.requestApplicationUserInformation();
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.$userInformationSubscription.unsubscribe();
   }
 
-  submitUserData(): void {
+  saveApplicationUserInfo(): void {
+    const request: IApplicationUserRequest = {
+      id: this.id,
+      username: this.username,
+      songPoolCountSongsMax: this.songPoolCountMax,
+      playlistCountMax: this.playlistCount,
+      roomCode: this.roomCode
+    };
 
+    this.hubService.updateApplicationUserInformation(request);
   }
 }

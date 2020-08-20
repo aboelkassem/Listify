@@ -1,9 +1,13 @@
 <h3>Account</h3>
 <div class="row">
-  <form class="form-inline" (ngSubmit)="submitUserData()" #accountForm="ngForm">
+  <form class="form-inline" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
     <div class="form-group">
       <label class="sr-only" for="username">Username</label>
       <input type="text" class="form-control" id="username" name="username" [(ngModel)]="username" required/>
+    </div>
+    <div class="form-group">
+      <label class="sr-only" for="roomCode">Room Code</label>
+      <input type="text" class="form-control" id="roomCode" name="roomCode" [(ngModel)]="roomCode" required/>
     </div>
     <div class="form-group">
       <label class="sr-only" for="songPoolCountMax">Song Pool Count</label>

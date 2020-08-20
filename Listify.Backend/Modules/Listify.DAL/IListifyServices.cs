@@ -1,7 +1,9 @@
 ﻿using Listify.Lib.DTOs;
 using Listify.Lib.Requests;
+using Listify.Lib.Responses;
 using Listify.Lib.VMs;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Listify.DAL
@@ -13,16 +15,16 @@ namespace Listify.DAL
         Task<ApplicationUserRoomConnectionVM> CreateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionCreateRequest request);
         Task<ApplicationUserRoomCurrencyVM> CreateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyCreateRequest request);
         Task<ChatMessageVM> CreateChatMessageAsync(ChatMessageCreateRequest request);
-        Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request);
+        Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId);
         Task<LogAPIVM> CreateLogAPIAsync(LogAPICreateRequest request, Guid applicationUserId);
         Task<LogErrorVM> CreateLogErrorAsync(LogErrorCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> CreatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<SongVM> CreateSongAsync(SongCreateRequest request);
-        Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request);
+        Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request, Guid applicationUserId);
         Task<SongQueuedVM> CreateSongQueuedAsync(SongQueuedCreateRequest request);
         Task<TransactionVM> CreateTransactionAsync(TransactionCreateRequest request);
         Task<TransactionSongQueuedVM> CreateTransactionSongQueuedAsync(TransactionSongQueuedCreateRequest request);
-        Task<bool> DeleteApplicationUserAsync(Guid id);
+        Task<bool> DeleteApplicationUserAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteApplicationUserRoomAsync(Guid id);
         Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id);
         Task<bool> DeleteApplicationUserRoomCurrencyAsync(Guid id);
@@ -48,6 +50,7 @@ namespace Listify.DAL
         Task<LogErrorVM> ReadLogErrorAsync(Guid id);
         Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId);
         Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId);
+        Task<CurrencyDTO[]> ReadCurrenciesAsync();
         Task<RoomVM> ReadRoomAsync(string roomCode);
         Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
@@ -56,13 +59,17 @@ namespace Listify.DAL
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
         Task<TransactionSongQueuedVM> ReadTransactionSongQueuedAsync(Guid id);
-        Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request);
+        Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request, Guid applicationUserId);
         Task<ApplicationUserRoomVM> UpdateApplicationUserRoomAsync(ApplicationUserRoomUpdateRequest request);
         Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request);
         Task<ApplicationUserRoomCurrencyVM> UpdateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyUpdateRequest request);
-        Task<CurrencyVM> UpdateCurrencyAsync(CurrencyUpdateRequest request);
+        Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request);
         Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request);
         Task<SongVM> UpdateSongAsync(SongUpdateRequest request);
+
+        Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet);
+        Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
+        Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid applicationUserId);
     }
 }

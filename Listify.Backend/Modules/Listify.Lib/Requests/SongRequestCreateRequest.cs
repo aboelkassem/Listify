@@ -3,7 +3,7 @@ using System;
 
 namespace Listify.Lib.Requests
 {
-    public class SongRequestCreateRequest : BaseRequest
+    public class SongRequestCreateRequest : BaseUpdateRequest
     {
         public Guid SongId { get; set; }
     }
