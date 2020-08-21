@@ -13,6 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Listify.WebAPI.Models;
 using AutoMapper;
 using Listify.Lib.DTOs;
+using System.Collections.Generic;
+using Listify.Lib.Responses;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -189,13 +191,15 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
-        public async Task RequestSongsPlaylist()
+        public async Task RequestSongsPlaylist(string playlsitId)
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                var SongPlaylists = await _services.ReadSongPlaylistsAsync(userId);
-                await Clients.Caller.SendAsync("ReceiveSongsPlaylist", SongPlaylists);
+                if (Guid.TryParse(playlsitId, out var guid))
+                {
+                    var SongsPlaylist = await _services.ReadSongsPlaylistAsync(guid);
+                    await Clients.Caller.SendAsync("ReceiveSongsPlaylist", SongsPlaylist);
+                }
             }
             catch (Exception ex)
             {
@@ -262,7 +266,8 @@ namespace Listify.WebAPI.Hubs
 
         public async Task RequestSearchYoutube(string searchSnippet)
         {
-            //await Clients.Caller.SendAsync("ReceiveSearchYoutube", YoutubeResults);
+            //var youtubeResults = new List<YoutubeResults.YoutubeResult>();
+            //await Clients.Caller.SendAsync("ReceiveSearchYoutube", youtubeResults);
         }
 
         public async Task RequestCurrencies()

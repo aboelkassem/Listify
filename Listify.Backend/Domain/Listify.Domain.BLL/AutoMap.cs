@@ -28,7 +28,6 @@ namespace Listify.Domain.BLL
                 c.CreateMap<ApplicationUserRoomConnection, ApplicationUserRoomConnectionVM>().ReverseMap();
                 c.CreateMap<ApplicationUserRoomConnectionVM, ApplicationUserRoomConnectionDTO>().ReverseMap();
                 c.CreateMap<ApplicationUserRoomConnectionCreateRequest, ApplicationUserRoomConnection>();
-                c.CreateMap<ApplicationUserRoomConnectionUpdateRequest, ApplicationUserRoomConnection>();
 
                 c.CreateMap<ApplicationUserRoomCurrency, ApplicationUserRoomCurrencyDTO>().ReverseMap();
                 c.CreateMap<ApplicationUserRoomCurrency, ApplicationUserRoomCurrencyVM>().ReverseMap();
@@ -45,7 +44,6 @@ namespace Listify.Domain.BLL
                 c.CreateMap<Currency, CurrencyVM>().ReverseMap();
                 c.CreateMap<CurrencyVM, CurrencyDTO>().ReverseMap();
                 c.CreateMap<CurrencyCreateRequest, Currency>();
-                c.CreateMap<CurrencyUpdateRequest, Currency>();
 
                 c.CreateMap<Playlist, PlaylistDTO>().ReverseMap();
                 c.CreateMap<Playlist, PlaylistVM>().ReverseMap();

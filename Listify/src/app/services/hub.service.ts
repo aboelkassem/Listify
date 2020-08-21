@@ -259,6 +259,12 @@ export class HubService {
     }
   }
 
+  requestSongsPlaylist(playlistId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestSongsPlaylist', playlistId);
+    }
+  }
+
   getUserInfo(): Observable<IApplicationUser> {
     return this.$userInfoReceived.asObservable();
   }

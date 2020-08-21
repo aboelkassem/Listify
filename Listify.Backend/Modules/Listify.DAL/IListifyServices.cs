@@ -33,7 +33,7 @@ namespace Listify.DAL
         Task<bool> DeletePlaylistAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteRoomAsync(Guid id);
         Task<bool> DeleteSongAsync(Guid id);
-        Task<bool> DeleteSongPlaylistAsync(Guid id);
+        Task<bool> DeleteSongPlaylistAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteSongQueuedAsync(Guid id);
         Task<bool> DeleteTransactionAsync(Guid id);
         Task<bool> DeleteTransactionSongQueuedAsync(Guid id);
@@ -55,15 +55,15 @@ namespace Listify.DAL
         Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
         Task<SongVM> ReadSongAsync(Guid id);
+        Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
         Task<TransactionSongQueuedVM> ReadTransactionSongQueuedAsync(Guid id);
         Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request, Guid applicationUserId);
         Task<ApplicationUserRoomVM> UpdateApplicationUserRoomAsync(ApplicationUserRoomUpdateRequest request);
-        Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request);
         Task<ApplicationUserRoomCurrencyVM> UpdateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyUpdateRequest request);
-        Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request);
+        Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request);
         Task<SongVM> UpdateSongAsync(SongUpdateRequest request);

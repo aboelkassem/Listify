@@ -6,9 +6,8 @@ namespace Listify.Lib.Responses
 {
     public class YoutubeSearchResponse
     {
-        public Guid Id { get; set; }
-        public string SongName { get; set; }
-        public int LengthSec { get; set; }
-        public string VideoId { get; set; }
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public int MaxResults { get; set; }
     }
 }

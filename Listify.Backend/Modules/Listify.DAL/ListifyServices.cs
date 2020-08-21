@@ -12,6 +12,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Listify.Lib.Responses;
+using Listify.Domain.Lib.Enums;
+using Google.Apis.YouTube.v3;
+using Google.Apis.Services;
 
 namespace Listify.DAL
 {
@@ -270,24 +273,6 @@ namespace Listify.DAL
 
             return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomConnectionAsync(entity.ConnectionId) : null;
         }
-        public virtual async Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request)
-        {
-            var entity = await _context.ApplicationUsersRoomsConnections
-                .FirstOrDefaultAsync(s => s.Id == request.Id);
-
-            if (entity != null)
-            {
-                entity.IsOnline = request.IsOnline;
-                entity.HasPingBeenSent = request.HasPingBeenSent;
-                _context.Entry(entity).State = EntityState.Modified;
-
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return await ReadApplicationUserRoomConnectionAsync(entity.Id);
-                }
-            }
-            return null;
-        }
         public virtual async Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
@@ -333,10 +318,10 @@ namespace Listify.DAL
 
             return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyAsync(entity.Id) : null;
         }
-        public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request)
+        public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
         {
             var entity = await _context.Currencies
-                .FirstOrDefaultAsync(s => s.Id == request.Id);
+                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
 
             if (entity != null)
             {
@@ -544,6 +529,18 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id)
+        {
+            var entities = await _context.SongsPlaylists
+                .Where(s => s.Playlist.Id == id && s.Active)
+                .ToListAsync();
+
+            var dtos = new List<SongPlaylistDTO>();
+
+            entities.ForEach(s => dtos.Add(_mapper.Map<SongPlaylistDTO>(s)));
+
+            return dtos.ToArray();
+        }
         public virtual async Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id)
         {
             var entity = await _context.SongsPlaylists
@@ -568,7 +565,8 @@ namespace Listify.DAL
             //        YoutubeSearchResponse response;
             //        using (var httpClient = new HttpClient())
             //        {
-            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=";
+            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
+            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet&key={my-google-api-key}";
             //            var result = await httpClient.GetStringAsync(url);
             //            response = JsonConverter.DeserializeObject<YoutubeSearchResponse>(result);
             //        }
@@ -644,10 +642,10 @@ namespace Listify.DAL
 
             return null;
         }
-        public virtual async Task<bool> DeleteSongPlaylistAsync(Guid id)
+        public virtual async Task<bool> DeleteSongPlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.SongsPlaylists
-                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == id && s.Playlist.ApplicationUserId == applicationUserId && s.Active);
 
             if (entity != null)
             {
@@ -881,11 +879,80 @@ namespace Listify.DAL
         }
         public virtual async Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet)
         {
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = "REPLACE_ME",
+                ApplicationName = this.GetType().ToString()
+            });
 
         }
-        public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid applicationUserId)
+        public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType)
         {
+            var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrency>();
 
+            // Get Room currency here
+            var room = await _context.Rooms
+                .Include(s => s.ApplicationUsersRooms)
+                .FirstOrDefaultAsync(s => s.Id == roomId);
+
+            if (room != null)
+            {
+                foreach (var applicationUserRoom in room.ApplicationUsersRooms)
+                {
+                    var connections = await _context.ApplicationUsersRoomsConnections
+                        .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.IsOnline)
+                        .ToListAsync();
+
+                    if (connections != null && connections.Count() > 0)
+                    {
+                        var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
+                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyId == currencyId)
+                            .FirstOrDefaultAsync();
+
+                        if (applicationUserRoomCurrency == null)
+                        {
+                            applicationUserRoomCurrency = new ApplicationUserRoomCurrency
+                            {
+                                ApplicationUserRoomId = applicationUserRoom.Id,
+                                CurrencyId = currencyId,
+                                Quantity = 0,
+                                TimeStamp = DateTime.UtcNow
+                            };
+
+                            _context.ApplicationUsersRoomsCurrencies.Add(applicationUserRoomCurrency);
+                        }
+
+                        if (!applicationUserRoomCurrencies.Any(s => s.Id == applicationUserRoomCurrency.Id))
+                        {
+                            applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                        }
+                    }
+
+                    foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
+                    {
+                        applicationUserRoomCurrency.Quantity += currencyQuantity;
+                        applicationUserRoomCurrency.TimeStamp = DateTime.UtcNow;
+
+                        var transaction = new Transaction
+                        {
+                            ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                            QuantityChange = currencyQuantity,
+                            TransactionType = TransactionType.PollingCurrency,
+                            TimeStamp = DateTime.UtcNow
+                        };
+
+                        _context.Add(transaction);
+
+                        if (await _context.SaveChangesAsync() > 0)
+                        {
+                            var vms = new List<ApplicationUserRoomCurrencyVM>();
+                            applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
+                            return vms;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         protected virtual async Task<V> CreateAsync<T, U, V>(T request)
