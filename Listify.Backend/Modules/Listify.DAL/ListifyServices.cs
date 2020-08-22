@@ -15,6 +15,7 @@ using Listify.Lib.Responses;
 using Listify.Domain.Lib.Enums;
 using Google.Apis.YouTube.v3;
 using Google.Apis.Services;
+using Listify.Paths;
 
 namespace Listify.DAL
 {
@@ -249,6 +250,18 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUsersRoomsConnectionsAsync(Guid roomId)
+        {
+            var connections = await _context.ApplicationUsersRoomsConnections
+                .Include(s => s.ApplicationUserRoom)
+                .Where(s => s.ApplicationUserRoom.RoomId == roomId && s.Active && s.ApplicationUserRoom.Active)
+                .ToListAsync();
+
+            var vms = new List<ApplicationUserRoomConnectionVM>();
+            connections.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
+
+            return vms.ToArray();
+        }
         public virtual async Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
@@ -267,12 +280,42 @@ namespace Listify.DAL
         }
         public virtual async Task<ApplicationUserRoomConnectionVM> CreateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionCreateRequest request)
         {
-            var entity = _mapper.Map<ApplicationUserRoomConnection>(request);
+            var entity = await _context.ApplicationUsersRoomsConnections
+                .FirstOrDefaultAsync(s => s.ConnectionId == request.ConnectionId);
 
-            _context.ApplicationUsersRoomsConnections.Add(entity);
+            if (entity == null)
+            {
+                entity = _mapper.Map<ApplicationUserRoomConnection>(request);
+                _context.ApplicationUsersRoomsConnections.Add(entity);
+            }
+            else
+            {
+                entity.IsOnline = request.IsOnline;
+                entity.HasPingBeenSent = request.HasPingBeenSent;
+                _context.Entry(entity).State = EntityState.Modified;
+            }
 
             return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomConnectionAsync(entity.ConnectionId) : null;
         }
+        public virtual async Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request)
+        {
+            var entity = await _context.ApplicationUsersRoomsConnections
+                    .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
+
+            if (entity != null)
+            {
+                entity.IsOnline = request.IsOnline;
+                entity.HasPingBeenSent = request.HasPingBeenSent;
+                _context.Entry(entity).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadApplicationUserRoomConnectionAsync(entity.Id);
+                }
+            }
+            return null;
+        }
+
         public virtual async Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
@@ -875,16 +918,83 @@ namespace Listify.DAL
 
         public virtual async Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet)
         {
+            var youtubeResults = new YoutubeResults();
 
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = Globals.GOOGLE_API_KEY,
+                ApplicationName = "Listify"
+            });
+
+            var searchListRequest = youtubeService.Search.List(searchSnippet);
+            searchListRequest.MaxResults = 20;
+
+            // Call the search.list method to retrieve results matching the specified query term.
+            var searchListResponse = await searchListRequest.ExecuteAsync();
+
+            // Add each result to the appropriate list, and then display the lists of
+            // matching videos, channels, and playlists.
+            foreach (var searchResult in searchListResponse.Items)
+            {
+                //switch (searchResult.Id.Kind)
+                //{
+                //    case "youtube#video":
+                //        videos.Add(String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId));
+                //        break;
+                //}
+
+                if (searchResult.Id.Kind == "youtube#video")
+                {
+                    youtubeResults.results.Add(new YoutubeResults.YoutubeResult
+                    {
+                        Id = new Guid(),
+                        VideoId = searchResult.Id.VideoId,
+                        SongName = searchResult.Snippet.Title,
+                        //LengthSec = searchResult.
+                    });
+                }
+            }
+            return youtubeResults;
         }
         public virtual async Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet)
         {
+            var youtubeResults = new YoutubeResults();
+
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
-                ApiKey = "REPLACE_ME",
-                ApplicationName = this.GetType().ToString()
+                ApiKey = Globals.GOOGLE_API_KEY,
+                ApplicationName = "Listify" 
             });
 
+            var searchListRequest = youtubeService.Search.List(searchSnippet);
+            searchListRequest.MaxResults = 20;
+
+            // Call the search.list method to retrieve results matching the specified query term.
+            var searchListResponse = await searchListRequest.ExecuteAsync();
+
+            // Add each result to the appropriate list, and then display the lists of
+            // matching videos, channels, and playlists.
+            foreach (var searchResult in searchListResponse.Items)
+            {
+                //switch (searchResult.Id.Kind)
+                //{
+                //    case "youtube#video":
+                //        videos.Add(String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId));
+                //        break;
+                //}
+
+                if (searchResult.Id.Kind == "youtube#video")
+                {
+                    youtubeResults.results.Add(new YoutubeResults.YoutubeResult
+                    {
+                        Id = new Guid(),
+                        VideoId = searchResult.Id.VideoId,
+                        SongName = searchResult.Snippet.Title,
+                        //LengthSec = searchResult.
+                    });
+                }
+            }
+            return youtubeResults;
         }
         public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType)
         {
@@ -895,18 +1005,26 @@ namespace Listify.DAL
                 .Include(s => s.ApplicationUsersRooms)
                 .FirstOrDefaultAsync(s => s.Id == roomId);
 
-            if (room != null)
+            var currency = await _context.Currencies
+                .FirstOrDefaultAsync(s => s.Id == currencyId);
+
+            currency.TimestampLastUpdated = DateTime.UtcNow;
+            _context.Entry(currency).State = EntityState.Modified;
+
+            if (room != null && currency != null)
             {
                 foreach (var applicationUserRoom in room.ApplicationUsersRooms)
                 {
-                    var connections = await _context.ApplicationUsersRoomsConnections
-                        .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.IsOnline)
-                        .ToListAsync();
+                    var applicationUserRoomOnline = await _context.ApplicationUsersRoomsConnections
+                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.IsOnline)
+                            .Select(s => s.ApplicationUserRoom)
+                            .Distinct()
+                            .FirstOrDefaultAsync();
 
-                    if (connections != null && connections.Count() > 0)
+                    if (applicationUserRoomOnline != null)
                     {
                         var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
-                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyId == currencyId)
+                            .Where(s => s.ApplicationUserRoomId == applicationUserRoomOnline.Id && s.Active && s.CurrencyId == currencyId)
                             .FirstOrDefaultAsync();
 
                         if (applicationUserRoomCurrency == null)
@@ -914,7 +1032,7 @@ namespace Listify.DAL
                             applicationUserRoomCurrency = new ApplicationUserRoomCurrency
                             {
                                 ApplicationUserRoomId = applicationUserRoom.Id,
-                                CurrencyId = currencyId,
+                                Currency = currency,
                                 Quantity = 0,
                                 TimeStamp = DateTime.UtcNow
                             };
@@ -927,29 +1045,28 @@ namespace Listify.DAL
                             applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
                         }
                     }
+                }
 
-                    foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
+                foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
+                {
+                    applicationUserRoomCurrency.Quantity += currencyQuantity;
+
+                    var transaction = new Transaction
                     {
-                        applicationUserRoomCurrency.Quantity += currencyQuantity;
-                        applicationUserRoomCurrency.TimeStamp = DateTime.UtcNow;
+                        ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                        QuantityChange = currencyQuantity,
+                        TransactionType = TransactionType.PollingCurrency,
+                        TimeStamp = DateTime.UtcNow
+                    };
 
-                        var transaction = new Transaction
-                        {
-                            ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
-                            QuantityChange = currencyQuantity,
-                            TransactionType = TransactionType.PollingCurrency,
-                            TimeStamp = DateTime.UtcNow
-                        };
+                    _context.Add(transaction);
+                }
 
-                        _context.Add(transaction);
-
-                        if (await _context.SaveChangesAsync() > 0)
-                        {
-                            var vms = new List<ApplicationUserRoomCurrencyVM>();
-                            applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
-                            return vms;
-                        }
-                    }
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    var vms = new List<ApplicationUserRoomCurrencyVM>();
+                    applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
+                    return vms;
                 }
             }
             return null;

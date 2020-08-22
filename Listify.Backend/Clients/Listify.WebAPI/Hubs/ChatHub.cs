@@ -15,6 +15,8 @@ using AutoMapper;
 using Listify.Lib.DTOs;
 using System.Collections.Generic;
 using Listify.Lib.Responses;
+using Listify.BLL;
+using Listify.Domain.BLL.Args;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -23,18 +25,61 @@ namespace Listify.WebAPI.Hubs
         protected readonly ApplicationDbContext _context;
         protected readonly IHubContext<ChatHub> _chatHub;
         protected readonly IListifyServices _services;
+        protected readonly CurrencyPoll _currencyPoll;
         protected readonly IMapper _mapper;
 
         public ChatHub(
             ApplicationDbContext context,
             IHubContext<ChatHub> chatHub,
             IListifyServices services,
+            CurrencyPoll currencyPoll,
             IMapper mapper)
         {
             _context = context;
             _chatHub = chatHub;
             _services = services;
             _mapper = mapper;
+
+            _currencyPoll = currencyPoll;
+            _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
+        }
+
+        protected async Task OnCurrencyPollEvent(object sender, CurrencyPollEventArgs args)
+        {
+            // have a ping service, get the connections out of the database that match the room
+            var connections = await _services.ReadApplicationUsersRoomsConnectionsAsync(args.Room.Id);
+
+            foreach (var connection in connections.Where(s => s.IsOnline))
+            {
+                try
+                {
+                    if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
+                    {
+                        var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
+                        await Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                    }
+                }
+                catch
+                {
+                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        Id = connection.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = false
+                    });
+                }
+            }
+
+            //var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+            //if (connection != null)
+            //{
+            //    if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
+            //    {
+            //        var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
+            //        await Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+            //    }
+            //}
         }
 
         public async Task SendMessage(ChatMessageVM message)
@@ -266,8 +311,9 @@ namespace Listify.WebAPI.Hubs
 
         public async Task RequestSearchYoutube(string searchSnippet)
         {
-            //var youtubeResults = new List<YoutubeResults.YoutubeResult>();
-            //await Clients.Caller.SendAsync("ReceiveSearchYoutube", youtubeResults);
+            var youtubeResults = await _services.SearchYoutubeAsync(searchSnippet);
+
+            await Clients.Caller.SendAsync("ReceiveSearchYoutube", youtubeResults);
         }
 
         public async Task RequestCurrencies()
@@ -281,6 +327,21 @@ namespace Listify.WebAPI.Hubs
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestCurrencyActive()
+        {
+            try
+            {
+                var currencies = await _services.ReadCurrenciesAsync();
+
+                if (currencies.Count() > 0)
+                {
+                    await Clients.Caller.SendAsync("ReceiveCurrencyActive", currencies[0]);
+                }
+            }
+            catch
+            {
             }
         }
         public async Task RequestCurrency(string id)
@@ -541,5 +602,6 @@ namespace Listify.WebAPI.Hubs
             }
             return null;
         }
+
     }
 }

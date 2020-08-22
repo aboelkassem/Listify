@@ -5,7 +5,9 @@
     (change)= "onChange($event)"
   ></youtube-component>
 </div> -->
-
+<div>
+  <span>Currency: {{quantity}} {{currencyName}}</span>
+</div>
 <h3>Room Code : {{roomCode}}</h3>
 <div class="row">
   <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -17,13 +19,14 @@
   <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
     <app-queue [room]="room"></app-queue>
   </div>
+  <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+    <app-chat></app-chat>
+  </div>
 </div>
 
 <div class="row">
   <input [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
-  <input [(ngModel)]="quantityWagered" placeholder="Wager Amount"/>
   <button (click)="requestSong()">Request Song</button>
-  <button (click)="skip()">Skip Song</button>
   <button (click)="addToPlaylist()">Add to Default Playlist</button>
   <button (click)="playerState()">Get Player State</button>
 </div>
@@ -34,21 +37,20 @@
       <tr>
         <th>Search Results</th>
         <th></th>
+        <th></th>
       </tr>
     </table>
     <tbody>
       <tr *ngFor="let searchResult of songSearchResults; let i = index">
+        <!-- Make this a link to youtube video -->
         <td>{{searchResult.songName}}</td>
-        <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
+        <td><input class="form-control" [(ngModel)]="searchResult.quantityWagered" placeholder="Wager Amount"/></td>
+        <td>{{currency.currencyName}}</td>
+        <td><button (click)="addSongToPlaylist(searchResult)">Add Song To Queue</button></td>
       </tr>
     </tbody>
   </div>
 </div>
 <div class="row" *ngIf="songSearchResults.length <= 0">
   <span>No Results</span>
-</div>
-
-
-<div class="row">
-  <app-chat></app-chat>
 </div>

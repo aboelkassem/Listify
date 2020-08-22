@@ -11,7 +11,7 @@ namespace Listify.Lib.VMs
         public ApplicationUserRoomDTO ApplicationUserRoom { get; set; }
         public CurrencyDTO Currency { get; set; }
 
-        public ICollection<TransactionDTO> Transactions { get; set; } =
-            new List<TransactionDTO>();
+        //public ICollection<TransactionDTO> Transactions { get; set; } =
+        //    new List<TransactionDTO>();
     }
 }

@@ -1,49 +1,62 @@
-﻿using System;
+﻿using Listify.DAL;
+using Listify.Domain.BLL;
+using Listify.Domain.BLL.Args;
+using Listify.Domain.Lib.Enums;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Listify.BLL
 {
-    //public class CurrencyPoll : BasePoll<CurrencyPollEventArgs>
-    //{
-    //    public CurrencyPoll(ListifyServices service) : base(service)
-    //    {
+    public class CurrencyPoll : BaseBLL<CurrencyPollEventArgs>
+    {
+        public CurrencyPoll(IListifyServices service) : base(service)
+        {
 
-    //    }
+        }
 
-    //    protected override async Task TimerTickEvents()
-    //    {
-    //        var rooms = await _services.ReadRoomsAsync();
+        protected override async Task TimerTickEvents()
+        {
+            var rooms = await _service.ReadRoomsAsync();
+            var currencies = await _service.ReadCurrenciesAsync();
+            //RE: ToDo: Fix this with correct auth and routing
+            var currencyActive = currencies[0];
+            var currencyVM = await _service.ReadCurrencyAsync(currencyActive.Id);
 
-    //        foreach (var room in rooms)
-    //        {
-    //            try
-    //            {
-    //                var roomVm = await _services.ReadRoomAsync(room.Id);
-    //                if (roomVm.IsRoomOnline)
-    //                {
-    //                    foreach (var currency in roomVm.Currencies)
-    //                    {
-    //                        var currencyVM = await _services.ReadCurrencyAsync(currency.Id);
-    //                        if (currency != null &&
-    //                            currencyVM.TimestampLastUpdate + TimeSpan.FromSeconds(currencyVM.TimeSecBetweenTick) < DateTime.UtcNow)
-    //                        {
-    //                            var applicationUserRoomsCurrencies = await _services.AddCurrencyQuantityToAllUsersInRoomAsync(room);
+            if (currencyVM != null)
+            {
+                foreach (var room in rooms)
+                {
+                    if (room.IsRoomOnline)
+                    {
+                        try
+                        {
+                            var roomVM = await _service.ReadRoomAsync(room.Id);
 
-    //                            FirePollingEvent(this, new CurrencyPollEventArgs
-    //                            {
-    //                                PollingEventType = PollingEventType.CurrencyPoll,
-    //                                ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies
-    //                            });
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //            catch (Exception ex)
-    //            {
-    //                Console.WriteLine(ex.Message);
-    //            }
-    //        }
-    //    }
-    //}
+                            foreach (var currency in currencies)
+                            {
+                                //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
+                                if (currency != null &&
+                                    currencyVM.TimestampLastUpdated + TimeSpan.FromSeconds(currencyVM.TimeSecBetweenTick) < DateTime.UtcNow)
+                                {
+                                    var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currency.Id, currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
+
+                                    FirePollingEvent(this, new CurrencyPollEventArgs
+                                    {
+                                        PollingEventType = PollingEventType.CurrencyPoll,
+                                        ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies
+                                    });
+                                }
+                            }
+                        }
+                    
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

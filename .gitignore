@@ -4,7 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # My-Ignoring-Files
-/Listify.Backend/Domain/Listify.Paths/Globals.cs
+Listify.Backend/Domain/Listify.Paths/Globals.cs
 
 # User-specific files
 *.rsuser

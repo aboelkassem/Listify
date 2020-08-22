@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Listify.Lib.Responses
 {
-    public static class YoutubeResults
+    public class YoutubeResults
     {
-        //public ICollection<YoutubeResult> YoutubeResult { get; set; }
+        public ICollection<YoutubeResult> results { get; set; }
 
         public class YoutubeResult
         {

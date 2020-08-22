@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Domain\Listify.Domain.CodeFirst\Listify.Domain.CodeFirst.csproj" />
     <ProjectReference Include="..\..\Domain\Listify.Domain.Lib\Listify.Domain.Lib.csproj" />
     <ProjectReference Include="..\..\Domain\Listify.Paths\Listify.Paths.csproj" />
+    <ProjectReference Include="..\..\Modules\Listify.BLL\Listify.BLL.csproj" />
     <ProjectReference Include="..\..\Modules\Listify.DAL\Listify.DAL.csproj" />
     <ProjectReference Include="..\..\Modules\Listify.Lib\Listify.Lib.csproj" />
     <ProjectReference Include="..\Listify.Identity\Listify.Identity.csproj" />

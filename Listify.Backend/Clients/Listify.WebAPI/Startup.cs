@@ -9,6 +9,7 @@ using Listify.Domain.CodeFirst;
 using Listify.Domain.BLL;
 using Listify.DAL;
 using Listify.Paths;
+using Listify.BLL;
 
 namespace Listify.WebAPI
 {
@@ -58,6 +59,12 @@ namespace Listify.WebAPI
             services.AddTransient<IListifyServices, ListifyServices>();
 
             services.AddSingleton(AutoMap.CreateAutoMapper());
+
+            var serviceProvider = services.BuildServiceProvider();
+            var listifyService = serviceProvider.GetService<IListifyServices>();
+            var currencyPoll = new CurrencyPoll(listifyService);
+            currencyPoll.Start(5000);
+            services.AddSingleton(currencyPoll);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -10,6 +10,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Listify.Identity.Models;
 using Listify.Identity.Data;
+using Listify.Paths;
 
 namespace Listify.Identity
 {
@@ -90,28 +91,28 @@ namespace Listify.Identity
             services.AddAuthentication()
                 .AddGoogle(options =>
                 {
-                    options.ClientId = "258367043031-4hp1ir4e7hk1u7vhn7jipg5ei2qt3r1u.apps.googleusercontent.com";
-                    options.ClientSecret = "I-bl612AAYV0JRLks_f-Rl2J";
+                    options.ClientId = Globals.GOOGLE_ATHENTICATION_CLIENT_ID;
+                    options.ClientSecret = Globals.GOOGLE_ATHENTICATION_CLIENT_SECRET;
                 })
                 .AddTwitch(options =>
                 {
-                    options.ClientId = "um50fja3x21e2a8208u7lyau8ihv0t";
-                    options.ClientSecret = "snnza9njqez85i0a575x9enfsvzkur";
+                    options.ClientId = Globals.TWITCH_ATHENTICATION_CLIENT_ID;
+                    options.ClientSecret = Globals.TWITCH_ATHENTICATION_CLIENT_SECRET;
                 })
                 .AddFacebook(options =>
                 {
-                    options.ClientId = "221800619181076";
-                    options.ClientSecret = "7d22dcb3d22b19c6057629521f2f80b0";
+                    options.ClientId = Globals.FACEBOOK_ATHENTICATION_CLIENT_ID;
+                    options.ClientSecret = Globals.FACEBOOK_ATHENTICATION_CLIENT_SECRET;
                 })
                 //.addtwitter(options =>
                 //{
-                //    options.consumerkey = "";
-                //    options.consumersecret = "";
+                //    options.consumerkey = Globals.TWITTER_ATHENTICATION_CLIENT_ID;
+                //    options.consumersecret = Globals.TWITTER_ATHENTICATION_CLIENT_SECRET;
                 //})
                 .AddMicrosoftAccount(options =>
                 {
-                    options.ClientId = "d3182534-3010-41d9-8709-bcafcfc71c53";
-                    options.ClientSecret = "CuU448A1~h1rt3Y.WeoiC-~rzBXI-2cb-K";
+                    options.ClientId = Globals.MICROSOFT_ATHENTICATION_CLIENT_ID;
+                    options.ClientSecret = Globals.MICROSOFT_ATHENTICATION_CLIENT_SECRET;
                 });
         }
 

@@ -1,4 +1,5 @@
-﻿using Listify.Lib.DTOs;
+﻿using Listify.Domain.Lib.Enums;
+using Listify.Lib.DTOs;
 using Listify.Lib.Requests;
 using Listify.Lib.Responses;
 using Listify.Lib.VMs;
@@ -41,6 +42,7 @@ namespace Listify.DAL
         Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId);
         Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id);
         Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId);
+        Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUsersRoomsConnectionsAsync(Guid roomId);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId);
         Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id);
@@ -63,6 +65,7 @@ namespace Listify.DAL
         Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request, Guid applicationUserId);
         Task<ApplicationUserRoomVM> UpdateApplicationUserRoomAsync(ApplicationUserRoomUpdateRequest request);
         Task<ApplicationUserRoomCurrencyVM> UpdateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyUpdateRequest request);
+        Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request);
         Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request);
@@ -70,6 +73,6 @@ namespace Listify.DAL
 
         Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet);
         Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
-        Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid applicationUserId);
+        Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType);
     }
 }

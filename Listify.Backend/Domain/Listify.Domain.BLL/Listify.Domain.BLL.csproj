@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Modules\Listify.DAL\Listify.DAL.csproj" />
     <ProjectReference Include="..\..\Modules\Listify.Lib\Listify.Lib.csproj" />
   </ItemGroup>
 

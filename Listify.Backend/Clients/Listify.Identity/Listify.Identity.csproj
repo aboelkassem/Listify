@@ -41,6 +41,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Domain\Listify.Paths\Listify.Paths.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="wwwroot\cert.pfx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

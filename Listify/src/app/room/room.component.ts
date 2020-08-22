@@ -1,5 +1,5 @@
 import { ISongSearchResult } from 'src/app/interfaces';
-import { IRoom } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, ICurrency, IApplicationUserRoomCurrency } from './../interfaces';
 import { Subscription } from 'rxjs';
 import { YoutubeService } from './../services/youtube.service';
 import { HubService } from './../services/hub.service';
@@ -15,13 +15,17 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   roomCode: string;
   searchSnippet: string;
-  quantityWagered: number;
+  currency: ICurrency;
+  quantity: string;
+  currencyName: string;
 
   room: IRoom;
   songSearchResults: ISongSearchResult[] = [];
 
+  $applicationUserRoomCurrencySubscription: Subscription;
   $roomSubscription: Subscription;
   $youtubeSearchSubscription: Subscription;
+  $currencySubscription: Subscription;
 
   constructor(
     private hubService: HubService,
@@ -41,6 +45,16 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponses => {
         this.songSearchResults = songSearchResponses.results;
       });
+
+      this.$currencySubscription = this.hubService.getCurrencyActive().subscribe(currencyActive => {
+        this.currency = currencyActive;
+        this.currencyName = currencyActive.currencyName;
+      });
+
+      // tslint:disable-next-line:max-line-length
+      this.$applicationUserRoomCurrencySubscription = this.hubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
+        this.quantity = applicationUserRoomCurrency.quantity.toString();
+      });
     }
 
   ngOnInit(): void {
@@ -51,6 +65,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.$roomSubscription.unsubscribe();
     this.$youtubeSearchSubscription.unsubscribe();
+    this.$currencySubscription.unsubscribe();
+    this.$applicationUserRoomCurrencySubscription.unsubscribe();
   }
 
   onReady(player: any): void {
@@ -66,16 +82,20 @@ export class RoomComponent implements OnInit, OnDestroy {
     // this.youtubeService.play();
   }
 
-  addSongToQueue(songSearch: ISongSearchResult): void {
+  addSongToPlaylist(searchResult: ISongSearchResult): void {
+    const request: ISongQueuedCreateRequest = {
+      applicationUserRoomId: this.hubService.applicationUserRoomCurrent.id,
+      currencyId: this.currency.id,
+      quantityWagered: searchResult.quantityWagered,
+      songSearchResult: searchResult
+    };
 
+    this.hubService.createSongQueued(request);
   }
+
 
   playerState(): void {
     let state = this.youtubeService.getPlayerState();
-  }
-
-  skip(): void {
-
   }
 
   addToPlaylist(): void {

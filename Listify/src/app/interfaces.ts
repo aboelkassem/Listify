@@ -1,5 +1,8 @@
 export interface ISongQueuedCreateRequest {
-  searchSnippet: string;
+  applicationUserRoomId: string;
+  currencyId: string;
+  quantityWagered: number;
+  songSearchResult: ISongSearchResult;
 }
 
 export interface IApplicationUser {
@@ -27,9 +30,15 @@ export interface IRoom {
 }
 export interface IApplicationUserRoom {
   id: string;
+  isOnline: boolean;
   applicationUser: IApplicationUser;
   room: IRoom;
-  isOnline: boolean;
+}
+
+export interface IApplicationUserRoomCurrency {
+  quantity: number;
+  applicationUserRoom: IApplicationUserRoom;
+  currency: ICurrency;
 }
 
 export interface IChatData {
@@ -60,7 +69,6 @@ export interface ISongQueued {
   id: string;
   weightedValue: number;
   applicationUser: IApplicationUser;
-  room: IRoom;
   song: ISong;
 }
 
@@ -99,4 +107,6 @@ export interface ISongSearchResult {
   songName: string;
   lengthSec: number;
   videoId: string;
+  quantityWagered: number;
+  currencyId: string;
 }
