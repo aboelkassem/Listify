@@ -7,6 +7,7 @@ namespace Listify.Lib.VMs
     public class ApplicationUserRoomVM : BaseVM
     {
         public bool IsOnline { get; set; }
+        public bool IsOwner { get; set; }
 
         public ApplicationUserDTO ApplicationUser { get; set; }
         public RoomDTO Room { get; set; }

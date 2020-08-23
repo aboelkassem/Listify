@@ -24,7 +24,9 @@ namespace Listify.DAL
         protected readonly ApplicationDbContext _context;
         protected readonly IMapper _mapper;
 
-        public ListifyServices(ApplicationDbContext context, IMapper mapper)
+        public ListifyServices(
+            ApplicationDbContext context, 
+            IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -52,11 +54,23 @@ namespace Listify.DAL
 
             _context.ApplicationUsers.Add(entity);
 
-            _context.Rooms.Add(new Room
+            var room = new Room
             {
                 ApplicationUser = entity,
                 RoomCode = request.Username
-            });
+            };
+            _context.Rooms.Add(room);
+
+            var applicationUserRoom = new ApplicationUserRoom
+            {
+                ApplicationUser = entity,
+                IsOnline = true,
+                IsOwner = true,
+                Room = room
+            };
+
+
+            _context.ApplicationUsersRooms.Add(applicationUserRoom);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -402,7 +416,7 @@ namespace Listify.DAL
         public virtual async Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId)
         {
             var entities = await _context.Playlists
-                .Include(s => s.SongPlaylists)
+                .Include(s => s.SongsPlaylists)
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
                 .ToListAsync();
 
@@ -415,7 +429,7 @@ namespace Listify.DAL
         public virtual async Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.Playlists
-                .Include(s => s.SongPlaylists)
+                .Include(s => s.SongsPlaylists)
                 .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
             return entity != null ? _mapper.Map<PlaylistVM>(entity) : null;
@@ -572,6 +586,29 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<SongPlaylistVM> ReadSongPlaylistNext(Guid applicationUserId)
+        {
+            var playlist = await _context.Playlists
+                .Where(s => s.ApplicationUserId == applicationUserId && s.Active && s.IsSelected)
+                .Include(s => s.SongsPlaylists)
+                .FirstOrDefaultAsync();
+
+            if (playlist != null)
+            {
+                var selectedSong = playlist.SongsPlaylists.OrderBy(s => s.PlayCount).FirstOrDefault();
+
+                if (selectedSong != null)
+                {
+                    selectedSong.PlayCount++;
+                    _context.Entry(selectedSong).State = EntityState.Modified;
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return _mapper.Map<SongPlaylistVM>(selectedSong);
+                    }
+                }
+            }
+            return null;
+        }
         public virtual async Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id)
         {
             var entities = await _context.SongsPlaylists
@@ -703,6 +740,10 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<SongQueuedVM[]> ReadSongsQueuedAsync(Guid roomId)
+        {
+
+        }
         public virtual async Task<SongQueuedVM> ReadSongQueuedAsync(Guid id)
         {
             var entity = await _context.SongsQueued
@@ -740,6 +781,35 @@ namespace Listify.DAL
                 }
             }
             return false;
+        }
+        public virtual async Task<SongRequestVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId)
+        {
+            var queuedSongNext = await _context.SongsQueued
+                .Include(s => s.Room)
+                .Where(s => s.RoomId == roomId && s.ApplicationUserId == applicationUserId && s.Active)
+                .OrderByDescending(s => s.WeightedValue)
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.Song)
+                .FirstOrDefaultAsync();
+
+            if (queuedSongNext == null)
+            {
+                // Pull a song from the playlist
+                return await ReadSongPlaylistNext(applicationUserId);
+            }
+            else
+            {
+                queuedSongNext.Active = false;
+                queuedSongNext.HasBeenPlayed = true;
+                queuedSongNext.PlayedTimestamp = DateTime.UtcNow;
+                _context.Entry(queuedSongNext).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return _mapper.Map<SongQueuedVM>(queuedSongNext);
+                }
+            }
+            return null;
         }
 
         public virtual async Task<TransactionVM> ReadTransactionAsync(Guid id)
@@ -996,6 +1066,7 @@ namespace Listify.DAL
             }
             return youtubeResults;
         }
+
         public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType)
         {
             var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrency>();
@@ -1050,6 +1121,7 @@ namespace Listify.DAL
                 foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
                 {
                     applicationUserRoomCurrency.Quantity += currencyQuantity;
+                    _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
 
                     var transaction = new Transaction
                     {
@@ -1069,6 +1141,52 @@ namespace Listify.DAL
                     return vms;
                 }
             }
+            return null;
+        }
+        public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
+        {
+            var applicationUsersRoomsConnections = await _context.ApplicationUsersRoomsConnections
+                .Where(s => s.Active)
+                .ToListAsync();
+
+            var connectionsToPing = new List<ApplicationUserRoomConnection>();
+            //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
+
+            foreach (var applicationUserRoomConnection in applicationUsersRoomsConnections)
+            {
+                try
+                {
+                    if (applicationUserRoomConnection.HasPingBeenSent || !applicationUserRoomConnection.IsOnline)
+                    {
+                        // Ping was not responded to - remove connection
+                        _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                        //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
+                    }
+                    else
+                    {
+                        // Send Ping
+                        applicationUserRoomConnection.HasPingBeenSent = true;
+                        _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
+
+                        connectionsToPing.Add(applicationUserRoomConnection);
+                    }
+                }
+                catch
+                { }
+            }
+
+            if (await _context.SaveChangesAsync() > 0 )
+            {
+                var vms = new List<ApplicationUserRoomConnectionVM>();
+                connectionsToPing.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
+                return vms;
+                //return new PingPollVM
+                //{
+                //    ApplicationUserRoomConnectionsRemoved = connectionsRemoved,
+                //    ApplicationUserRoomConnectionsToPing = connectionsToPing
+                //};
+            }
+
             return null;
         }
 

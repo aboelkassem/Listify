@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Args\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Domain\Listify.Domain.BLL\Listify.Domain.BLL.csproj" />
     <ProjectReference Include="..\Listify.DAL\Listify.DAL.csproj" />
   </ItemGroup>

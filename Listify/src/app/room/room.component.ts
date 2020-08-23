@@ -1,5 +1,5 @@
-import { ISongSearchResult } from 'src/app/interfaces';
-import { IRoom, ISongQueuedCreateRequest, ICurrency, IApplicationUserRoomCurrency } from './../interfaces';
+import { ISongSearchResult, ISongQueued } from 'src/app/interfaces';
+import { IRoom, ISongQueuedCreateRequest, ICurrency } from './../interfaces';
 import { Subscription } from 'rxjs';
 import { YoutubeService } from './../services/youtube.service';
 import { HubService } from './../services/hub.service';
@@ -18,14 +18,17 @@ export class RoomComponent implements OnInit, OnDestroy {
   currency: ICurrency;
   quantity: string;
   currencyName: string;
+  songsQueued: ISongQueued[];
 
   room: IRoom;
   songSearchResults: ISongSearchResult[] = [];
 
   $applicationUserRoomCurrencySubscription: Subscription;
   $roomSubscription: Subscription;
+  $connectedToHubSubscription: Subscription;
   $youtubeSearchSubscription: Subscription;
   $currencySubscription: Subscription;
+  $songsQueuedSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
@@ -33,6 +36,11 @@ export class RoomComponent implements OnInit, OnDestroy {
     private youtubeService: YoutubeService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
+      });
+
+      this.$connectedToHubSubscription = this.hubService.getUserInfo().subscribe(applicationUser => {
+        this.hubService.requestRoom(this.roomCode);
+        this.hubService.requestCurrencyActive();
       });
 
       this.$roomSubscription = this.hubService.getRoom().subscribe(room => {
@@ -55,11 +63,23 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$applicationUserRoomCurrencySubscription = this.hubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
         this.quantity = applicationUserRoomCurrency.quantity.toString();
       });
+
+      this.$songsQueuedSubscription = this.hubService.getSongsQueued().subscribe(songsQueued => {
+        this.songsQueued = songsQueued;
+
+        if (this.songsQueued !== undefined && this.songsQueued.length > 0){
+          this.youtubeService.loadVideo(this.songsQueued[0].song.youtubeId);
+          this.youtubeService.play();
+        }
+      });
     }
 
   ngOnInit(): void {
-    // const id = this.route.snapshot.paramMap.get('id');
-    this.hubService.requestRoom(this.roomCode);
+    if (this.hubService.isConnected()) {
+      // const id = this.route.snapshot.paramMap.get('id');
+      this.hubService.requestRoom(this.roomCode);
+      this.hubService.requestCurrencyActive();
+    }
   }
 
   ngOnDestroy(): void {
@@ -67,6 +87,8 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.$youtubeSearchSubscription.unsubscribe();
     this.$currencySubscription.unsubscribe();
     this.$applicationUserRoomCurrencySubscription.unsubscribe();
+    this.$connectedToHubSubscription.unsubscribe();
+    this.$songsQueuedSubscription.unsubscribe();
   }
 
   onReady(player: any): void {

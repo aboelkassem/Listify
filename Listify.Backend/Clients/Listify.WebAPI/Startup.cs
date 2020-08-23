@@ -62,6 +62,11 @@ namespace Listify.WebAPI
 
             var serviceProvider = services.BuildServiceProvider();
             var listifyService = serviceProvider.GetService<IListifyServices>();
+
+            var pingPoll = new PingPoll(listifyService);
+            pingPoll.Start(10000);
+            services.AddSingleton(pingPoll);
+            
             var currencyPoll = new CurrencyPoll(listifyService);
             currencyPoll.Start(5000);
             services.AddSingleton(currencyPoll);

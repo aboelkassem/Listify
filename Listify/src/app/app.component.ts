@@ -3,7 +3,7 @@ import { Subscription } from 'rxjs';
 import { authConfig } from './authConfig';
 import { OAuthService, OAuthEvent} from 'angular-oauth2-oidc';
 import { JwksValidationHandler } from 'angular-oauth2-oidc-jwks';
-import { Component } from '@angular/core';
+import { Component, OnInit ,OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy, OnInit {
   title = 'Listify';
   claims: any;
   hasLoadedProfile: boolean;
@@ -38,6 +38,12 @@ export class AppComponent {
 
       this.configureWithNewConfigApi();
       this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
+  }
+  ngOnInit(): void {
+  }
+  ngOnDestroy(): void {
+    this.$disconnectSubscription.unsubscribe();
+    this.$oauthSubscription.unsubscribe();
   }
 
   private configureWithNewConfigApi(): void {

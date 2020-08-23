@@ -5,6 +5,11 @@ export interface ISongQueuedCreateRequest {
   songSearchResult: ISongSearchResult;
 }
 
+export interface ISongRequest {
+  id: string;
+  song: ISong;
+}
+
 export interface IApplicationUser {
   id: string;
   aspNetUserId: string;
@@ -33,6 +38,7 @@ export interface IApplicationUserRoom {
   isOnline: boolean;
   applicationUser: IApplicationUser;
   room: IRoom;
+  isOwner: boolean;
 }
 
 export interface IApplicationUserRoomCurrency {
@@ -58,18 +64,14 @@ export interface IPlaylist {
   songsPlaylists: ISongPlaylist[];
 }
 
-export interface ISongPlaylist {
-  id: string;
+export interface ISongPlaylist extends ISongRequest{
   playCount: number;
-  song: ISong;
   playlist: IPlaylist;
 }
 
-export interface ISongQueued {
-  id: string;
+export interface ISongQueued extends ISongRequest {
   weightedValue: number;
   applicationUser: IApplicationUser;
-  song: ISong;
 }
 
 export interface ISong {

@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, IChatMessage, ISongQueuedCreateRequest, IChatData, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency } from './../interfaces';
+import { IRoom, IChatMessage, ISongQueuedCreateRequest, IChatData, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency, ISongRequest } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -26,10 +26,13 @@ export class HubService {
   $currencyActiveReceived = new Subject<ICurrency>();
   $songPlaylistReceived = new Subject<ISongPlaylist>();
   $songsPlaylistReceived = new Subject<ISongPlaylist[]>();
+  $songQueuedReceived = new Subject<ISongQueued>();
+  $songNextReceived = new Subject<ISongRequest>();
   $songsQueuedReceived = new Subject<ISongQueued[]>();
   $searchYoutubeReceived = new Subject<ISongSearchResults>();
   $userInfoReceived = new Subject<IApplicationUser>();
   $applicationUserRoomCurrencyReceived = new Subject<IApplicationUserRoomCurrency>();
+  $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
 
   // private _applicationUserRoomCurrent: IApplicationUserRoom;
@@ -61,9 +64,18 @@ export class HubService {
         // console.log(data);
         this.$roomReceived.next(this.applicationUserRoomCurrent.room);
         this.$userInfoReceived.next(this.applicationUserRoomCurrent.applicationUser);
+
+        // Now request the next pieces of data
+        if (this.applicationUserRoomCurrent.isOwner) {
+          this.requestSongNext(this.applicationUserRoomCurrent.room);
+        }else {
+          this.requestRoom(this.applicationUserRoomCurrent.room.id);
+        }
+
+        this.getCurrencyActive();
+
         // this.requestPlaylists();
         // this.requestRooms();
-        this.requestRoom(this.applicationUserRoomCurrent.room.id);
       });
 
       this._hubConnection.on('ReceiveApplicationUserInformation', (applicationUser: IApplicationUser) => {
@@ -118,10 +130,21 @@ export class HubService {
         this.$songsQueuedReceived.next(queuedSongs);
       });
 
-      this._hubConnection.on('PingRequest', (ping: any) => {
-        if (ping === 'Ping') {
-          this._hubConnection.invoke('PingResponse');
-        }
+      this._hubConnection.on('ReceiveSongQueued', (queuedSong: ISongQueued) => {
+        this.$songQueuedReceived.next(queuedSong);
+      });
+
+      this._hubConnection.on('ReceiveSongNext', (songRequest: ISongRequest) => {
+        this.$songNextReceived.next(songRequest);
+
+        this.requestSongsQueued(this.applicationUserRoomCurrent.room.id);
+      });
+
+      this._hubConnection.on('PingRequest', (ping: string) => {
+        // if (ping === 'Ping') {
+        //   this._hubConnection.invoke('PingResponse');
+        // }
+        this.$pingEvent.next(ping);
       });
 
       this._hubConnection.on('ForceServerDisconnect', () => {
@@ -205,31 +228,23 @@ export class HubService {
     }
   }
 
-  deletePlaylist(id: string): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('DeletePlaylist', id);
-    }
-  }
-
   savePlaylist(playlist: IPlaylistCreateRequest): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('CreatePlaylist', playlist);
     }
   }
 
-  requestSongsQueued(room: IRoom): void {
+  deletePlaylist(id: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestSongsQueued', room);
+      this._hubConnection.invoke('DeletePlaylist', id);
     }
   }
 
-  createSongQueued(request: ISongQueuedCreateRequest): void {
+  requestSongsQueued(roomId: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('CreateSongQueued', request);
+      this._hubConnection.invoke('RequestSongsQueued', roomId);
     }
   }
-
-
   // getRooms(): void {
   //   if (this._hubConnection) {
   //     this._hubConnection.invoke('GetRooms');
@@ -283,9 +298,21 @@ export class HubService {
     }
   }
 
-  requestQueue(room: IRoom): void {
+  deleteSongQueued(id: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestQueue', room);
+      this._hubConnection.invoke('DeleteSongQueued', id);
+    }
+  }
+
+  requestSongQueued(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestSongQueued', roomId);
+    }
+  }
+
+  createSongQueued(request: ISongQueuedCreateRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('CreateSongQueued', request);
     }
   }
 
@@ -294,6 +321,19 @@ export class HubService {
       this._hubConnection.invoke('RequestSongsPlaylist', playlistId);
     }
   }
+
+  requestPing(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('PingResponse');
+    }
+  }
+
+  requestSongNext(room: IRoom): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestSongNext', room.id);
+    }
+  }
+
 
   getUserInfo(): Observable<IApplicationUser> {
     return this.$userInfoReceived.asObservable();
@@ -343,11 +383,36 @@ export class HubService {
     return this.$songsQueuedReceived.asObservable();
   }
 
+  getSongQueued(): Observable<ISongQueued> {
+    return this.$songQueuedReceived.asObservable();
+  }
+
   getApplicationUserRoomCurrency(): Observable<IApplicationUserRoomCurrency> {
     return this.$applicationUserRoomCurrencyReceived.asObservable();
   }
 
+  getPing(): Observable<string> {
+    return this.$pingEvent.asObservable();
+  }
+
+  getSongNext(): Observable<ISongRequest> {
+    return this.$songNextReceived.asObservable();
+  }
+
+  disconnectFromHub(): void {
+    if (this._hubConnection) {
+      this._hubConnection.stop();
+    }
+  }
+
   getForceDisconnect(): Observable<string> {
     return this.$forceDisconnectReceived.asObservable();
+  }
+
+  isConnected(): boolean {
+    if (this._hubConnection.state !== 0) {
+      return true;
+    }
+    return false;
   }
 }

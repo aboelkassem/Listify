@@ -16,7 +16,7 @@ namespace Listify.Domain.Lib.Entities
         public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
-        public ICollection<SongPlaylist> SongPlaylists { get; set; } =
+        public ICollection<SongPlaylist> SongsPlaylists { get; set; } =
             new List<SongPlaylist>();
     }
 }

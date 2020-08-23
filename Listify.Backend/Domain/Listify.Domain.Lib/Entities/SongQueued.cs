@@ -9,7 +9,7 @@ namespace Listify.Domain.Lib.Entities
     {
         // this is Value Currently assigned to the song based on incoming
         // and outgoing transactions
-        public int WeightedCurrentValue { get; set; }
+        public int WeightedValue { get; set; }
 
         public Guid ApplicationUserId { get; set; }
         public Guid RoomId { get; set; }

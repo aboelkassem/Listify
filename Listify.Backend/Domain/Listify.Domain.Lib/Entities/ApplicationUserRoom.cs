@@ -8,6 +8,7 @@ namespace Listify.Domain.Lib.Entities
     public class ApplicationUserRoom : BaseEntity
     {
         public bool IsOnline { get; set; }
+        public bool IsOwner { get; set; }
 
         public Guid ApplicationUserId { get; set; }
         public Guid RoomId { get; set; }

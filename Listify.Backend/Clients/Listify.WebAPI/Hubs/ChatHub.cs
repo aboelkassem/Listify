@@ -17,6 +17,9 @@ using System.Collections.Generic;
 using Listify.Lib.Responses;
 using Listify.BLL;
 using Listify.Domain.BLL.Args;
+using Listify.Domain.Lib.Entities;
+using Listify.BLL.Args;
+using IdentityServer4.EntityFramework.Entities;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -26,6 +29,7 @@ namespace Listify.WebAPI.Hubs
         protected readonly IHubContext<ChatHub> _chatHub;
         protected readonly IListifyServices _services;
         protected readonly CurrencyPoll _currencyPoll;
+        protected readonly PingPoll _pingPoll;
         protected readonly IMapper _mapper;
 
         public ChatHub(
@@ -33,6 +37,7 @@ namespace Listify.WebAPI.Hubs
             IHubContext<ChatHub> chatHub,
             IListifyServices services,
             CurrencyPoll currencyPoll,
+            PingPoll pingPoll,
             IMapper mapper)
         {
             _context = context;
@@ -40,11 +45,33 @@ namespace Listify.WebAPI.Hubs
             _services = services;
             _mapper = mapper;
 
-            _currencyPoll = currencyPoll;
-            _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
+            if (_currencyPoll == null)
+            {
+                _currencyPoll = currencyPoll;
+                _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
+            }
+
+            if (_pingPoll == null)
+            {
+                _pingPoll = pingPoll;
+                _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
+            }
         }
 
-        protected async Task OnCurrencyPollEvent(object sender, CurrencyPollEventArgs args)
+        protected virtual async Task OnPingPollEvent(object sender, PingPollEventArgs args)
+        {
+            foreach (var item in args.ConnectionsPinged)
+            {
+                await _chatHub.Clients.Client(item.ConnectionId).SendAsync("PingRequest", "Ping");
+            }
+
+            //foreach (var applicationUserRoomConnection in args.PingPoll.ApplicationUserRoomConnectionsRemoved)
+            //{
+            //    await ForceServerDisconnectAsync(applicationUserRoomConnection.ConnectionId);
+            //}
+        }
+
+        protected virtual async Task OnCurrencyPollEvent(object sender, CurrencyPollEventArgs args)
         {
             // have a ping service, get the connections out of the database that match the room
             var connections = await _services.ReadApplicationUsersRoomsConnectionsAsync(args.Room.Id);
@@ -56,17 +83,17 @@ namespace Listify.WebAPI.Hubs
                     if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
                     {
                         var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
-                        await Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                        await _chatHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                     }
                 }
                 catch
                 {
-                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
-                    {
-                        Id = connection.Id,
-                        HasPingBeenSent = connection.HasPingBeenSent,
-                        IsOnline = false
-                    });
+                    //await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    //{
+                    //    Id = connection.Id,
+                    //    HasPingBeenSent = connection.HasPingBeenSent,
+                    //    IsOnline = false
+                    //});
                 }
             }
 
@@ -236,6 +263,25 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
+        public async Task RequestSongNext(string roomId)
+        {
+            try
+            {
+                if (Guid.TryParse(roomId, out var guid))
+                {
+                    var userId = await GetUserIdAsync();
+                    var songNext = await _services.DequeueSongQueuedAsync(guid, userId);
+                    if (songNext != null)
+                    {
+                        await Clients.Caller.SendAsync("ReceiveSongNext", songNext);
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
         public async Task RequestSongsPlaylist(string playlsitId)
         {
             try
@@ -383,7 +429,6 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var userId = await GetUserIdAsync();
                 if (Guid.TryParse(id, out var guid))
                 {
                     if (await _services.DeleteCurrencyAsync(guid))
@@ -398,7 +443,7 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
-        public async Task RequestQueue(RoomVM room)
+        public async Task RequestSongsQueued(string roomId)
         {
             try
             {
@@ -407,6 +452,60 @@ namespace Listify.WebAPI.Hubs
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestSongQueued(string id)
+        {
+            try
+            {
+                if (Guid.TryParse(id, out var guid))
+                {
+                    var songQueued = await _services.ReadSongQueuedAsync(guid);
+                    await Clients.Caller.SendAsync("ReceiveSongQueued");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task CreateSongQueued(SongQueuedCreateRequest request)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                //var songQueued = await _services.ReadSongQueuedAsync(guid);
+                //await Clients.Caller.SendAsync("ReceiveSongQueued");
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task DeleteSongQueued(string id)
+        {
+
+        }
+
+        public async Task PingResponse()
+        {
+            var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+            if (connection != null)
+            {
+                try
+                {
+                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        Id = connection.Id,
+                        HasPingBeenSent = false,
+                        IsOnline = true
+                    });
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -501,11 +600,21 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-
-        protected virtual async Task ForceServerDisconnectAsync()
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
-            await Clients.Caller.SendAsync("ForceServerDisconnect");
+            await base.OnDisconnectedAsync(exception);
+            var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            if (connection != null)
+            {
+                connection = await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                {
+                    Id = connection.Id,
+                    HasPingBeenSent = connection.HasPingBeenSent,
+                    IsOnline = false
+                });
+            }
         }
+
         protected virtual async Task<Guid> GetUserIdAsync()
         {
             var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
@@ -516,7 +625,7 @@ namespace Listify.WebAPI.Hubs
 
                 if (applicationUserRoomConnection == null)
                 {
-                    await ForceServerDisconnectAsync();
+                    await _chatHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
                     return Guid.Empty;
                 }
             }
@@ -602,6 +711,5 @@ namespace Listify.WebAPI.Hubs
             }
             return null;
         }
-
     }
 }

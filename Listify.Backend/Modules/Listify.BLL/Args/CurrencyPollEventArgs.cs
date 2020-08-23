@@ -1,10 +1,9 @@
-﻿using Listify.Lib.DTOs;
+﻿using Listify.Domain.BLL.Args;
+using Listify.Lib.DTOs;
 using Listify.Lib.VMs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Listify.Domain.BLL.Args
+namespace Listify.BLL.Args
 {
     public class CurrencyPollEventArgs : BasePollingEventArgs
     {
