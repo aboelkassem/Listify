@@ -6,9 +6,9 @@ namespace Listify.Lib.VMs
 {
     public class SongVM : BaseVM
     {
-        public string SongName { get; set; }
-        public string YoutubeId { get; set; }
-        public int SongLengthSeconds { get; set; }
+        public string SongName { get; set; } // +2 referneces
+        public string YoutubeId { get; set; } // +2 referneces
+        public int SongLengthSeconds { get; set; } // +2 referneces
 
         public ICollection<SongRequestDTO> SongRequests { get; set; } =
             new List<SongRequestDTO>();

@@ -25,6 +25,7 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<SongPlaylist> SongsPlaylists { get; set; }
         public virtual DbSet<SongQueued> SongsQueued { get; set; }
+        public virtual DbSet<SongRequestHistory> SongsRequestHistory { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<TransactionSongQueued> TransactionsSongsQueued { get; set; }
 
@@ -62,6 +63,21 @@ namespace Listify.Domain.CodeFirst
             builder.Entity<SongQueued>()
                 .HasOne(s => s.ApplicationUser)
                 .WithMany(s => s.SongsQueued)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SongRequestHistory>()
+                .HasOne(s => s.ApplicationUser)
+                .WithMany(s => s.SongsReqeustHistory)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SongRequestHistory>()
+                .HasOne(s => s.Room)
+                .WithMany(s => s.SongsReqeustHistory)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SongRequestHistory>()
+                .HasOne(s => s.Song)
+                .WithMany(s => s.SongsReqeustHistory)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<TransactionSongQueued>()

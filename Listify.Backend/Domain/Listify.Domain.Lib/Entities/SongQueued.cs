@@ -9,13 +9,13 @@ namespace Listify.Domain.Lib.Entities
     {
         // this is Value Currently assigned to the song based on incoming
         // and outgoing transactions
-        public int WeightedValue { get; set; }
+        public int WeightedValue { get; set; }  // 3 references
 
         public Guid ApplicationUserId { get; set; }
-        public Guid RoomId { get; set; }
+        public Guid RoomId { get; set; }     // 3 references
 
-        public ApplicationUser ApplicationUser { get; set; }
-        public Room Room { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }    // 4 references
+        public Room Room { get; set; }  // 4 references
 
         public ICollection<TransactionSongQueued> TransactionsSongQueued { get; set; } =
             new List<TransactionSongQueued>();

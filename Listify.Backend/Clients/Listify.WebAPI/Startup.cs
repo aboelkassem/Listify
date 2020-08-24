@@ -10,6 +10,7 @@ using Listify.Domain.BLL;
 using Listify.DAL;
 using Listify.Paths;
 using Listify.BLL;
+using Listify.BLL.Polls;
 
 namespace Listify.WebAPI
 {
@@ -63,13 +64,16 @@ namespace Listify.WebAPI
             var serviceProvider = services.BuildServiceProvider();
             var listifyService = serviceProvider.GetService<IListifyServices>();
 
-            var pingPoll = new PingPoll(listifyService);
+            IPingPoll pingPoll = new PingPoll(listifyService);
             pingPoll.Start(10000);
             services.AddSingleton(pingPoll);
-            
-            var currencyPoll = new CurrencyPoll(listifyService);
+            //services.AddSingleton<IBasePoll<PingPoll>, BasePoll<PingPoll>>();
+            //services.AddSingleton<IPingPoll, PingPoll>();
+
+            ICurrencyPoll currencyPoll = new CurrencyPoll(listifyService);
             currencyPoll.Start(5000);
             services.AddSingleton(currencyPoll);
+            //services.AddSingleton<ICurrencyPoll, CurrencyPoll>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,6 +96,7 @@ namespace Listify.WebAPI
 
             app.UseSignalR(routes =>
             {
+                routes.MapHub<ListifyHub>("/listifyHub");
                 routes.MapHub<ChatHub>("/chatHub");
             });
 

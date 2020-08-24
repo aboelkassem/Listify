@@ -1,4 +1,5 @@
-﻿using Listify.BLL.Args;
+﻿using Listify.BLL.Events.Args;
+using Listify.BLL.Polls;
 using Listify.DAL;
 using Listify.Domain.BLL;
 using Listify.Domain.Lib.Enums;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Listify.BLL
 {
-    public class PingPoll : BasePoll<PingPollEventArgs>
+    public class PingPoll : BasePoll<PingPollEventArgs>, IPingPoll
     {
         public PingPoll(IListifyServices service): base(service)
         {
@@ -17,12 +18,12 @@ namespace Listify.BLL
         {
             try
             {
-                var pingPoll = await _service.PingApplicationUsersRoomsConnections();
-                if (pingPoll != null && pingPoll.Count > 0)
+                var clientsPoll = await _service.PingApplicationUsersRoomsConnections();
+                if (clientsPoll != null && clientsPoll.Count > 0)
                 {
                     FirePollingEvent(this, new PingPollEventArgs
                     {
-                        ConnectionsPinged = pingPoll,
+                        ConnectionsPinged = clientsPoll,
                         PollingEventType = PollingEventType.PingPoll
                     });
                 }

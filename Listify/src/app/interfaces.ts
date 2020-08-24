@@ -5,11 +5,6 @@ export interface ISongQueuedCreateRequest {
   songSearchResult: ISongSearchResult;
 }
 
-export interface ISongRequest {
-  id: string;
-  song: ISong;
-}
-
 export interface IApplicationUser {
   id: string;
   aspNetUserId: string;
@@ -62,6 +57,11 @@ export interface IPlaylist {
   isSelected: boolean;
   applicationUser: IApplicationUser;
   songsPlaylists: ISongPlaylist[];
+}
+
+export interface ISongRequest {
+  id: string;
+  song: ISong;
 }
 
 export interface ISongPlaylist extends ISongRequest{

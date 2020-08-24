@@ -20,11 +20,14 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<ApplicationUserRoom> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoom>();
-        
+
         // this is SongQueued instead of song Request because if isn't
         // a song in the queue, a record will be created for one for the
         // SongRequest in the playlist.
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
+
+        public ICollection<SongRequestHistory> SongsReqeustHistory { get; set; } =
+            new List<SongRequestHistory>();
     }
 }

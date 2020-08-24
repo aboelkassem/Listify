@@ -795,14 +795,42 @@ namespace Listify.DAL
             if (queuedSongNext == null)
             {
                 // Pull a song from the playlist
-                return await ReadSongPlaylistNext(applicationUserId);
+                var nextSongPlaylist = await ReadSongPlaylistNext(applicationUserId);
+
+                _context.SongsRequestHistory.Add(new SongRequestHistory
+                {
+                    Id = Guid.NewGuid(),
+                    ApplicationUserId = applicationUserId,
+                    PlayedTimestamp = DateTime.UtcNow,
+                    RoomId = roomId,
+                    SongId = nextSongPlaylist.Song.Id,
+                    WeightedValue = 0,
+                    SongRequestType = SongRequestType.Playlist
+                });
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return nextSongPlaylist;
+                }
             }
             else
             {
                 queuedSongNext.Active = false;
-                queuedSongNext.HasBeenPlayed = true;
-                queuedSongNext.PlayedTimestamp = DateTime.UtcNow;
                 _context.Entry(queuedSongNext).State = EntityState.Modified;
+
+                _context.SongsQueued.Remove(queuedSongNext);
+
+                _context.SongsRequestHistory.Add(new SongRequestHistory
+                {
+                    Id = queuedSongNext.Id,
+                    ApplicationUserId = queuedSongNext.ApplicationUserId,
+                    PlayedTimestamp = DateTime.UtcNow,
+                    RoomId = roomId,
+                    SongId = queuedSongNext.SongId,
+                    WeightedValue = queuedSongNext.WeightedValue,
+                    SongRequestType = SongRequestType.Queued
+                });
+
 
                 if (await _context.SaveChangesAsync() > 0)
                 {

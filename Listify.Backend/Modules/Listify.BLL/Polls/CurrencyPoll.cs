@@ -1,13 +1,13 @@
-﻿using Listify.BLL.Args;
+﻿using Listify.BLL.Events.Args;
 using Listify.DAL;
 using Listify.Domain.BLL;
 using Listify.Domain.Lib.Enums;
 using System;
 using System.Threading.Tasks;
 
-namespace Listify.BLL
+namespace Listify.BLL.Polls
 {
-    public class CurrencyPoll : BasePoll<CurrencyPollEventArgs>
+    public class CurrencyPoll : BasePoll<CurrencyPollEventArgs>, ICurrencyPoll
     {
         public CurrencyPoll(IListifyServices service) : base(service)
         {

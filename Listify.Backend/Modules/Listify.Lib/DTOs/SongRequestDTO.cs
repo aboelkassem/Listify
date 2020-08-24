@@ -1,4 +1,5 @@
 ﻿using Listify.Domain.Lib.DTOs;
+using Listify.Domain.Lib.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,5 +9,6 @@ namespace Listify.Lib.DTOs
 {
     public abstract class SongRequestDTO : BaseDTO
     {
+        public SongRequestType SongRequestType { get; set; }
     }
 }

@@ -12,12 +12,6 @@ namespace Listify.Domain.Lib.Enums
         PollingCurrency,
         AwardCurrency
     }
-
-    public enum EndpointType
-    {
-
-    }
-
     public enum WagerType
     {
         Upvote,
@@ -29,4 +23,16 @@ namespace Listify.Domain.Lib.Enums
         CurrencyPoll,
         PingPoll
     }
+
+    public enum SongRequestType
+    {
+        Queued,
+        Playlist
+    }
+
+    public enum EndpointType
+    {
+
+    }
+
 }

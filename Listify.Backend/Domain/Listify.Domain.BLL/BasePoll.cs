@@ -1,13 +1,13 @@
 ﻿using Listify.DAL;
+using Listify.Domain.BLL.Events;
+using Listify.Domain.BLL.Events.Args;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Listify.Domain.BLL
 {
-    public abstract class BasePoll<T> : IDisposable where T : BasePollingEventArgs
+    public abstract class BasePoll<T> : IDisposable, IBasePoll<T> where T : BasePollingEventArgs
     {
         protected Timer _timer;
 
@@ -44,7 +44,7 @@ namespace Listify.Domain.BLL
                 {
                     try
                     {
-                        await TimerTickEvent();
+                        await TimerTickEvents();
                     }
                     catch
                     {
