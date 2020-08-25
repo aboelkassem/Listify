@@ -12,6 +12,7 @@ export class RoomsComponent implements OnInit, OnDestroy {
 
   rooms: IRoom[] = [];
   roomCurrent: IRoom;
+
   $RoomsSubscription: Subscription;
 
   constructor(private hubService: HubService) {

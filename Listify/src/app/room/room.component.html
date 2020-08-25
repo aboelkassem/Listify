@@ -6,15 +6,15 @@
   ></youtube-component>
 </div> -->
 <div>
-  <span>Currency: {{quantity}} {{currencyName}}</span>
+  <span>Currency: {{quantity}} {{currency.currency.currencyName}}</span>
 </div>
 <h3>Room Code : {{roomCode}}</h3>
 <div class="row">
   <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <youtube-component (ready) = "onReady($event)"(change)= "onChange($event)"></youtube-component>
+    <app-youtube></app-youtube>
   </div>
   <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <input [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+    <input  class="form-control" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
     <button class="btn btn-default" (click)="requestSong()">Request Song</button>
     <button class="btn btn-default" (click)="addToPlaylist()">Add to Default Playlist</button>
     <button class="btn btn-default" (click)="playerState()">Get Player State</button>
@@ -32,8 +32,8 @@
             <!-- Make this a link to youtube video -->
             <td>{{searchResult.songName}}</td>
             <td><input class="form-control" [(ngModel)]="searchResult.quantityWagered" placeholder="Wager Amount"/></td>
-            <td>{{currency.currencyName}}</td>
-            <td><button (click)="addSongToPlaylist(searchResult)">Add Song To Queue</button></td>
+            <td>{{currency.currency.currencyName}}</td>
+            <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
           </tr>
         </tbody>
       </div>

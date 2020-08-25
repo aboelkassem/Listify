@@ -41,13 +41,13 @@ namespace Listify.WebAPI.Hubs
             _services = services;
             _mapper = mapper;
 
-            if (_currencyPoll == null)
+            if (_currencyPoll != null)
             {
                 _currencyPoll = currencyPoll;
                 _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
             }
 
-            if (_pingPoll == null)
+            if (_pingPoll != null)
             {
                 _pingPoll = pingPoll;
                 _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
@@ -310,8 +310,11 @@ namespace Listify.WebAPI.Hubs
             try
             {
                 var userId = await GetUserIdAsync();
-                //var songQueued = await _services.ReadSongQueuedAsync(guid);
-                //await Clients.Caller.SendAsync("ReceiveSongQueued");
+                if (userId != Guid.Empty)
+                {
+                    var songQueued = await _services.CreateSongQueuedAsync(request);
+                    await Clients.Caller.SendAsync("ReceiveSongQueued", songQueued);
+                }
 
             }
             catch (Exception ex)
@@ -399,9 +402,16 @@ namespace Listify.WebAPI.Hubs
 
         public async Task RequestSearchYoutube(string searchSnippet)
         {
-            var youtubeResults = await _services.SearchYoutubeAsync(searchSnippet);
+            try
+            {
+                var responses = await _services.SearchYoutubeLightAsync(searchSnippet);
 
-            await Clients.Caller.SendAsync("ReceiveSearchYoutube", youtubeResults);
+                await Clients.Caller.SendAsync("ReceiveSearchYoutube", responses);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public async Task RequestCurrencies()
@@ -586,10 +596,12 @@ namespace Listify.WebAPI.Hubs
                     applicationUserRoomVM.ApplicationUser = _mapper.Map<ApplicationUserDTO>(applicationUser);
                     applicationUserRoomVM.Room = _mapper.Map<RoomDTO>(room);
 
-                    await Clients.Caller.SendAsync("ReceiveData", new ChatData
-                    {
-                        ApplicationUserRoom = applicationUserRoomVM
-                    });
+                    await Clients.Caller.SendAsync("ReceiveData"
+                    //new ChatData
+                    //{
+                    //    ApplicationUserRoom = applicationUserRoomVM
+                    //}
+                    );
                 }
             }
             catch (Exception ex)
@@ -711,6 +723,11 @@ namespace Listify.WebAPI.Hubs
 
         protected override void Dispose(bool disposing)
         {
+            if (_pingPoll != null)
+            {
+                _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
+            }
+
             base.Dispose(disposing);
         }
     }

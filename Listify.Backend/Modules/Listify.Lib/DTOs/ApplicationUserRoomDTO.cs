@@ -6,6 +6,5 @@ namespace Listify.Lib.DTOs
     {
         public bool IsOnline { get; set; }
         public bool IsOwner { get; set; }
-
     }
 }

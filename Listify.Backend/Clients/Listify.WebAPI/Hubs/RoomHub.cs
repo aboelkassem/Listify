@@ -15,29 +15,39 @@ using AutoMapper;
 using Listify.Lib.DTOs;
 using Listify.BLL.Polls;
 using Listify.BLL.Events.Args;
+using System.Collections.Generic;
+using IdentityServer4.EntityFramework.Entities;
 
 namespace Listify.WebAPI.Hubs
 {
-    public class ListifyHub : Hub, IDisposable
+    public class RoomHub : Hub, IDisposable
     {
         protected readonly ApplicationDbContext _context;
-        protected readonly IHubContext<ChatHub> _chatHub;
+        protected readonly IHubContext<RoomHub> _roomHub;
         protected readonly IListifyServices _services;
         protected readonly IMapper _mapper;
 
         private static IPingPoll _pingPoll;
+        private static ICurrencyPoll _currencyPoll;
 
-        public ListifyHub(
+        public RoomHub(
             ApplicationDbContext context,
-            IHubContext<ChatHub> chatHub,
+            IHubContext<RoomHub> roomHub,
             IListifyServices services,
             IPingPoll pingPoll,
+            ICurrencyPoll currencyPoll,
             IMapper mapper)
         {
             _context = context;
-            _chatHub = chatHub;
+            _roomHub = roomHub;
             _services = services;
             _mapper = mapper;
+
+            if (_currencyPoll != null)
+            {
+                _currencyPoll = currencyPoll;
+                _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
+            }
 
             if (_pingPoll != null)
             {
@@ -50,7 +60,7 @@ namespace Listify.WebAPI.Hubs
         {
             foreach (var item in args.ConnectionsPinged)
             {
-                await _chatHub.Clients.Client(item.ConnectionId).SendAsync("PingRequest", "Ping");
+                await _roomHub.Clients.Client(item.ConnectionId).SendAsync("PingRequest", "Ping");
             }
 
             //foreach (var applicationUserRoomConnection in args.PingPoll.ApplicationUserRoomConnectionsRemoved)
@@ -58,131 +68,140 @@ namespace Listify.WebAPI.Hubs
             //    await ForceServerDisconnectAsync(applicationUserRoomConnection.ConnectionId);
             //}
         }
+        protected virtual async Task OnCurrencyPollEvent(object sender, CurrencyPollEventArgs args)
+        {
+            // have a ping service, get the connections out of the database that match the room
+            var connections = await _services.ReadApplicationUsersRoomsConnectionsAsync(args.Room.Id);
+
+            foreach (var connection in connections.Where(s => s.IsOnline))
+            {
+                try
+                {
+                    if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
+                    {
+                        var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
+                        await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                    }
+                }
+                catch
+                {
+                    //await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    //{
+                    //    Id = connection.Id,
+                    //    HasPingBeenSent = connection.HasPingBeenSent,
+                    //    IsOnline = false
+                    //});
+                }
+            }
+
+            //var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+            //if (connection != null)
+            //{
+            //    if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
+            //    {
+            //        var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
+            //        await Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+            //    }
+            //}
+        }
+
         public async Task SendMessage(ChatMessageVM message)
         {
             await Clients.All.SendAsync("ReceiveMessage", message);
         }
-
-        public async Task RequestApplicationUserInformation()
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                var applicationUser = await _services.ReadApplicationUserAsync(userId);
-
-                await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUser);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task UpdateApplicationUserInformation(ApplicationUserUpdateRequest request)
+        public async Task CreateSongQueued(SongQueuedCreateRequest request)
         {
             try
             {
                 var userId = await GetUserIdAsync();
                 if (userId != Guid.Empty)
                 {
-                    var applicationUser = await _services.UpdateApplicationUserAsync(request, userId);
-                    await Clients.Caller.SendAsync("ReceiveApplicationUserInformation", applicationUser);
+                    var songQueued = await _services.CreateSongQueuedAsync(request);
+                    await Clients.Caller.SendAsync("ReceiveSongQueued", songQueued);
                 }
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
         }
-
-        public async Task RequestRooms()
+        public async Task RequestRoom(string roomCode)
         {
-            try
-            {
-                var rooms = await _services.ReadRoomsAsync();
-                await Clients.Caller.SendAsync("ReceiveRooms", rooms);
-            }
-            catch (Exception ex)
-            {
+            var userId = await GetUserIdAsync();
+            var room = await _services.ReadRoomAsync(roomCode);
 
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task RequestRoom(string id)
-        {
-            try
+            if (room != null)
             {
-                RoomVM room;
-                if (Guid.TryParse(id, out var guid))
+                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(userId, room.Id);
+
+                if (applicationUserRoom == null)
                 {
-                    room = await _services.ReadRoomAsync(guid);
+                    applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                    {
+                        IsOnline = true,
+                        RoomId = room.Id
+                    }, userId);
+                }
+
+                var currencies = await _services.ReadCurrenciesAsync();
+                var roomCurrencies = new List<ApplicationUserRoomCurrencyVM>();
+
+                foreach (var currency in currencies)
+                {
+                    var roomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
+
+                    if (roomCurrency == null)
+                    {
+                        roomCurrency = await _services.CreateApplicationUserRoomCurrencyAsync(new ApplicationUserRoomCurrencyCreateRequest
+                        {
+                            ApplicationUserRoomId = applicationUserRoom.Id,
+                            CurrencyId = currency.Id,
+                            Quantity = 0
+                        });
+                    }
+
+                    roomCurrencies.Add(roomCurrency);
+                }
+
+                var roomInformation = new RoomInformation
+                {
+                    ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
+                    ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                };
+
+                await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
+
+                if (applicationUserRoom.IsOwner)
+                {
+                    var songNext = await _services.DequeueSongQueuedAsync(room.Id, userId);
+                    await Clients.Group(room.RoomCode).SendAsync("ReceiveSongNext", songNext);
                 }
                 else
                 {
-                    // this is the default room
-                    var userId = await GetUserIdAsync();
-                    var user = await _services.ReadApplicationUserAsync(userId);
-                    room = await _services.ReadRoomAsync(user.Room.Id);
-                }
-                await Clients.Caller.SendAsync("ReceiveRoom", room);
+                    var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(room.Id);
+                    var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
 
-            }
-            catch (Exception ex)
-            {
-
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        // for the owner/current user
-        public async Task RequestPlaylists()
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-
-                if (userId != Guid.Empty)
-                {
-                    var playlists = await _services.ReadPlaylistsAsync(userId);
-                    await Clients.Caller.SendAsync("ReceivePlaylists", playlists);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task RequestPlaylist(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    var userId = await GetUserIdAsync();
-                    if (userId != Guid.Empty)
+                    if (channelOwnerConnections.Count() > 0)
                     {
-                        var playlist = await _services.ReadPlaylistAsync(guid, userId);
-                        await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
+                        // Only try to grab data from the first connection
+                        // the ping service will remove stale connections upon rejoining.
+                        await Clients.Client(channelOwnerConnections[0].ConnectionId).SendAsync("ReceiveSongStateRequest", Context.ConnectionId);
                     }
+                    //var songsQueued = await _services.ReadSongsQueuedAsync(room.Id);
+                    //await Clients.Group(room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
         }
-        public async Task CreatePlaylist(PlaylistCreateRequest request)
+        public async Task RequestSongsQueued(string roomId)
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                if (userId != Guid.Empty)
+                if (Guid.TryParse(roomId, out var guid))
                 {
-                    // Create or update the playlist
-                    PlaylistVM playlist = request.Id == Guid.Empty
-                    ? await _services.CreatePlaylistAsync(request, userId)
-                    : await _services.UpdatePlaylistAsync(request, userId);
-
-                    await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
+                    var songsQueued = await _services.ReadSongsQueuedAsync(guid);
+                    await Clients.Caller.SendAsync("ReceiveSongsQueued", songsQueued);
                 }
             }
             catch (Exception ex)
@@ -190,101 +209,6 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task DeletePlaylist(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    var userId = await GetUserIdAsync();
-                    if (userId != Guid.Empty)
-                    {
-                        if (await _services.DeletePlaylistAsync(guid, userId))
-                        {
-                            await Clients.Caller.SendAsync("ReceivePlaylists");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public async Task RequestSongsPlaylist(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    var SongsPlaylist = await _services.ReadSongsPlaylistAsync(guid);
-                    await Clients.Caller.SendAsync("ReceiveSongsPlaylist", SongsPlaylist);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task RequestSongPlaylist(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    //var userId = await GetUserIdAsync();
-
-                    var songPlaylist = await _services.ReadSongPlaylistAsync(guid);
-                    await Clients.Caller.SendAsync("ReceiveSongPlaylist", songPlaylist);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task CreateSongPlaylist(SongPlaylistCreateRequest request)
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                if (userId != Guid.Empty)
-                {
-                    // Create or update the SongPlaylist
-                    var songPlaylist = await _services.CreateSongPlaylistAsync(request, userId);
-                    await Clients.Caller.SendAsync("ReceiveSongPlaylist", songPlaylist);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task DeleteSongPlaylist(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    var userId = await GetUserIdAsync();
-                    if (userId != Guid.Empty)
-                    {
-                        var songPlaylist = await _services.ReadSongPlaylistAsync(guid);
-                        if (songPlaylist != null && await _services.DeleteSongPlaylistAsync(guid, userId))
-                        {
-                            var songsPlaylist = await _services.ReadSongsPlaylistAsync(songPlaylist.Playlist.Id);
-                            await Clients.Caller.SendAsync("ReceiveSongsPlaylist", songsPlaylist);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
         public async Task RequestSearchYoutube(string searchSnippet)
         {
             try
@@ -298,73 +222,6 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-
-        public async Task RequestCurrencies()
-        {
-            try
-            {
-                //var userId = await GetUserIdAsync();
-                var currencies = await _services.ReadCurrenciesAsync();
-                await Clients.Caller.SendAsync("ReceiveCurrencies", currencies);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task RequestCurrency(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    //var userId = await GetUserIdAsync();
-
-                    var currency = await _services.ReadCurrencyAsync(guid);
-                    await Clients.Caller.SendAsync("ReceiveCurrency", currency);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task CreateCurrency(CurrencyCreateRequest request)
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                if (userId != Guid.Empty)
-                {
-                    var currency = request.Id == Guid.Empty
-                        ? await _services.CreateCurrencyAsync(request, userId)
-                        : await _services.UpdateCurrencyAsync(request, userId);
-                    await Clients.Caller.SendAsync("ReceiveCurrency", currency);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task DeleteCurrency(string id)
-        {
-            try
-            {
-                if (Guid.TryParse(id, out var guid))
-                {
-                    if (await _services.DeleteCurrencyAsync(guid))
-                    {
-                        await Clients.Caller.SendAsync("ReceiveCurrency");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
         public async Task PingResponse()
         {
             var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
@@ -386,12 +243,26 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
+        public async Task ReceiveSongState(SongStateRequest request)
+        {
+            // this is coming from a room owner, it needs to pass to the new connection
+            try
+            {
+                await Clients.Client(request.ConnectionId).SendAsync("ReceiveSongState", request);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             try
             {
                 var context = Context.GetHttpContext();
                 var token = context.Request.Query["token"];
+                var roomCode = context.Request.Query["roomCode"];
 
                 //var userInfoClient = new IdentityModel.Client.UserInfoClient();
                 var client = new HttpClient();
@@ -427,17 +298,19 @@ namespace Listify.WebAPI.Hubs
                 }
 
                 // if the room was not specified, then get the default
-                var room = await _services.ReadRoomAsync(applicationUser.Room.Id);
+                var room = roomCode == "undefined" || roomCode == ""
+                    ? await _services.ReadRoomAsync(applicationUser.Room.Id)
+                    : await _services.ReadRoomAsync(roomCode);
 
                 if (room != null)
                 {
-                    room = await _services.UpdateRoomAsync(new RoomUpdateRequest
-                    {
-                        Id = room.Id,
-                        RoomCode = room.RoomCode,
-                        IsRoomPublic = true,
-                        IsRoomOnline = true
-                    });
+                    //room = await _services.UpdateRoomAsync(new RoomUpdateRequest
+                    //{
+                    //    Id = room.Id,
+                    //    RoomCode = room.RoomCode,
+                    //    IsRoomPublic = true,
+                    //    IsRoomOnline = true
+                    //});
 
                     var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
@@ -457,11 +330,59 @@ namespace Listify.WebAPI.Hubs
                         IsOnline = true
                     });
 
+                    var currencies = await _services.ReadCurrenciesAsync();
+                    var roomCurrencies = new List<ApplicationUserRoomCurrencyVM>(); 
+
+                    foreach (var currency in currencies)
+                    {
+                        var roomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
+
+                        if (roomCurrency == null)
+                        {
+                            roomCurrency = await _services.CreateApplicationUserRoomCurrencyAsync(new ApplicationUserRoomCurrencyCreateRequest
+                            {
+                                ApplicationUserRoomId = applicationUserRoom.Id,
+                                CurrencyId = currency.Id,
+                                Quantity = 0
+                            });
+                        }
+
+                        roomCurrencies.Add(roomCurrency);
+                    }
+
                     await base.OnConnectedAsync();
 
-                    var applicationUserVM = _mapper.Map<ApplicationUserVM>(applicationUser);
+                    await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomCode);
 
-                    await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUserVM);
+                    var roomInformation = new RoomInformation
+                    {
+                        Room = _mapper.Map<RoomDTO>(room),
+                        ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
+                        ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                    };
+
+                    await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
+
+                    if (applicationUserRoom.IsOwner)
+                    {
+                        var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUser.Id);
+                        await Clients.Group(room.RoomCode).SendAsync("ReceiveSongNext", songNext);
+                    }
+                    else
+                    {
+                        var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(room.Id);
+                        var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
+
+                        if (channelOwnerConnections.Count() > 0)
+                        {
+                            // ToDo: Do we want this to go to all connections?
+                            // Only try to grab data from the first connection
+                            // the ping service will remove stale connections upon rejoining.
+                            await Clients.Client(channelOwnerConnections[0].ConnectionId).SendAsync("ReceiveSongStateRequest", Context.ConnectionId);
+                        }
+                        //var songsQueued = await _services.ReadSongsQueuedAsync(room.Id);
+                        //await Clients.Group(room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
+                    }
                 }
             }
             catch (Exception ex)
@@ -481,6 +402,9 @@ namespace Listify.WebAPI.Hubs
                     HasPingBeenSent = connection.HasPingBeenSent,
                     IsOnline = false
                 });
+
+                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
             }
         }
 
@@ -494,7 +418,7 @@ namespace Listify.WebAPI.Hubs
 
                 if (applicationUserRoomConnection == null)
                 {
-                    await _chatHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
+                    await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
                     return Guid.Empty;
                 }
             }
@@ -583,6 +507,11 @@ namespace Listify.WebAPI.Hubs
             if (_pingPoll != null)
             {
                 _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
+            }
+
+            if (_currencyPoll != null)
+            {
+                _currencyPoll.PollingEvent -= async (s, e) => await OnCurrencyPollEvent(s, e);
             }
 
             base.Dispose(disposing);

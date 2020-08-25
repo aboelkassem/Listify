@@ -35,7 +35,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     });
 
     this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe(songPlaylist => {
-      // this.getPlaylist(this.id);
+      this.getPlaylist(this.id);
     });
 
     this.$songsPlaylistSubscription = this.hubService.getSongsPlaylist().subscribe(songsPlaylist => {

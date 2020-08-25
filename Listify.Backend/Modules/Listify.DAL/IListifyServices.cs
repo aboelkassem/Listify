@@ -41,11 +41,14 @@ namespace Listify.DAL
         Task<ApplicationUserVM> ReadApplicationUserAsync(Guid id);
         Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId);
         Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id);
+        Task<ApplicationUserRoomVM> ReadApplicationUserRoomOwnerAsync(Guid roomId);
         Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId);
         Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUsersRoomsConnectionsAsync(Guid roomId);
+        Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(Guid applicationUserRoomId);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId);
         Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id);
+        Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid applicationUserRoomId, Guid currencyId);
         Task<ChatMessageVM> ReadChatMessageAsync(Guid id);
         Task<CurrencyVM> ReadCurrencyAsync(Guid id);
         Task<LogAPIVM> ReadLogAPIAsync(Guid id);
@@ -60,7 +63,8 @@ namespace Listify.DAL
         Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
-        Task<SongRequestVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
+        Task<SongQueuedVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
+        Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
         Task<SongQueuedVM[]> ReadSongsQueuedAsync(Guid roomId);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
         Task<TransactionSongQueuedVM> ReadTransactionSongQueuedAsync(Guid id);

@@ -10,7 +10,7 @@ import { Component, OnInit } from '@angular/core';
 export class ChatComponent implements OnInit {
 
 
-  messages: IChatMessage[] = this.hubService.messages;
+  messages: IChatMessage[] = []; // this.hubService.messages;
   message = '';
 
   constructor(private hubService: HubService) { }
@@ -20,7 +20,7 @@ export class ChatComponent implements OnInit {
   }
 
   sendMessage(): void {
-    this.hubService.sendMessage(this.message);
+    // this.hubService.sendMessage(this.message);
     this.message = '';
   }
 

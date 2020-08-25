@@ -18,21 +18,28 @@ export class AppComponent implements OnDestroy, OnInit {
 
   private $oauthSubscription: Subscription;
   private $disconnectSubscription: Subscription;
+  private $pingSubscription: Subscription;
 
   constructor(
     private oauthService: OAuthService,
     private router: Router,
     private hubService: HubService) {
       this.$disconnectSubscription = this.hubService.getForceDisconnect().subscribe((data: string) => {
-        alert('Force disconnected');
-        if (data === 'Disconnect') {
-          this.logout();
-        }
+        // alert('Force disconnected');
+        // if (data === 'Disconnect') {
+        //   this.logout();
+        // }
+        this.hubService.disconnectFromHub();
+        this.logout();
+      });
+
+      this.$pingSubscription = this.hubService.getPing().subscribe((ping: string) => {
+        this.hubService.requestPing();
       });
 
       this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
         if (event.type === 'token_received') {
-          this.hubService.connectToHub('https://localhost:44315/chathub');
+          this.hubService.connectToHub('https://localhost:44315/listifyHub');
         }
       });
 
@@ -40,10 +47,14 @@ export class AppComponent implements OnDestroy, OnInit {
       this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
   ngOnInit(): void {
+    if (this.claims !== null && this.claims !== undefined) {
+      this.hubService.connectToHub('https://localhost:44315/listifyHub');
+    }
   }
   ngOnDestroy(): void {
     this.$disconnectSubscription.unsubscribe();
     this.$oauthSubscription.unsubscribe();
+    this.$pingSubscription.unsubscribe();
   }
 
   private configureWithNewConfigApi(): void {

@@ -31,9 +31,6 @@ namespace Listify.Domain.Lib.Entities
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
 
-        public ICollection<SongRequestHistory> SongsReqeustHistory { get; set; } =
-            new List<SongRequestHistory>();
-
         public ICollection<LogAPI> LogsAPI { get; set; } =
             new List<LogAPI>();
 

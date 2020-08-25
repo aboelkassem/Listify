@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, IChatMessage, ISongQueuedCreateRequest, IChatData, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency, ISongRequest } from './../interfaces';
+import { IRoom, IChatMessage, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency, ISongRequest, ISongStateRequest } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -10,8 +10,7 @@ import { Subject, Observable } from 'rxjs';
 })
 export class HubService {
 
-  messages: IChatMessage[] = [];
-  applicationUserRoomCurrent: IApplicationUserRoom;
+  applicationUser: IApplicationUser;
   // rooms: IRoom[] = [];
   // roomCurrent: IRoom;
   // applicationUser: IApplicationUser;
@@ -23,21 +22,15 @@ export class HubService {
   $playlistsReceived = new Subject<IPlaylist[]>();
   $currencyReceived = new Subject<ICurrency>();
   $currenciesReceived = new Subject<ICurrency[]>();
-  $currencyActiveReceived = new Subject<ICurrency>();
   $songPlaylistReceived = new Subject<ISongPlaylist>();
   $songsPlaylistReceived = new Subject<ISongPlaylist[]>();
-  $songQueuedReceived = new Subject<ISongQueued>();
-  $songNextReceived = new Subject<ISongRequest>();
-  $songsQueuedReceived = new Subject<ISongQueued[]>();
   $searchYoutubeReceived = new Subject<ISongSearchResults>();
-  $userInfoReceived = new Subject<IApplicationUser>();
-  $applicationUserRoomCurrencyReceived = new Subject<IApplicationUserRoomCurrency>();
+  $applicationUserReceived = new Subject<IApplicationUser>();
   $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
 
   // private _applicationUserRoomCurrent: IApplicationUserRoom;
   private _hubConnection: singalR.HubConnection;
-  private _roomCode: string = "";
   // private _applicationUser: IApplicationUser;
   // private _rooms: IRoom[] = [];
 
@@ -51,35 +44,14 @@ export class HubService {
 
       // we want to convert to Base64 String this access Token
       this._hubConnection = new singalR.HubConnectionBuilder()
-        .withUrl(hubUrl + '?token=' + accessToken + '&roomCode=' + this._roomCode)
+        .withUrl(hubUrl + '?token=' + accessToken)
         .build();
 
       // Subscribe my hub invoked functions here
-      this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
-        this.messages.push(message);
-      });
 
-      this._hubConnection.on('ReceiveData', (data: IChatData) => {
-        this.applicationUserRoomCurrent = data.applicationUserRoom;
-        // console.log(data);
-        this.$roomReceived.next(this.applicationUserRoomCurrent.room);
-        this.$userInfoReceived.next(this.applicationUserRoomCurrent.applicationUser);
-
-        // Now request the next pieces of data
-        if (this.applicationUserRoomCurrent.isOwner) {
-          this.requestSongNext(this.applicationUserRoomCurrent.room);
-        }else {
-          this.requestRoom(this.applicationUserRoomCurrent.room.id);
-        }
-
-        this.getCurrencyActive();
-
-        // this.requestPlaylists();
-        // this.requestRooms();
-      });
-
-      this._hubConnection.on('ReceiveApplicationUserInformation', (applicationUser: IApplicationUser) => {
-        this.$userInfoReceived.next(applicationUser);
+      this._hubConnection.on('ReceiveApplicationUser', (applicationUser: IApplicationUser) => {
+        this.applicationUser = applicationUser;
+        this.$applicationUserReceived.next(this.applicationUser);
       });
 
       this._hubConnection.on('ReceiveRooms', (rooms: IRoom[]) => {
@@ -106,10 +78,6 @@ export class HubService {
         this.$currenciesReceived.next(currencies);
       });
 
-      this._hubConnection.on('ReceiveCurrencyActive', (currency: ICurrency) => {
-        this.$currencyActiveReceived.next(currency);
-      });
-
       this._hubConnection.on('ReceiveSongPlaylist', (songPlaylist: ISongPlaylist) => {
         this.$songPlaylistReceived.next(songPlaylist);
       });
@@ -120,24 +88,6 @@ export class HubService {
 
       this._hubConnection.on('ReceiveSearchYoutube', (responses: ISongSearchResults) => {
         this.$searchYoutubeReceived.next(responses);
-      });
-
-      this._hubConnection.on('ReceiveApplicationUserRoomCurrency', (applicationUserRoomCurrency: IApplicationUserRoomCurrency) => {
-        this.$applicationUserRoomCurrencyReceived.next(applicationUserRoomCurrency);
-      });
-
-      this._hubConnection.on('ReceiveSongsQueued', (queuedSongs: ISongQueued[]) => {
-        this.$songsQueuedReceived.next(queuedSongs);
-      });
-
-      this._hubConnection.on('ReceiveSongQueued', (queuedSong: ISongQueued) => {
-        this.$songQueuedReceived.next(queuedSong);
-      });
-
-      this._hubConnection.on('ReceiveSongNext', (songRequest: ISongRequest) => {
-        this.$songNextReceived.next(songRequest);
-
-        this.requestSongsQueued(this.applicationUserRoomCurrent.room.id);
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -154,17 +104,6 @@ export class HubService {
       });
 
       this._hubConnection.start();
-    }
-  }
-
-  sendMessage(message: string): void {
-    const data: IChatMessage = {
-      applicationUserRoom: this.applicationUserRoomCurrent,
-      message: message
-    };
-
-    if (this._hubConnection) {
-      this._hubConnection.invoke('SendMessage', data);
     }
   }
 
@@ -212,9 +151,14 @@ export class HubService {
   requestRoom(id: string): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestRoom', id);
-      // this._hubConnection.invoke('RequestRooms', id);
     }
   }
+
+  // requestRoomByRoomCode(roomCode: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('RequestRoomByRoomCode', roomCode);
+  //   }
+  // }
 
   requestPlaylists(): void {
     if (this._hubConnection) {
@@ -253,12 +197,6 @@ export class HubService {
   requestCurrencies(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestCurrencies');
-    }
-  }
-
-  requestCurrencyActive(): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('RequestCurrencyActive');
     }
   }
 
@@ -310,12 +248,6 @@ export class HubService {
     }
   }
 
-  createSongQueued(request: ISongQueuedCreateRequest): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('CreateSongQueued', request);
-    }
-  }
-
   requestSongsPlaylist(playlistId: string): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestSongsPlaylist', playlistId);
@@ -334,9 +266,15 @@ export class HubService {
     }
   }
 
+  sendSongState(request: ISongStateRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('ReceiveSongState', request);
+    }
+  }
 
-  getUserInfo(): Observable<IApplicationUser> {
-    return this.$userInfoReceived.asObservable();
+
+  getApplicationUser(): Observable<IApplicationUser> {
+    return this.$applicationUserReceived.asObservable();
   }
 
   getRooms(): Observable<IRoom[]> {
@@ -363,10 +301,6 @@ export class HubService {
     return this.$currencyReceived.asObservable();
   }
 
-  getCurrencyActive(): Observable<ICurrency> {
-    return this.$currencyActiveReceived.asObservable();
-  }
-
   getSongsPlaylist(): Observable<ISongPlaylist[]> {
     return this.$songsPlaylistReceived.asObservable();
   }
@@ -379,24 +313,8 @@ export class HubService {
     return this.$searchYoutubeReceived.asObservable();
   }
 
-  getSongsQueued(): Observable<ISongQueued[]> {
-    return this.$songsQueuedReceived.asObservable();
-  }
-
-  getSongQueued(): Observable<ISongQueued> {
-    return this.$songQueuedReceived.asObservable();
-  }
-
-  getApplicationUserRoomCurrency(): Observable<IApplicationUserRoomCurrency> {
-    return this.$applicationUserRoomCurrencyReceived.asObservable();
-  }
-
   getPing(): Observable<string> {
     return this.$pingEvent.asObservable();
-  }
-
-  getSongNext(): Observable<ISongRequest> {
-    return this.$songNextReceived.asObservable();
   }
 
   disconnectFromHub(): void {

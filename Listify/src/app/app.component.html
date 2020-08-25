@@ -9,7 +9,8 @@
       <a routerLink="/currencies">Currencies</a> |
       <a routerLink="/rooms">Rooms</a>
     </nav>
-    <div *ngIf="isAuthenticated">
+
+    <div *ngIf="isAuthenticated && claims !== null">
       <h2>Welcome, {{claims['name']}}!</h2>
       <button (click)="logout()">Logout</button>
       <!-- <app-youtube></app-youtube> -->

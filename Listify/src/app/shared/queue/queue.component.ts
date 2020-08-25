@@ -1,3 +1,4 @@
+import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
 import { IRoom } from './../../interfaces';
 import { HubService } from './../../services/hub.service';
@@ -20,14 +21,16 @@ export class QueueComponent implements OnInit, OnDestroy {
 
   constructor(
     private hubService: HubService,
-  ) {
-    this.$songsQueuedSubscription = this.hubService.getQueue().subscribe((songsQueued: ISongQueued[]) => {
+    private roomService: RoomHubService) {
+    this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
       this.songsQueued = songsQueued;
     });
   }
 
   ngOnInit(): void {
-    this.hubService.requestQueue(this.room);
+    if (this.hubService.isConnected) {
+      this.hubService.requestSongsQueued(this.room.id);
+    }
   }
 
   ngOnDestroy(): void {

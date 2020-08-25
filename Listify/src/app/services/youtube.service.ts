@@ -9,15 +9,15 @@ export class YoutubeService {
   constructor() { }
 
   player: any;
-  reframed: boolean = false;
+  // reframed: boolean = false;
 
   setPlayer(player: any, isReframed: boolean): void {
     this.player = player;
+    reframe(player.a);
 
-    if (!this.reframed && isReframed) {
-      this.reframed = true;
-      reframe(player.a);
-    }
+    // if (!this.reframed && isReframed) {
+    //   this.reframed = true;
+    // }
   }
 
   loadVideo(videoId: string): void {

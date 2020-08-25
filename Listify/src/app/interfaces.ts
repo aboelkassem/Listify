@@ -42,10 +42,6 @@ export interface IApplicationUserRoomCurrency {
   currency: ICurrency;
 }
 
-export interface IChatData {
-  applicationUserRoom: IApplicationUserRoom;
-}
-
 export interface IChatMessage {
   applicationUserRoom: IApplicationUserRoom;
   message: string;
@@ -72,6 +68,7 @@ export interface ISongPlaylist extends ISongRequest{
 export interface ISongQueued extends ISongRequest {
   weightedValue: number;
   applicationUser: IApplicationUser;
+  room: IRoom;
 }
 
 export interface ISong {
@@ -111,4 +108,17 @@ export interface ISongSearchResult {
   videoId: string;
   quantityWagered: number;
   currencyId: string;
+}
+
+export interface IRoomInformation {
+  room: IRoom;
+  applicationUserRoom: IApplicationUserRoom;
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[];
+}
+
+export interface ISongStateRequest {
+  songQueuedId: string;
+  currentTime: number;
+  playerState: number;
+  connectionId: string;
 }

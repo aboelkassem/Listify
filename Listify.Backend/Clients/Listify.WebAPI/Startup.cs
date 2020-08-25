@@ -97,7 +97,8 @@ namespace Listify.WebAPI
             app.UseSignalR(routes =>
             {
                 routes.MapHub<ListifyHub>("/listifyHub");
-                routes.MapHub<ChatHub>("/chatHub");
+                //routes.MapHub<ChatHub>("/chatHub");
+                routes.MapHub<RoomHub>("/roomHub");
             });
 
             app.UseRouting();

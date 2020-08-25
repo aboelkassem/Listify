@@ -12,15 +12,15 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   id: string;
   username: string;
+  roomCode: string;
   songPoolCountMax: number;
   playlistCount: number;
-  roomCode: string;
 
   $userInformationSubscription: Subscription;
 
   constructor(
     private hubService: HubService) {
-      this.$userInformationSubscription = this.hubService.getUserInfo().subscribe(user => {
+      this.$userInformationSubscription = this.hubService.getApplicationUser().subscribe(user => {
         this.id = user.id;
         this.username = user.username;
         this.songPoolCountMax = user.songPoolCountSongsMax;

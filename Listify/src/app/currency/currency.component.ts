@@ -16,6 +16,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
   weight: number;
   quantityIncreasePerTick: number;
   timeSecBetweenTick: number;
+  roomId: string; // not used yet
 
   currencySubscription: Subscription;
 

@@ -7,7 +7,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { YoutubeModule } from 'angularx-youtube';
 
 import { AppComponent } from './app.component';
-import { SearchComponent } from './shared/search/search.component';
 import { ChatComponent } from './shared/chat/chat.component';
 import { AccountComponent } from './account/account.component';
 import { RoomsComponent } from './rooms/rooms.component';
@@ -19,11 +18,11 @@ import { CurrenciesComponent } from './currencies/currencies.component';
 import { PlaylistComponent } from './playlist/playlist.component';
 import { PlaylistsComponent } from './playlists/playlists.component';
 import { SongrequestComponent } from './shared/songrequest/songrequest.component';
+import { YoutubeComponent } from './shared/youtube/youtube.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    SearchComponent,
     ChatComponent,
     AccountComponent,
     RoomsComponent,
@@ -34,7 +33,8 @@ import { SongrequestComponent } from './shared/songrequest/songrequest.component
     CurrenciesComponent,
     PlaylistComponent,
     PlaylistsComponent,
-    SongrequestComponent
+    SongrequestComponent,
+    YoutubeComponent
   ],
   imports: [
     BrowserModule,
