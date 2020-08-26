@@ -16,6 +16,8 @@ export class AppComponent implements OnDestroy, OnInit {
   claims: any;
   hasLoadedProfile: boolean;
 
+  private _hasConnectedToHub: boolean;
+
   private $oauthSubscription: Subscription;
   private $disconnectSubscription: Subscription;
   private $pingSubscription: Subscription;
@@ -38,18 +40,28 @@ export class AppComponent implements OnDestroy, OnInit {
       });
 
       this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
-        if (event.type === 'token_received') {
+        const accessToken = this.oauthService.getAccessToken();
+        if (accessToken !== undefined && accessToken !== null && accessToken !== '' && this.isAuthenticated && !this._hasConnectedToHub) {
+          this._hasConnectedToHub = true;
           this.hubService.connectToHub('https://localhost:44315/listifyHub');
         }
+        // if (event.type === 'token_received') {
+        //   this.hubService.connectToHub('https://localhost:44315/listifyHub');
+        // }
       });
 
       this.configureWithNewConfigApi();
       this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
   ngOnInit(): void {
-    if (this.claims !== null && this.claims !== undefined) {
+    const accessToken = this.oauthService.getAccessToken();
+
+    if (accessToken !== undefined && accessToken !== null && this.isAuthenticated && accessToken !== '' && !this._hasConnectedToHub) {
+      this._hasConnectedToHub = true;
       this.hubService.connectToHub('https://localhost:44315/listifyHub');
     }
+    // if (this.claims !== null && this.claims !== undefined) {
+    // }
   }
   ngOnDestroy(): void {
     this.$disconnectSubscription.unsubscribe();

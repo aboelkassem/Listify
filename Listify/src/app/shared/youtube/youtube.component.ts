@@ -1,65 +1,57 @@
-import { YoutubeService, PlayerState } from './../../services/youtube.service';
-import { ISongQueued, ISongStateRequest } from './../../interfaces';
-import { RoomHubService } from './../../services/room-hub.service';
-import { Subscription } from 'rxjs';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { YoutubePlayerService } from './youtube.player.service';
+import { YoutubeApiService } from './youtube.api.service';
+import { Component, Renderer2, AfterContentInit, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
-  selector: 'app-youtube',
-  templateUrl: './youtube.component.html',
-  styleUrls: ['./youtube.component.css']
+  selector: 'youtube-component',
+  template: '<div id="playerElement"></div>'
 })
-export class YoutubeComponent implements OnInit, OnDestroy {
+export class YoutubeComponent implements AfterContentInit {
 
-  songName: string;
-  requestedBy: string;
-  playValue: string;
+  // @Input() videoId: string;
 
-  songQueued: ISongQueued;
+  @Output() ready = new EventEmitter<YT.Player>();
+  @Output() changed = new EventEmitter<YT.PlayerEvent>();
 
-  $songNextSubscription: Subscription;
-  $songStateSubscription: Subscription;
+  ytPlayer: YT.Player;
+  changeEvent: YT.PlayerEvent;
 
   constructor(
-    private roomService: RoomHubService,
-    private youtubeService: YoutubeService
+    private youtubeApi: YoutubeApiService,
+    private youtubePlayer: YoutubePlayerService,
+    private renderer: Renderer2
   ) {
-    this.$songNextSubscription = this.roomService.getSongNext().subscribe(songQueued => {
-      this.songQueued = songQueued;
-
-      this.songName = this.songQueued.song.songName;
-      this.requestedBy = this.songQueued.applicationUser.username;
-      this.playValue = this.songQueued.weightedValue.toString();
-
-      this.youtubeService.loadVideo(songQueued.song.youtubeId);
-      this.youtubeService.play();
-    });
-
-    this.$songStateSubscription = this.roomService.getSongStateRequest().subscribe(connectionId => {
-      const request: ISongStateRequest = {
-        songQueuedId: this.songQueued.id,
-        currentTime: 30,
-        playerState: this.youtubeService.getPlayerState(),
-        connectionId: connectionId
-      };
-
-      this.roomService.sendSongState(request);
-    });
+    this.youtubeApi.loadApi();
   }
 
-  ngOnInit(): void {
+  ngAfterContentInit(): void {
+    const elementId = 'playerId';
+    const elementContainer = this.renderer.selectRootElement('#playerElement');
+    this.renderer.setAttribute(elementContainer, 'id', elementId);
+
+    const config = {
+      elementId: elementId,
+      width: 300,
+      height: 200,
+      videoId: '',
+      outputs: {
+        ready: this.onReady.bind(this),
+        change: this.onChange.bind(this)
+      }
+    };
+
+    this.youtubePlayer.initialise(config);
   }
 
-  ngOnDestroy(): void {
-    this.$songNextSubscription.unsubscribe();
+  onReady(player: YT.Player): void {
+    this.ytPlayer = player;
+    // this.ytPlayer.loadVideoById(this.videoId);
+
+    this.ready.emit(player);
   }
 
-  onReady(player: any): void {
-    this.youtubeService.setPlayer(player, true);
-  }
-
-  onChange(player: any): void {
-
+  onChange(event: YT.PlayerEvent): void {
+    this.changed.emit(event);
   }
 
 }

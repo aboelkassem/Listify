@@ -1,0 +1,10 @@
+<!-- <youtube-component
+  [videoId]="id"
+  (ready)="onReady($event)"
+  (change)="onStateChange($event)"
+></youtube-component> -->
+
+<youtube-component
+  (ready)="onReady($event)"
+  (changed)="onChange($event)"
+></youtube-component>

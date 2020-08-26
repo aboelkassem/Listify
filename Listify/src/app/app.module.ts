@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
-import { YoutubeModule } from 'angularx-youtube';
+// import { YoutubeModule } from 'angularx-youtube';
+// import { YoutubeModule } from './youtube';
+import { YoutubeModule } from './shared/youtube/youtube.module';
 
 import { AppComponent } from './app.component';
 import { ChatComponent } from './shared/chat/chat.component';
@@ -18,7 +20,7 @@ import { CurrenciesComponent } from './currencies/currencies.component';
 import { PlaylistComponent } from './playlist/playlist.component';
 import { PlaylistsComponent } from './playlists/playlists.component';
 import { SongrequestComponent } from './shared/songrequest/songrequest.component';
-import { YoutubeComponent } from './shared/youtube/youtube.component';
+import { PlayerComponent } from './shared/player/player.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +36,7 @@ import { YoutubeComponent } from './shared/youtube/youtube.component';
     PlaylistComponent,
     PlaylistsComponent,
     SongrequestComponent,
-    YoutubeComponent
+    PlayerComponent
   ],
   imports: [
     BrowserModule,

@@ -1,3 +1,4 @@
+import { OAuthService } from 'angular-oauth2-oidc';
 import { RoomHubService } from './../services/room-hub.service';
 import { ISongSearchResult, ISongQueued } from 'src/app/interfaces';
 import { IRoom, ISongQueuedCreateRequest, ICurrency, IRoomInformation, IApplicationUserRoomCurrency } from './../interfaces';
@@ -23,12 +24,12 @@ export class RoomComponent implements OnInit, OnDestroy {
   room: IRoom = this.roomHubService.room;
   songSearchResults: ISongSearchResult[] = [];
 
-  $applicationUserSubscription: Subscription;
   $youtubeSearchSubscription: Subscription;
   $songsQueuedSubscription: Subscription;
   $songNextSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
   $pingSubscription: Subscription;
+  // $applicationUserSubscription: Subscription;
   // $applicationUserRoomCurrencySubscription: Subscription;
   // $currencySubscription: Subscription;
   // $roomSubscription: Subscription;
@@ -37,15 +38,16 @@ export class RoomComponent implements OnInit, OnDestroy {
     private hubService: HubService,
     private route: ActivatedRoute,
     private roomHubService: RoomHubService,
+    private oauthService: OAuthService,
     private youtubeService: YoutubeService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
       });
 
-      this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
-        // this.hubService.requestRoomByRoomCode(this.roomCode);
-        this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
-      });
+      // this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
+      //   // this.hubService.requestRoomByRoomCode(this.roomCode);
+      //   this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+      // });
 
       // this.$roomSubscription = this.hubService.getRoom().subscribe(room => {
       //   this.room = room;
@@ -62,7 +64,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
         this.currency = this.roomHubService.applicationUserRoomCurrency;
-        this.hubService.requestSongsQueued(roomInformation.room.id);
+        // this.hubService.requestSongsQueued(roomInformation.room.id);
 
         // If it is the room owner, then request the next queued song, and then load the queue
         // If it is not the room owner, request the next song and position, then load the queue
@@ -112,18 +114,20 @@ export class RoomComponent implements OnInit, OnDestroy {
     //   this.roomHubService.requestRoom(this.roomCode);
     // }
     // this.hubService.requestRoom(this.roomCode);
-    this.roomHubService.requestRoom(this.roomCode);
-    this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+    // this.roomHubService.requestRoom(this.roomCode);
+    if (this.hubService.isConnected) {
+      this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+    }
 
   }
 
   ngOnDestroy(): void {
     this.$youtubeSearchSubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
-    this.$applicationUserSubscription.unsubscribe();
     this.$songsQueuedSubscription.unsubscribe();
     this.$songNextSubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
+    // this.$applicationUserSubscription.unsubscribe();
     // this.$roomSubscription.unsubscribe();
     // this.$currencySubscription.unsubscribe();
     // this.$applicationUserRoomCurrencySubscription.unsubscribe();
@@ -163,5 +167,4 @@ export class RoomComponent implements OnInit, OnDestroy {
   addToPlaylist(): void {
 
   }
-
 }

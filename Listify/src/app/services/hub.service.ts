@@ -99,7 +99,6 @@ export class HubService {
 
       this._hubConnection.on('ForceServerDisconnect', () => {
         this._hubConnection.stop();
-        alert('you have been disconnected');
         this.$forceDisconnectReceived.next('Disconnect');
       });
 

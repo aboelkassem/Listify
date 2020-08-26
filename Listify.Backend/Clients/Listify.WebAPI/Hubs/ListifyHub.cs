@@ -290,7 +290,6 @@ namespace Listify.WebAPI.Hubs
             try
             {
                 var responses = await _services.SearchYoutubeLightAsync(searchSnippet);
-
                 await Clients.Caller.SendAsync("ReceiveSearchYoutube", responses);
             }
             catch (Exception ex)
@@ -393,75 +392,88 @@ namespace Listify.WebAPI.Hubs
                 var context = Context.GetHttpContext();
                 var token = context.Request.Query["token"];
 
-                //var userInfoClient = new IdentityModel.Client.UserInfoClient();
-                var client = new HttpClient();
-
-                var disco = await client.GetDiscoveryDocumentAsync(Globals.IDENTITY_SERVER_AUTHORITY_URL);
-                var response = await client.GetUserInfoAsync(new UserInfoRequest
+                if (!string.IsNullOrWhiteSpace(token))
                 {
-                    Address = disco.UserInfoEndpoint,
-                    Token = token
-                });
+                    //var userInfoClient = new IdentityModel.Client.UserInfoClient();
+                    var client = new HttpClient();
 
-                var username = response.Claims.ToList().First(s => s.Type == "name").Value;
-                var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
-                var applicationUser = await _services.ReadApplicationUserAsync(userId);
-                
-                if (applicationUser == null)
-                {
-                    var roomCodeNew = username;
-                    // this prevents 2 rooms from having the same code
-                    var index = 0;
-                    while (await _context.Rooms.AnyAsync(s => s.RoomCode.Trim().ToLower() == roomCodeNew.Trim().ToLower()))
+                    var disco = await client.GetDiscoveryDocumentAsync(Globals.IDENTITY_SERVER_AUTHORITY_URL);
+                    var response = await client.GetUserInfoAsync(new UserInfoRequest
                     {
-                        roomCodeNew = username + index++;
-                    }
-
-                    // the room is attached here
-                    applicationUser = await _services.CreateApplicationUserAsync(new ApplicationUserCreateRequest
-                    {
-                        AspNetUserId = userId,
-                        Username = username,
-                        RoomCode = roomCodeNew
-                    });
-                }
-
-                // if the room was not specified, then get the default
-                var room = await _services.ReadRoomAsync(applicationUser.Room.Id);
-
-                if (room != null)
-                {
-                    room = await _services.UpdateRoomAsync(new RoomUpdateRequest
-                    {
-                        Id = room.Id,
-                        RoomCode = room.RoomCode,
-                        IsRoomPublic = true,
-                        IsRoomOnline = true
+                        Address = disco.UserInfoEndpoint,
+                        Token = token
                     });
 
-                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
+                    var username = response.Claims.ToList().First(s => s.Type == "name").Value;
+                    var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
 
-                    if (applicationUserRoom == null)
+                    var applicationUser = await _services.ReadApplicationUserAsync(userId);
+
+                    if (applicationUser == null)
                     {
-                        applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                        var roomCodeNew = username;
+                        // this prevents 2 rooms from having the same code
+                        var index = 0;
+                        while (await _context.Rooms.AnyAsync(s => s.RoomCode.Trim().ToLower() == roomCodeNew.Trim().ToLower()))
                         {
-                            IsOnline = true,
-                            RoomId = room.Id
-                        }, applicationUser.Id);
+                            roomCodeNew = username + index++;
+                        }
+
+                        // the room is attached here
+                        applicationUser = await _services.CreateApplicationUserAsync(new ApplicationUserCreateRequest
+                        {
+                            AspNetUserId = userId,
+                            Username = username,
+                            RoomCode = roomCodeNew
+                        });
                     }
 
-                    var connection = await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                    // if the room was not specified, then get the default
+                    var room = await _services.ReadRoomAsync(applicationUser.Room.Id);
+
+                    if (room != null)
                     {
-                        ApplicationUserRoomId = applicationUserRoom.Id,
-                        ConnectionId = Context.ConnectionId,
-                        IsOnline = true
-                    });
+                        //room = await _services.UpdateRoomAsync(new RoomUpdateRequest
+                        //{
+                        //    Id = room.Id,
+                        //    RoomCode = room.RoomCode,
+                        //    IsRoomPublic = true,
+                        //    IsRoomOnline = true
+                        //});
 
-                    await base.OnConnectedAsync();
+                        var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
-                    var applicationUserVM = _mapper.Map<ApplicationUserVM>(applicationUser);
+                        if (applicationUserRoom == null)
+                        {
+                            applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                            {
+                                IsOnline = true,
+                                RoomId = room.Id
+                            }, applicationUser.Id);
+                        }
 
-                    await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUserVM);
+                        var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                        connection = connection == null
+                            ? await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                            {
+                                ApplicationUserRoomId = applicationUserRoom.Id,
+                                ConnectionId = Context.ConnectionId,
+                                IsOnline = true
+                            })
+                            : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                            {
+                                HasPingBeenSent = connection.HasPingBeenSent,
+                                IsOnline = true,
+                                Id = connection.Id
+                            });
+
+                        await base.OnConnectedAsync();
+
+                        var applicationUserVM = _mapper.Map<ApplicationUserVM>(applicationUser);
+
+                        await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUserVM);
+                    }
                 }
             }
             catch (Exception ex)

@@ -17,19 +17,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Domain.Lib", "Domai
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Domain.CodeFirst", "Domain\Listify.Domain.CodeFirst\Listify.Domain.CodeFirst.csproj", "{5054E8C5-1FB1-46D7-8897-D7465BA3B61F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.Paths", "Domain\Listify.Paths\Listify.Paths.csproj", "{8AE34B28-2AA1-4445-980B-901D34519934}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Paths", "Domain\Listify.Paths\Listify.Paths.csproj", "{8AE34B28-2AA1-4445-980B-901D34519934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.Domain.BLL", "Domain\Listify.Domain.BLL\Listify.Domain.BLL.csproj", "{B4583353-6CB6-49B7-BF6B-E38F714E35CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Domain.BLL", "Domain\Listify.Domain.BLL\Listify.Domain.BLL.csproj", "{B4583353-6CB6-49B7-BF6B-E38F714E35CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.BLL", "Modules\Listify.BLL\Listify.BLL.csproj", "{84F985D8-0F80-42AC-A94B-872C11152499}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.BLL", "Modules\Listify.BLL\Listify.BLL.csproj", "{84F985D8-0F80-42AC-A94B-872C11152499}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.DAL", "Modules\Listify.DAL\Listify.DAL.csproj", "{81D06716-E475-47F8-8706-F9AADA3BD10B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.DAL", "Modules\Listify.DAL\Listify.DAL.csproj", "{81D06716-E475-47F8-8706-F9AADA3BD10B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.Lib", "Modules\Listify.Lib\Listify.Lib.csproj", "{F2880B1E-343A-408C-A191-0D3672A3D02D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Lib", "Modules\Listify.Lib\Listify.Lib.csproj", "{F2880B1E-343A-408C-A191-0D3672A3D02D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.Services", "Modules\Listify.Services\Listify.Services.csproj", "{FC1D3B61-194B-48B9-B21E-C5CD9837CBBA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.Services", "Modules\Listify.Services\Listify.Services.csproj", "{FC1D3B61-194B-48B9-B21E-C5CD9837CBBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Listify.WebAPI.Client", "Modules\Listify.WebAPI.Client\Listify.WebAPI.Client.csproj", "{E3529AAF-9910-4E18-AA3E-D7C7A1FC3C6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Listify.WebAPI.Client", "Modules\Listify.WebAPI.Client\Listify.WebAPI.Client.csproj", "{E3529AAF-9910-4E18-AA3E-D7C7A1FC3C6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

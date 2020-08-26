@@ -583,12 +583,21 @@ namespace Listify.WebAPI.Hubs
                         }, applicationUser.Id);
                     }
 
-                    var connection = await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
-                    {
-                        ApplicationUserRoomId = applicationUserRoom.Id,
-                        ConnectionId = Context.ConnectionId,
-                        IsOnline = true
-                    });
+                    var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                    connection = connection == null
+                        ? await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                        {
+                            ApplicationUserRoomId = applicationUserRoom.Id,
+                            ConnectionId = Context.ConnectionId,
+                            IsOnline = true
+                        })
+                        : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                        {
+                            HasPingBeenSent = connection.HasPingBeenSent,
+                            IsOnline = true,
+                            Id = connection.Id
+                        });
 
                     await base.OnConnectedAsync();
 

@@ -821,16 +821,31 @@ namespace Listify.DAL
         public virtual async Task<SongQueuedVM> CreateSongQueuedAsync(SongQueuedCreateRequest request)
         {
 
-            var entity = _mapper.Map<SongQueued>(request);
+            // Validation
 
-            _context.SongsQueued.Add(entity);
-
-            if (await _context.SaveChangesAsync() > 0)
+            if (request.QuantityWagered <= 0)
             {
-                return await ReadSongQueuedAsync(entity.Id);
+                return null;
             }
 
-            return null;
+            var applicationUserRoom = await ReadApplicationUserRoomAsync(request.ApplicationUserRoomId);
+            var currency = await ReadCurrencyAsync(request.CurrencyId);
+
+            if (applicationUserRoom != null && currency != null)
+            {
+
+            }
+
+            //var entity = _mapper.Map<SongQueued>(request);
+
+            //_context.SongsQueued.Add(entity);
+
+            //if (await _context.SaveChangesAsync() > 0)
+            //{
+            //    return await ReadSongQueuedAsync(entity.Id);
+            //}
+
+            //return null;
         }
         public virtual async Task<bool> DeleteSongQueuedAsync(Guid id)
         {
@@ -1233,7 +1248,10 @@ namespace Listify.DAL
                     if (applicationUserRoomConnection.HasPingBeenSent || !applicationUserRoomConnection.IsOnline)
                     {
                         // Ping was not responded to - remove connection
-                        _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                        if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 20)
+                        {
+                            _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                        }
                         //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
                     }
                     else

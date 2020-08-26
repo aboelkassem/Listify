@@ -117,8 +117,23 @@ export interface IRoomInformation {
 }
 
 export interface ISongStateRequest {
+  songId: string;
   songQueuedId: string;
   currentTime: number;
   playerState: number;
   connectionId: string;
+}
+export interface ISongStateResponse extends ISongStateRequest {
+  song: ISong;
+}
+
+export interface ISongPlayRequest {
+  songId: string;
+  songQueuedId: string;
+  currentTime: number;
+  playerState: number;
+}
+
+export interface ISongPlayResponse extends ISongStateRequest {
+  song: ISong;
 }
