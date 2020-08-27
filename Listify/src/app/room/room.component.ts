@@ -26,7 +26,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   $youtubeSearchSubscription: Subscription;
   $songsQueuedSubscription: Subscription;
-  $songNextSubscription: Subscription;
+  $playFromServerSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
   $pingSubscription: Subscription;
   // $applicationUserSubscription: Subscription;
@@ -56,14 +56,18 @@ export class RoomComponent implements OnInit, OnDestroy {
       //   // otherwise, we need to set the room to online and pull from the queue/ playlist
       // });
 
-      this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponses => {
-        this.songSearchResults = songSearchResponses.results;
+      this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponse => {
+        this.songSearchResults = songSearchResponse.results;
       });
 
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
         this.currency = this.roomHubService.applicationUserRoomCurrency;
+
+        // if (!this.roomHubService.applicationUserRoom.isOwner) {
+        //   this.roomHubService.requestServerState(this.roomHubService.room.id);
+        // }
         // this.hubService.requestSongsQueued(roomInformation.room.id);
 
         // If it is the room owner, then request the next queued song, and then load the queue
@@ -72,14 +76,13 @@ export class RoomComponent implements OnInit, OnDestroy {
 
       this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
         this.songsQueued = songsQueued;
-        this.songSearchResults = [];
       });
 
-      this.$songNextSubscription = this.roomHubService.getSongNext().subscribe(songQueued => {
+      this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
         // this.youtubeService.loadVideo(songQueued.song.youtubeId);
         // this.youtubeService.play();
 
-        this.roomHubService.requestSongsQueued(this.hubService.applicationUser.room.id);
+        this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
       });
 
       this.$pingSubscription = this.roomHubService.getPing().subscribe(ping => {
@@ -125,7 +128,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.$youtubeSearchSubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
     this.$songsQueuedSubscription.unsubscribe();
-    this.$songNextSubscription.unsubscribe();
+    this.$playFromServerSubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
     // this.$applicationUserSubscription.unsubscribe();
     // this.$roomSubscription.unsubscribe();
@@ -157,6 +160,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
     // this.hubService.createSongQueued(request);
     this.roomHubService.createSongQueued(request);
+    this.songSearchResults = [];
   }
 
 

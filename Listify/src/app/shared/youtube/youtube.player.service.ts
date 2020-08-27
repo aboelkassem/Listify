@@ -28,7 +28,7 @@ export class YoutubePlayerService {
       height: config.height,
       videoId: config.videoId,
       playerVars: {
-        'controls': 0
+        'controls': 1
       },
       events: {
         onStateChange: (event: any) => {

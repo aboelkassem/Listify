@@ -20,6 +20,5 @@
     <div *ngIf="tTimeSecBetweenTick.touched && !tTimeSecBetweenTick.valid" style="color: red">Time By Seconds Between Tick is Required</div>
   </div>
   <button type="button" id="back" routerLink="/currencies">Back</button>
-  <!-- <button type="button" id="addSong" (click)="addSong()" routerLink="/songRequest">Add Song</button> -->
   <button type="submit" id="save" [disabled]="!editForm.form.valid">Save</button>
 </form>

@@ -60,7 +60,8 @@ namespace Listify.DAL
         Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
         Task<SongVM> ReadSongAsync(Guid id);
-        Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id);
+        Task<SongVM> ReadSongAsync(string videoId);
+        Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
         Task<SongQueuedVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
@@ -81,5 +82,6 @@ namespace Listify.DAL
         Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
         Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType);
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections();
+        Task RestartSongPlaylistCountAsync(Guid applicationUserId);
     }
 }

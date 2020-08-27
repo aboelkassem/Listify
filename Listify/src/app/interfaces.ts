@@ -116,24 +116,17 @@ export interface IRoomInformation {
   applicationUserRoomCurrencies: IApplicationUserRoomCurrency[];
 }
 
-export interface ISongStateRequest {
-  songId: string;
-  songQueuedId: string;
+export interface IPlayFromServerResponse {
   currentTime: number;
   playerState: number;
+  weight: number;
+  songQueued: ISongQueued;
+}
+
+export interface IServerStateRequest {
   connectionId: string;
 }
-export interface ISongStateResponse extends ISongStateRequest {
-  song: ISong;
-}
 
-export interface ISongPlayRequest {
-  songId: string;
-  songQueuedId: string;
-  currentTime: number;
-  playerState: number;
-}
-
-export interface ISongPlayResponse extends ISongStateRequest {
-  song: ISong;
+export interface IServerStateResponse extends IPlayFromServerResponse {
+  connectionId: string;
 }

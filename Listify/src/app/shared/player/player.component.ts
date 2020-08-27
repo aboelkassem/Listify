@@ -1,7 +1,7 @@
 import { YoutubeService } from './../../services/youtube.service';
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
-import { ISongQueued, ISongStateRequest, ISongPlayRequest } from './../../interfaces';
+import { ISongQueued, IServerStateResponse, IPlayFromServerResponse } from './../../interfaces';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 @Component({
@@ -17,40 +17,45 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   songQueued: ISongQueued;
 
-  $songNextSubscription: Subscription;
-  $songStateRequestSubscription: Subscription;
-  $songStateResponseSubscription: Subscription;
+  $playFromServerSubscription: Subscription;
+  $serverStateRequestSubscription: Subscription;
+  $serverStateResponseSubscription: Subscription;
 
   constructor(
     private roomService: RoomHubService,
     private youtubeService: YoutubeService) {
-      this.$songNextSubscription = this.roomService.getSongNext().subscribe(songQueued => {
-        this. songQueued = songQueued;
-
+      // this sets the properties for a server ordered play
+      this.$playFromServerSubscription = this.roomService.getPlayFromServerResponse().subscribe(response => {
+        this.songQueued = response.songQueued;
         this.songName = this.songQueued.song.songName;
         this.requestedBy = this.songQueued.applicationUser.username;
         this.playValue = this.songQueued.weightedValue.toString();
 
-        this.youtubeService.loadVideo(songQueued.song.youtubeId);
-        this.youtubeService.play();
+        // this.youtubeService.loadVideo(songQueued.song.youtubeId);
+        // this.youtubeService.play();
       });
 
-      this.$songStateRequestSubscription = this.roomService.getSongStateRequest().subscribe(connectionId => {
-        const request: ISongStateRequest = {
-          songQueuedId: this.songQueued.id,
-          songId: this.songQueued.song.id,
+      // this is to return the state of the server to each client
+      this.$serverStateRequestSubscription = this.roomService.getServerStateRequest().subscribe(request => {
+        const response: IServerStateResponse = {
+          songQueued: this.songQueued,
           currentTime: this.youtubeService.getCurrentTime(),
           playerState: this.youtubeService.getPlayerState(),
-          connectionId: connectionId
+          connectionId: request.connectionId,
+          weight: this.songQueued.weightedValue
         };
 
-        this.roomService.sendSongState(request);
+        this.roomService.sendServerState(response);
       });
 
-      this.$songStateResponseSubscription = this.roomService.getSongStateResponse().subscribe((songStateResponse) => {
-        this.youtubeService.stop();
-        this.youtubeService.loadVideoAndSeek(songStateResponse.song.youtubeId, songStateResponse.currentTime);
-        this.youtubeService.play();
+      // this assigns the video properties when the server response
+      this.$serverStateResponseSubscription = this.roomService.getServerStateResponse().subscribe((response) => {
+        this.songName = response.songQueued.song.songName;
+        this.requestedBy = response.songQueued.applicationUser.username;
+        this.playValue = response.weight.toString();
+
+        // this.youtubeService.loadVideoAndSeek(response.song.youtubeId, response.currentTime);
+        // this.youtubeService.play();
       });
     }
 
@@ -58,9 +63,9 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.$songNextSubscription.unsubscribe();
-    this.$songStateRequestSubscription.unsubscribe();
-    this.$songStateResponseSubscription.unsubscribe();
+    this.$playFromServerSubscription.unsubscribe();
+    this.$serverStateRequestSubscription.unsubscribe();
+    this.$serverStateResponseSubscription.unsubscribe();
   }
 
   onReady(player: any): void {
@@ -78,17 +83,14 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
       case YT.PlayerState.PLAYING:
         if (this.roomService.applicationUserRoom.isOwner) {
-          const request: ISongPlayRequest = {
-            songId: this.songQueued.song.id,
-            songQueuedId: this.songQueued.id,
+          const request: IPlayFromServerResponse = {
+            songQueued: this.songQueued,
             currentTime: this.youtubeService.getCurrentTime(),
             playerState: this.youtubeService.getPlayerState(),
+            weight: this.songQueued.weightedValue
           };
 
-          this.roomService.requestPlay(request);
-        }
-        else {
-          this.roomService.requestSongState(this.roomService.room.id);
+          this.roomService.requestPlayFromServer(request);
         }
         break;
 

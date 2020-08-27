@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, IChatMessage, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency, ISongRequest, ISongStateRequest } from './../interfaces';
+import { IRoom, IChatMessage, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, ISongQueued, IApplicationUserRoomCurrency, ISongRequest, IServerStateRequest, IServerStateResponse } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -259,15 +259,15 @@ export class HubService {
     }
   }
 
-  requestSongNext(room: IRoom): void {
+  dequeueSongNext(room: IRoom): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestSongNext', room.id);
+      this._hubConnection.invoke('DequeueSongNext', room.roomCode);
     }
   }
 
-  sendSongState(request: ISongStateRequest): void {
+  sendServerState(response: IServerStateResponse): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('ReceiveSongState', request);
+      this._hubConnection.invoke('ReceiveServerState', response);
     }
   }
 

@@ -8,22 +8,24 @@ import reframe from 'reframe.js';
 })
 export class YoutubeService implements OnDestroy {
 
+  player: any;
+
   $pauseSubscription: Subscription;
   $playSubscription: Subscription;
 
-  player: any;
   // reframed: boolean = false;
 
   constructor(
     private roomService: RoomHubService
   ) {
-    this.$pauseSubscription = this.roomService.getPauseResponse().subscribe(pauseString => {
-      this.pause();
+    this.$playSubscription = this.roomService.getPlayFromServerResponse().subscribe(playFromServerResponse => {
+      this.stop();
+      this.loadVideoAndSeek(playFromServerResponse.songQueued.song.youtubeId, playFromServerResponse.currentTime);
+      this.play();
     });
 
-    this.$playSubscription = this.roomService.getPlayResponse().subscribe(songPlayResponse => {
-      this.loadVideoAndSeek(songPlayResponse.song.youtubeId, songPlayResponse.currentTime);
-      this.play();
+    this.$pauseSubscription = this.roomService.getPauseResponse().subscribe(pauseString => {
+      this.pause();
     });
   }
 

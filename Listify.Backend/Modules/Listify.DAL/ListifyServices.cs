@@ -136,7 +136,6 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<ApplicationUserRoomVM>(entity) : null;
         }
-
         public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId)
         {
             var entity = await _context.ApplicationUsersRooms
@@ -567,6 +566,13 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<SongVM>(entity) : null;
         }
+        public virtual async Task<SongVM> ReadSongAsync(string videoId)
+        {
+            var entity = await _context.Songs
+                .FirstOrDefaultAsync(s => s.YoutubeId == videoId && s.Active);
+
+            return entity != null ? _mapper.Map<SongVM>(entity) : null;
+        }
         public virtual async Task<SongVM> CreateSongAsync(SongCreateRequest request)
         {
 
@@ -666,17 +672,38 @@ namespace Listify.DAL
             }
             return null;
         }
-        public virtual async Task<SongPlaylistDTO[]> ReadSongsPlaylistAsync(Guid id)
+        public virtual async Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId)
         {
             var entities = await _context.SongsPlaylists
-                .Where(s => s.Playlist.Id == id && s.Active)
+                .Where(s => s.Playlist.Id == playlistId && s.Active)
                 .ToListAsync();
 
-            var dtos = new List<SongPlaylistDTO>();
+            var dtos = new List<SongPlaylistVM>();
 
-            entities.ForEach(s => dtos.Add(_mapper.Map<SongPlaylistDTO>(s)));
+            entities.ForEach(s => dtos.Add(_mapper.Map<SongPlaylistVM>(s)));
 
             return dtos.ToArray();
+        }
+        public virtual async Task RestartSongPlaylistCountAsync(Guid applicationUserId)
+        {
+            var playlists = await _context.Playlists
+                .Where(s => s.ApplicationUserId == applicationUserId)
+                .ToListAsync();
+
+            foreach (var playlist in playlists)
+            {
+                var songsPlaylist = await _context.SongsPlaylists
+                    .Where(s => s.PlaylistId == playlist.Id)
+                    .ToListAsync();
+
+                foreach (var songPlaylist in songsPlaylist)
+                {
+                    songPlaylist.PlayCount = 0;
+                    _context.Entry(songPlaylist).State = EntityState.Modified;
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
         public virtual async Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id)
         {
@@ -833,7 +860,59 @@ namespace Listify.DAL
 
             if (applicationUserRoom != null && currency != null)
             {
+                var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
+                if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= request.QuantityWagered)
+                {
+                    var song = await ReadSongAsync(request.SongSearchResult.VideoId);
 
+                    if (song == null)
+                    {
+                        song = await CreateSongAsync(new SongCreateRequest
+                        {
+                            YoutubeId = request.SongSearchResult.VideoId,
+                            SongLengthSeconds = request.SongSearchResult.LengthSec,
+                            SongName = request.SongSearchResult.SongName
+                        });
+                    }
+
+                    var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
+
+                    if (!songsQueued.Any(s => s.Song.Id == song.Id))
+                    {
+                        var songQueued = new SongQueued
+                        {
+                            ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
+                            RoomId = applicationUserRoom.Room.Id,
+                            SongId = song.Id,
+                            WeightedValue = request.QuantityWagered,
+                            TransactionsSongQueued = new List<TransactionSongQueued>
+                            {
+                                new TransactionSongQueued
+                                {
+                                    ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                                    QuantityChange = request.QuantityWagered,
+                                    TransactionType = TransactionType.Request
+                                }
+                            }
+                        };
+
+                        _context.SongsQueued.Add(songQueued);
+
+                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
+                            .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+
+                        if (applicationUserRoomCurrencyEntity != null)
+                        {
+                            applicationUserRoomCurrencyEntity.Quantity = request.QuantityWagered;
+                            _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
+
+                            if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
+                            {
+                                return await ReadSongQueuedAsync(songQueued.Id);
+                            }
+                        }
+                    }
+                }
             }
 
             //var entity = _mapper.Map<SongQueued>(request);
@@ -845,7 +924,7 @@ namespace Listify.DAL
             //    return await ReadSongQueuedAsync(entity.Id);
             //}
 
-            //return null;
+            return null;
         }
         public virtual async Task<bool> DeleteSongQueuedAsync(Guid id)
         {

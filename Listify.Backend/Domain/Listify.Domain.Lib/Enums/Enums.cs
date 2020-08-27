@@ -30,6 +30,12 @@ namespace Listify.Domain.Lib.Enums
         Playlist
     }
 
+    public enum ServerStateType
+    {
+        Stopped,
+        Playing
+    }
+
     public enum EndpointType
     {
 

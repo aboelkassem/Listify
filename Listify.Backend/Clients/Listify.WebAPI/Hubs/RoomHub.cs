@@ -17,6 +17,8 @@ using Listify.BLL.Polls;
 using Listify.BLL.Events.Args;
 using System.Collections.Generic;
 using IdentityServer4.EntityFramework.Entities;
+using Listify.Lib.Responses;
+using Listify.Domain.Lib.Enums;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -106,7 +108,7 @@ namespace Listify.WebAPI.Hubs
             //}
         }
 
-        public async Task RequestSongState(Guid roomId)
+        public async Task RequestServerState(Guid roomId)
         {
             var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(roomId);
             var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
@@ -118,17 +120,34 @@ namespace Listify.WebAPI.Hubs
                 // the ping service will remove stale connections upon rejoining.
                 foreach (var connectionInd in channelOwnerConnections)
                 {
-                    await Clients.Client(connectionInd.ConnectionId).SendAsync("ReceiveSongStateRequest", Context.ConnectionId);
+                    await Clients.Client(connectionInd.ConnectionId).SendAsync("RequestServerState", new ServerStateRequest
+                    {
+                        ConnectionId = Context.ConnectionId
+                    });
                 }
             }
         }
-        public async Task ReceiveSongState(SongStateRequest request)
+        public async Task ReceiveServerState(ServerStateResponse response)
         {
             // this is coming from a room owner, it needs to pass to the new connection
             try
             {
-                request.Song = await _services.ReadSongAsync(request.SongId);
-                await Clients.Client(request.ConnectionId).SendAsync("ReceiveSongState", request);
+
+                //if (response.SongQueuedId != Guid.Empty)
+                //{
+                //    var songQueued = await _services.ReadSongQueuedAsync(response.SongQueuedId);
+                //    response.ApplicationUser = songQueued.ApplicationUser;
+                //    response.Weight = songQueued.WeightedCurrentValue;
+                //}
+                //else
+                //{
+                //    var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                //    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                //    response.ApplicationUser = applicationUserRoom.ApplicationUser;
+                //    response.Weight = 0;
+                //}
+
+                await Clients.Client(response.ConnectionId).SendAsync("RequestPlayFromServer", response);
             }
             catch (Exception ex)
             {
@@ -152,11 +171,11 @@ namespace Listify.WebAPI.Hubs
                         if (nextSong != null)
                         {
                             var song = await _services.ReadSongAsync(nextSong.Song.Id);
-                            await Clients.Group(room.RoomCode).SendAsync("ReceivePlay", new SongStateRequest
+                            await Clients.Group(room.RoomCode).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
                             {
                                 CurrentTime = 0,
-                                Song = song,
-                                SongId = song.Id,
+                                SongQueued = nextSong,
+                                Weight = nextSong.WeightedCurrentValue
                             });
                         }
                     }
@@ -167,21 +186,19 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task RequestPlay(SongStateRequest request)
+        public async Task RequestPlayFromServer(PlayFromServerResponse request)
         {
             var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-            var song = await _services.ReadSongAsync(request.SongId);
 
-            if (applicationUserRoomConnection != null && song != null)
+            if (applicationUserRoomConnection != null && request.SongQueued != null)
             {
                 var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
                 if (applicationUserRoom != null && applicationUserRoom.IsOwner)
                 {
-                    request.Song = song;
                     await Clients.GroupExcept(applicationUserRoom.Room.RoomCode, new List<string>
                     {
                         Context.ConnectionId
-                    }).SendAsync("ReceivePlay", request);
+                    }).SendAsync("RequestPlayFromServer", request);
                 }
             }
 
@@ -215,7 +232,12 @@ namespace Listify.WebAPI.Hubs
                 if (userId != Guid.Empty)
                 {
                     var songQueued = await _services.CreateSongQueuedAsync(request);
-                    await Clients.Caller.SendAsync("ReceiveSongQueued", songQueued);
+                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(request.ApplicationUserRoomId);
+
+                    if (songQueued != null && applicationUserRoom != null)
+                    {
+                        await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songQueued);
+                    }
                 }
 
             }
@@ -274,7 +296,13 @@ namespace Listify.WebAPI.Hubs
                 if (applicationUserRoom.IsOwner)
                 {
                     var songNext = await _services.DequeueSongQueuedAsync(room.Id, userId);
-                    await Clients.Group(room.RoomCode).SendAsync("ReceiveSongNext", songNext);
+                    await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                    {
+                        CurrentTime = 0,
+                        PlayerState = (int)ServerStateType.Stopped,
+                        SongQueued = songNext,
+                        Weight = songNext.WeightedCurrentValue 
+                    });
                 }
                 else
                 {
@@ -283,12 +311,17 @@ namespace Listify.WebAPI.Hubs
 
                     if (channelOwnerConnections.Count() > 0)
                     {
+                        // ToDo: Do we want this to go to all connections?
                         // Only try to grab data from the first connection
                         // the ping service will remove stale connections upon rejoining.
-                        await Clients.Client(channelOwnerConnections[0].ConnectionId).SendAsync("ReceiveSongStateRequest", Context.ConnectionId);
+                        foreach (var channelOwnerConnection in channelOwnerConnections)
+                        {
+                            await Clients.Client(channelOwnerConnection.ConnectionId).SendAsync("RequestServerState", new ServerStateRequest
+                            {
+                                ConnectionId = Context.ConnectionId
+                            });
+                        }
                     }
-                    //var songsQueued = await _services.ReadSongsQueuedAsync(room.Id);
-                    //await Clients.Group(room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
                 }
             }
         }
@@ -461,14 +494,33 @@ namespace Listify.WebAPI.Hubs
 
                         if (applicationUserRoom.IsOwner)
                         {
-                            var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUser.Id);
-                            await Clients.Group(room.RoomCode).SendAsync("ReceiveSongNext", songNext);
+                            var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
+                            await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                            {
+                                CurrentTime = 0,
+                                PlayerState = (int)ServerStateType.Stopped,
+                                SongQueued = songNext,
+                                Weight = songNext.WeightedCurrentValue
+                            });
                         }
                         else
                         {
-                            await RequestSongState(room.Id);
-                            //var songsQueued = await _services.ReadSongsQueuedAsync(room.Id);
-                            //await Clients.Group(room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
+                            var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(room.Id);
+                            var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
+
+                            if (channelOwnerConnections.Count() > 0)
+                            {
+                                // ToDo: Do we want this to go to all connections?
+                                // Only try to grab data from the first connection
+                                // the ping service will remove stale connections upon rejoining.
+                                foreach (var channelOwnerConnection in channelOwnerConnections)
+                                {
+                                    await Clients.Client(channelOwnerConnection.ConnectionId).SendAsync("RequestServerState", new ServerStateRequest
+                                    {
+                                        ConnectionId = Context.ConnectionId
+                                    });
+                                }
+                            }
                         }
                     }
                 }
@@ -561,14 +613,6 @@ namespace Listify.WebAPI.Hubs
 
                 if (room != null)
                 {
-                    room = await _services.UpdateRoomAsync(new RoomUpdateRequest
-                    {
-                        Id = room.Id,
-                        RoomCode = room.RoomCode,
-                        IsRoomPublic = true,
-                        IsRoomOnline = true
-                    });
-
                     var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
                     if (applicationUserRoom == null)
@@ -580,12 +624,23 @@ namespace Listify.WebAPI.Hubs
                         }, applicationUser.Id);
                     }
 
-                    return await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                    var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                    connection = connection == null
+                    ? await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
                     {
                         ApplicationUserRoomId = applicationUserRoom.Id,
                         ConnectionId = Context.ConnectionId,
                         IsOnline = true
+                    })
+                    : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = true,
+                        Id = connection.Id
                     });
+
+                    return connection;
                 }
             }
             return null;

@@ -1,5 +1,6 @@
 import { Subject, Observable } from 'rxjs';
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, ISongStateRequest, ISongStateResponse, ISongPlayRequest, ISongPlayResponse } from './../interfaces';
+// tslint:disable-next-line:max-line-length
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IPlayFromServerResponse } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
@@ -10,6 +11,7 @@ import { IApplicationUserRoomCurrency } from '../interfaces';
 })
 export class RoomHubService {
 
+  messages: IChatMessage[];
   applicationUserRoomCurrency: IApplicationUserRoomCurrency;
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
@@ -22,9 +24,9 @@ export class RoomHubService {
   $songsQueuedReceived = new Subject<ISongQueued[]>();
   $songQueuedReceived = new Subject<ISongQueued>();
   $pingReceived = new Subject<string>();
-  $songStateRequestReceived = new Subject<string>();
-  $songStateResponseReceived = new Subject<ISongStateResponse>();
-  $playResponseReceived = new Subject<ISongPlayResponse>();
+  $serverStateRequestReceived = new Subject<IServerStateRequest>();
+  $serverStateResponseReceived = new Subject<IServerStateResponse>();
+  $playFromServerResponseReceived = new Subject<IPlayFromServerResponse>();
   $pauseRequestReceived = new Subject<string>();
 
   constructor(private oauthService: OAuthService) { }
@@ -71,20 +73,20 @@ export class RoomHubService {
       this.requestSongsQueued(this.applicationUserRoom.room.id);
     });
 
-    this._hubConnection.on('ReceiveSongStateRequest', (connectionId: string) => {
-      this.$songStateRequestReceived.next(connectionId);
+    this._hubConnection.on('RequestServerState', (request: IServerStateRequest) => {
+      this.$serverStateRequestReceived.next(request);
     });
 
-    this._hubConnection.on('ReceiveSongState', (response: ISongStateResponse) => {
-      this.$songStateResponseReceived.next(response);
+    this._hubConnection.on('RequestPlayFromServer', (response: IPlayFromServerResponse) => {
+      this.$playFromServerResponseReceived.next(response);
+    });
+
+    this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
+      this.messages.push(message);
     });
 
     this._hubConnection.on('ReceivePause', () => {
       this.$pauseRequestReceived.next('ReceivePause');
-    });
-
-    this._hubConnection.on('ReceivePlay', (songPlayResponse: ISongPlayResponse) => {
-      this.$playResponseReceived.next(songPlayResponse);
     });
 
     this._hubConnection.on('PingRequest', (ping: string) => {
@@ -94,15 +96,15 @@ export class RoomHubService {
     this._hubConnection.start();
   }
 
-  requestSongState(roomId: string): void {
+  requestServerState(roomId: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestSongState', roomId);
+      this._hubConnection.invoke('RequestServerState', roomId);
     }
   }
 
-  sendSongState(songStateRequest: ISongStateRequest): void {
+  sendServerState(response: IServerStateResponse): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('ReceiveSongState', songStateRequest);
+      this._hubConnection.invoke('ReceiveServerState', response);
     }
   }
 
@@ -124,9 +126,9 @@ export class RoomHubService {
     }
   }
 
-  requestPlay(songPlayRequest: ISongPlayRequest): void {
+  requestPlayFromServer(response: IPlayFromServerResponse): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestPlay', songPlayRequest);
+      this._hubConnection.invoke('RequestPlayFromServer', response);
     }
   }
 
@@ -145,6 +147,12 @@ export class RoomHubService {
   dequeueNextSong(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('DequeueNextSong', this.room.roomCode);
+    }
+  }
+
+  sendMessage(message: IChatMessage): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('SendMessage', message);
     }
   }
 
@@ -180,20 +188,20 @@ export class RoomHubService {
     return this.$pingReceived.asObservable();
   }
 
-  getSongStateRequest(): Observable<string> {
-    return this.$songStateRequestReceived.asObservable();
+  getServerStateRequest(): Observable<IServerStateRequest> {
+    return this.$serverStateRequestReceived.asObservable();
   }
 
-  getSongStateResponse(): Observable<ISongStateResponse> {
-    return this.$songStateResponseReceived.asObservable();
+  getServerStateResponse(): Observable<IServerStateResponse> {
+    return this.$serverStateResponseReceived.asObservable();
   }
 
   getPauseResponse(): Observable<string> {
     return this.$pauseRequestReceived.asObservable();
   }
 
-  getPlayResponse(): Observable<ISongPlayResponse> {
-    return this.$playResponseReceived.asObservable();
+  getPlayFromServerResponse(): Observable<IPlayFromServerResponse> {
+    return this.$playFromServerResponseReceived.asObservable();
   }
 
   isConnected(): boolean {
