@@ -1,4 +1,5 @@
-import {} from '@types/youtube';
+import '@types/youtube';
+// import {} from '@types/youtube';
 
 export interface PlayerConfig {
   elementId: string;

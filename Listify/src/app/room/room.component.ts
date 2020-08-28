@@ -1,4 +1,3 @@
-import { OAuthService } from 'angular-oauth2-oidc';
 import { RoomHubService } from './../services/room-hub.service';
 import { ISongSearchResult, ISongQueued } from 'src/app/interfaces';
 import { IRoom, ISongQueuedCreateRequest, ICurrency, IRoomInformation, IApplicationUserRoomCurrency } from './../interfaces';
@@ -17,9 +16,9 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   roomCode: string;
   searchSnippet: string;
-  currency: IApplicationUserRoomCurrency;
-  quantity: string;
   songsQueued: ISongQueued[];
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = this.roomHubService.applicationUserRoomCurrencies;
+  applicationUserRoomCurrencyIdSelected: string;
 
   room: IRoom = this.roomHubService.room;
   songSearchResults: ISongSearchResult[] = [];
@@ -38,7 +37,6 @@ export class RoomComponent implements OnInit, OnDestroy {
     private hubService: HubService,
     private route: ActivatedRoute,
     private roomHubService: RoomHubService,
-    private oauthService: OAuthService,
     private youtubeService: YoutubeService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
@@ -63,7 +61,6 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
-        this.currency = this.roomHubService.applicationUserRoomCurrency;
 
         // if (!this.roomHubService.applicationUserRoom.isOwner) {
         //   this.roomHubService.requestServerState(this.roomHubService.room.id);
@@ -150,10 +147,10 @@ export class RoomComponent implements OnInit, OnDestroy {
     // this.youtubeService.play();
   }
 
-  addSongToQueue(searchResult: ISongSearchResult): void {
+  addSongToQueue(searchResult: ISongSearchResult, applicationUserRoomCurrency: IApplicationUserRoomCurrency): void {
     const request: ISongQueuedCreateRequest = {
       applicationUserRoomId: this.roomHubService.applicationUserRoom.id,
-      currencyId: this.currency.currency.id,
+      applicationUserRoomCurrencyId: applicationUserRoomCurrency.id,
       quantityWagered: searchResult.quantityWagered,
       songSearchResult: searchResult
     };

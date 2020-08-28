@@ -8,7 +8,5 @@ namespace Listify.Lib.Responses
     public class ServerStateResponse : PlayFromServerResponse
     {
         public string ConnectionId { get; set; }
-        public ServerStateType ServerStateType { get; set; }
-        public PlayFromServerResponse SongCurrent { get; set; }
     }
 }

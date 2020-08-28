@@ -1,6 +1,6 @@
 import { Subject, Observable } from 'rxjs';
 // tslint:disable-next-line:max-line-length
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IPlayFromServerResponse } from './../interfaces';
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IPlayFromServerResponse, IWagerQuantitySongQueuedRequest } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
@@ -12,7 +12,7 @@ import { IApplicationUserRoomCurrency } from '../interfaces';
 export class RoomHubService {
 
   messages: IChatMessage[];
-  applicationUserRoomCurrency: IApplicationUserRoomCurrency;
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
 
@@ -50,7 +50,7 @@ export class RoomHubService {
 
     // this function is fired when the hub first connect
     this._hubConnection.on('ReceiveRoomInformation', (roomInformation: IRoomInformation) => {
-      this.applicationUserRoomCurrency = roomInformation.applicationUserRoomCurrencies[0];
+      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
       this.applicationUserRoom = roomInformation.applicationUserRoom;
       this.room = roomInformation.room;
       this.$roomInformationReceived.next(roomInformation);
@@ -151,8 +151,19 @@ export class RoomHubService {
   }
 
   sendMessage(message: IChatMessage): void {
+    const data: IChatMessage = {
+      applicationUserRoom: this.applicationUserRoom,
+      message: message.message
+    };
+
     if (this._hubConnection) {
-      this._hubConnection.invoke('SendMessage', message);
+      this._hubConnection.invoke('SendMessage', data);
+    }
+  }
+
+  wagerQuantitySongQueued(request: IWagerQuantitySongQueuedRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('WagerQuantitySongQueued', request);
     }
   }
 

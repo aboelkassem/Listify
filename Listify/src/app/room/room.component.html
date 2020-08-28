@@ -6,7 +6,7 @@
   ></youtube-component>
 </div> -->
 <div>
-  <span>Currency: {{quantity}} {{currency.currency.currencyName}}</span>
+  <!-- <span>Currency: {{quantity}} {{currency.currency.currencyName}}</span> -->
 </div>
 <h3>Room Code : {{roomCode}}</h3>
 <div class="row">
@@ -21,21 +21,30 @@
     <div class="row" *ngIf="songSearchResults.length > 0">
       <div class="table-responsive">
         <table class="table table-striped">
+          <thead>
           <tr>
             <th>Search Results</th>
             <th></th>
             <th></th>
+            <th></th>
           </tr>
-        </table>
+        </thead>
         <tbody>
           <tr *ngFor="let searchResult of songSearchResults; let i = index">
             <!-- Make this a link to youtube video -->
             <td>{{searchResult.songName}}</td>
             <td><input class="form-control" [(ngModel)]="searchResult.quantityWagered" placeholder="Wager Amount"/></td>
-            <td>{{currency.currency.currencyName}}</td>
-            <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
+            <td>
+              <select [(ngModel)]="applicationUserRoomCurrencyIdSelected">
+                <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies" value="applicationUserRoomCurrency.id">
+                  {{applicationUserRoomCurrency.currency.currencyName}}
+                </option>
+              </select>
+            </td>
+            <td><button (click)="addSongToQueue(searchResult, applicationUserRoomCurrencyIdSelected)">Add Song To Queue</button></td>
           </tr>
         </tbody>
+      </table>
       </div>
     </div>
     <div class="row" *ngIf="songSearchResults.length <= 0">

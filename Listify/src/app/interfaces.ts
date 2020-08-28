@@ -1,6 +1,6 @@
 export interface ISongQueuedCreateRequest {
   applicationUserRoomId: string;
-  currencyId: string;
+  applicationUserRoomCurrencyId: string;
   quantityWagered: number;
   songSearchResult: ISongSearchResult;
 }
@@ -37,6 +37,7 @@ export interface IApplicationUserRoom {
 }
 
 export interface IApplicationUserRoomCurrency {
+  id: string;
   quantity: number;
   applicationUserRoom: IApplicationUserRoom;
   currency: ICurrency;
@@ -129,4 +130,11 @@ export interface IServerStateRequest {
 
 export interface IServerStateResponse extends IPlayFromServerResponse {
   connectionId: string;
+}
+
+export interface IWagerQuantitySongQueuedRequest {
+  songQueued: ISongQueued;
+  applicationUserRoom: IApplicationUserRoom;
+  applicationUserRoomCurrency: IApplicationUserRoomCurrency;
+  quantity: number;
 }

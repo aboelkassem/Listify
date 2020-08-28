@@ -16,6 +16,9 @@ using Listify.Domain.Lib.Enums;
 using Google.Apis.YouTube.v3;
 using Google.Apis.Services;
 using Listify.Paths;
+using System.Text;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace Listify.DAL
 {
@@ -715,96 +718,96 @@ namespace Listify.DAL
         public virtual async Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request, Guid applicationUserId)
         {
 
-            //var song = await _context.Songs
-            //    .FirstOrDefaultAsync(s => s.YoutubeId == request.SongSearchResult.VideoId);
+            var song = await _context.Songs
+                .FirstOrDefaultAsync(s => s.YoutubeId == request.SongSearchResult.VideoId);
 
-            //var playlist = await _context.Playlists
-            //    .FirstOrDefaultAsync(s => s.Id == request.PlaylistId && s.ApplicationUserId == applicationUserId && s.Active);
+            var playlist = await _context.Playlists
+                .FirstOrDefaultAsync(s => s.Id == request.PlaylistId && s.ApplicationUserId == applicationUserId && s.Active);
 
-            //if (playlist != null)
-            //{
-            //    if (songs != null)
-            //    {
-            //        // Create the Song
-            //        YoutubeSearchResponse response;
-            //        using (var httpClient = new HttpClient())
-            //        {
-            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
-            //            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet&key={my-google-api-key}";
-            //            var result = await httpClient.GetStringAsync(url);
-            //            response = JsonConverter.DeserializeObject<YoutubeSearchResponse>(result);
-            //        }
-
-            //        var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
-            //        var hours = 0f;
-            //        var minutes = 0f;
-            //        var seconds = 0f;
-
-            //        if (parsedLength.IndexOf("H") > 0)
-            //        {
-            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
-            //            {
-            //                hours = hoursInt;
-            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
-            //            }
-            //        }
-
-            //        if (parsedLength.IndexOf("M") > 0)
-            //        {
-            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
-            //            {
-            //                minutes = minutesInt;
-            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
-            //            }
-            //        }
-
-            //        if (parsedLength.IndexOf("S") > 0)
-            //        {
-            //            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
-            //            {
-            //                seconds = secondsInt;
-            //                parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
-            //            }
-            //        }
-
-            //        var time = int.Parse(Math.Round((TimeSpan.FromHours(hours) + (TimeSpan.FromMinutes(minutes) + (TimeSpan.FromSeconds(seconds))));
-            //        var songVM = await CreateSongAsync(new SongCreateRequest
-            //        {
-            //            YoutubeId = request.SongSearchResult.VideoId,
-            //            SongLengthSeconds = time,
-            //            SongName = request.SongSearchResult.SongName
-            //        });
-
-            //        song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songVM.Id);
-            //    }
-
-            //    if (!await _context.SongsPlaylists.AnyAsync(s => s.SongId == song.Id && s.Active))
-            //    {
-            //        var songPlaylist = new SongPlaylist
-            //        {
-            //            Playlist = playlist,
-            //            Song = song
-            //        };
-
-            //        _context.SongsPlaylists.Add(songPlaylist);
-            //        if (await _context.SaveChangesAsync() > 0)
-            //        {
-            //            return _mapper.Map<SongPlaylistVM>(songPlaylist);
-            //        }
-            //    }
-            //}
-            //return null;
-
-            var entity = _mapper.Map<SongPlaylist>(request);
-
-            _context.SongsPlaylists.Add(entity);
-
-            if (await _context.SaveChangesAsync() > 0)
+            if (playlist != null)
             {
-                return await ReadSongPlaylistAsync(entity.Id);
-            }
+                if (song != null)
+                {
+                    // Create the Song
+                    YoutubeSearchResponse response;
+                    using (var httpClient = new HttpClient())
+                    {
+                        //var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
+                        var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                        var result = await httpClient.GetStringAsync(url);
+                        response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
+                    }
 
+                    var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+                    var hours = 0f;
+                    var minutes = 0f;
+                    var seconds = 0f;
+
+                    if (parsedLength.IndexOf("H") > 0)
+                    {
+                        if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
+                        {
+                            hours = hoursInt;
+                            parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
+                        }
+                    }
+
+                    if (parsedLength.IndexOf("M") > 0)
+                    {
+                        if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+                        {
+                            minutes = minutesInt;
+                            parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+                        }
+                    }
+
+                    if (parsedLength.IndexOf("S") > 0)
+                    {
+                        if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+                        {
+                            seconds = secondsInt;
+                            parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+                        }
+                    }
+
+                    var time = (int)Math.Round(TimeSpan.FromHours(hours).Add(TimeSpan.FromMinutes(minutes)).Add(TimeSpan.FromSeconds(seconds)).TotalSeconds);
+                    var songVM = await CreateSongAsync(new SongCreateRequest
+                    {
+                        YoutubeId = request.SongSearchResult.VideoId,
+                        SongLengthSeconds = time,
+                        SongName = request.SongSearchResult.SongName
+                    });
+
+                    song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songVM.Id);
+                }
+
+                if (!await _context.SongsPlaylists.AnyAsync(s => s.SongId == song.Id && s.Active))
+                {
+                    var songPlaylist = new SongPlaylist
+                    {
+                        Playlist = playlist,
+                        Song = song
+                    };
+
+                    _context.SongsPlaylists.Add(songPlaylist);
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return _mapper.Map<SongPlaylistVM>(songPlaylist);
+                    }
+                }
+            }
             return null;
+
+            //var entity = _mapper.Map<SongPlaylist>(request);
+
+            //_context.SongsPlaylists.Add(entity);
+
+            //if (await _context.SaveChangesAsync() > 0)
+            //{
+            //    return await ReadSongPlaylistAsync(entity.Id);
+            //}
+
+            //return null;
         }
         public virtual async Task<bool> DeleteSongPlaylistAsync(Guid id, Guid applicationUserId)
         {
@@ -856,60 +859,58 @@ namespace Listify.DAL
             }
 
             var applicationUserRoom = await ReadApplicationUserRoomAsync(request.ApplicationUserRoomId);
-            var currency = await ReadCurrencyAsync(request.CurrencyId);
+            var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(request.ApplicationUserRoomCurrencyId);
 
-            if (applicationUserRoom != null && currency != null)
+            if (applicationUserRoom != null && 
+                applicationUserRoomCurrency != null &&
+                applicationUserRoomCurrency.Quantity >= request.QuantityWagered)
             {
-                var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
-                if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= request.QuantityWagered)
+                var song = await ReadSongAsync(request.SongSearchResult.VideoId);
+
+                if (song == null)
                 {
-                    var song = await ReadSongAsync(request.SongSearchResult.VideoId);
-
-                    if (song == null)
+                    song = await CreateSongAsync(new SongCreateRequest
                     {
-                        song = await CreateSongAsync(new SongCreateRequest
-                        {
-                            YoutubeId = request.SongSearchResult.VideoId,
-                            SongLengthSeconds = request.SongSearchResult.LengthSec,
-                            SongName = request.SongSearchResult.SongName
-                        });
-                    }
+                        YoutubeId = request.SongSearchResult.VideoId,
+                        SongLengthSeconds = request.SongSearchResult.LengthSec,
+                        SongName = request.SongSearchResult.SongName
+                    });
+                }
 
-                    var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
+                var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
 
-                    if (!songsQueued.Any(s => s.Song.Id == song.Id))
+                if (!songsQueued.Any(s => s.Song.Id == song.Id))
+                {
+                    var songQueued = new SongQueued
                     {
-                        var songQueued = new SongQueued
+                        ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
+                        RoomId = applicationUserRoom.Room.Id,
+                        SongId = song.Id,
+                        WeightedValue = request.QuantityWagered,
+                        TransactionsSongQueued = new List<TransactionSongQueued>
                         {
-                            ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
-                            RoomId = applicationUserRoom.Room.Id,
-                            SongId = song.Id,
-                            WeightedValue = request.QuantityWagered,
-                            TransactionsSongQueued = new List<TransactionSongQueued>
+                            new TransactionSongQueued
                             {
-                                new TransactionSongQueued
-                                {
-                                    ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
-                                    QuantityChange = request.QuantityWagered,
-                                    TransactionType = TransactionType.Request
-                                }
+                                ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                                QuantityChange = request.QuantityWagered,
+                                TransactionType = TransactionType.Request
                             }
-                        };
+                        }
+                    };
 
-                        _context.SongsQueued.Add(songQueued);
+                    _context.SongsQueued.Add(songQueued);
 
-                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
-                            .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+                    var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
+                        .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
 
-                        if (applicationUserRoomCurrencyEntity != null)
+                    if (applicationUserRoomCurrencyEntity != null)
+                    {
+                        applicationUserRoomCurrencyEntity.Quantity = request.QuantityWagered;
+                        _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
+
+                        if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
                         {
-                            applicationUserRoomCurrencyEntity.Quantity = request.QuantityWagered;
-                            _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
-
-                            if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
-                            {
-                                return await ReadSongQueuedAsync(songQueued.Id);
-                            }
+                            return await ReadSongQueuedAsync(songQueued.Id);
                         }
                     }
                 }
@@ -1014,6 +1015,39 @@ namespace Listify.DAL
                 if (await _context.SaveChangesAsync() > 0)
                 {
                     return true;
+                }
+            }
+            return false;
+        }
+
+        public virtual async Task<bool> WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request)
+        {
+            var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
+                .Include(s => s.Currency)
+                .FirstOrDefaultAsync(s => s.ApplicationUserRoomId == request.ApplicationUserRoom.Id && s.Active);
+
+            if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= request.Quantity)
+            {
+                var songQueued = await _context.SongsQueued
+                    .FirstOrDefaultAsync(s => s.Id == request.SongQueued.Id);
+
+                if (songQueued != null)
+                {
+                    songQueued.WeightedValue += request.Quantity * applicationUserRoomCurrency.Currency.Weight;
+
+                    songQueued.TransactionsSongQueued.Add(new TransactionSongQueued
+                    {
+                        ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                        QuantityChange = request.Quantity,
+                        TransactionType = TransactionType.Wager
+                    });
+
+                    _context.Entry(songQueued).State = EntityState.Modified;
+
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -1156,80 +1190,80 @@ namespace Listify.DAL
 
         public virtual async Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet)
         {
-            var youtubeResults = new YoutubeResults();
-
-            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            try
             {
-                ApiKey = Globals.GOOGLE_API_KEY,
-                ApplicationName = "Listify"
-            });
-
-            var searchListRequest = youtubeService.Search.List(searchSnippet);
-            searchListRequest.MaxResults = 20;
-
-            // Call the search.list method to retrieve results matching the specified query term.
-            var searchListResponse = await searchListRequest.ExecuteAsync();
-
-            // Add each result to the appropriate list, and then display the lists of
-            // matching videos, channels, and playlists.
-            foreach (var searchResult in searchListResponse.Items)
-            {
-                //switch (searchResult.Id.Kind)
-                //{
-                //    case "youtube#video":
-                //        videos.Add(String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId));
-                //        break;
-                //}
-
-                if (searchResult.Id.Kind == "youtube#video")
+                var youtubeService = new YouTubeService(new BaseClientService.Initializer()
                 {
-                    youtubeResults.results.Add(new YoutubeResults.YoutubeResult
+                    ApiKey = Globals.GOOGLE_API_KEY,
+                    ApplicationName = "Listify"
+                });
+
+                var searchListRequest = youtubeService.Search.List("snippet");
+
+                searchListRequest.Q = searchSnippet; // replace with your search term
+                searchListRequest.MaxResults = 50;
+
+                // Call the search.list method to retrieve results matching the specified query term.
+                var searchListResponse = await searchListRequest.ExecuteAsync();
+
+                var results = new YoutubeResults();
+                var sb = new StringBuilder();
+
+                // Add each result to the appropriate list, and then display the lists of
+                // matching videos, channels, and playlists.
+                foreach (var searchResult in searchListResponse.Items)
+                {
+                    switch (searchResult.Id.Kind)
                     {
-                        Id = new Guid(),
-                        VideoId = searchResult.Id.VideoId,
-                        SongName = searchResult.Snippet.Title,
-                        //LengthSec = searchResult.
-                    });
+                        case "youtube#video":
+                            results.Results.Add(new YoutubeResults.YoutubeResult
+                            {
+                                VideoId = searchResult.Id.VideoId,
+                                LengthSec = 0,
+                                SongName = searchResult.Snippet.Title
+                            });
+                            break;
+                    }
                 }
+                return results;
             }
-            return youtubeResults;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public virtual async Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet)
         {
-            var youtubeResults = new YoutubeResults();
-
             var youtubeService = new YouTubeService(new BaseClientService.Initializer()
             {
                 ApiKey = Globals.GOOGLE_API_KEY,
                 ApplicationName = "Listify" 
             });
 
-            var searchListRequest = youtubeService.Search.List(searchSnippet);
-            searchListRequest.MaxResults = 20;
+            var searchListRequest = youtubeService.Search.List("snippet");
+            searchListRequest.Q = searchSnippet; // replace with your search term
+            searchListRequest.MaxResults = 100;
 
             // Call the search.list method to retrieve results matching the specified query term.
             var searchListResponse = await searchListRequest.ExecuteAsync();
+
+            var youtubeResults = new YoutubeResults();
 
             // Add each result to the appropriate list, and then display the lists of
             // matching videos, channels, and playlists.
             foreach (var searchResult in searchListResponse.Items)
             {
-                //switch (searchResult.Id.Kind)
-                //{
-                //    case "youtube#video":
-                //        videos.Add(String.Format("{0} ({1})", searchResult.Snippet.Title, searchResult.Id.VideoId));
-                //        break;
-                //}
-
-                if (searchResult.Id.Kind == "youtube#video")
+                switch (searchResult.Id.Kind)
                 {
-                    youtubeResults.results.Add(new YoutubeResults.YoutubeResult
-                    {
-                        Id = new Guid(),
-                        VideoId = searchResult.Id.VideoId,
-                        SongName = searchResult.Snippet.Title,
-                        //LengthSec = searchResult.
-                    });
+                    case "youtube#video":
+                            youtubeResults.Results.Add(new YoutubeResults.YoutubeResult
+                            {
+                                VideoId = searchResult.Id.VideoId,
+                                SongName = searchResult.Snippet.Title,
+                                LengthSec = 0
+                            });
+                        break;
                 }
             }
             return youtubeResults;

@@ -83,5 +83,6 @@ namespace Listify.DAL
         Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType);
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections();
         Task RestartSongPlaylistCountAsync(Guid applicationUserId);
+        Task<bool> WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request);
     }
 }

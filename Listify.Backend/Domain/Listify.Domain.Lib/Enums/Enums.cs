@@ -10,7 +10,8 @@ namespace Listify.Domain.Lib.Enums
         Upvote,
         Downvote,
         PollingCurrency,
-        AwardCurrency
+        AwardCurrency,
+        Wager
     }
     public enum WagerType
     {

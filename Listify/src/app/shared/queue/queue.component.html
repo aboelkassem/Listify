@@ -1,19 +1,34 @@
 <div class="row" *ngIf="songsQueued.length > 0">
   <div class="table-responsive">
     <table class="table table-striped">
-      <tr>
-        <th>Songs in Queue</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </table>
+      <thead>
+        <tr>
+          <th>Songs in Queue</th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
     <tbody>
       <tr *ngFor="let songQueued of songsQueued; let i = index">
         <td>{{songQueued.song.songName}}</td>
         <td>{{songQueued.song.songLengthSec}} seconds long</td>
+        <td>{{songQueued.weightedValue}}</td>
+        <td><input class="form-control" [(ngModel)]="quantityWagered" placeholder="Boost" /></td>
+        <td>
+          <select>
+            <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies" value="applicationUserRoomCurrency.id">
+              {{applicationUserRoomCurrency.currency.currencyName}}
+            </option>
+          </select>
+        </td>
+        <td><button (click)="addQuantityToSongQueued(songQueued)">Add or Remove Boost</button></td>
         <td><button (click)="removeSongFromQueue(songQueued)">Remove Song From Queue</button></td>
       </tr>
     </tbody>
+  </table>
   </div>
 </div>
 <div class="row" *ngIf="songsQueued.length <= 0">

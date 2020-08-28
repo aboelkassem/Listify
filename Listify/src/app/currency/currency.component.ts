@@ -24,6 +24,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     private hubService: HubService,
     private router: Router,
     private route: ActivatedRoute) {
+
     this.currencySubscription = this.hubService.getCurrency().subscribe(currency => {
       this.id = currency.id;
       this.currencyName = currency.currencyName;

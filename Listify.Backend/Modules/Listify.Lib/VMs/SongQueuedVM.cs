@@ -7,7 +7,7 @@ namespace Listify.Lib.VMs
     {
         // this is Value Currently assigned to the song based on incoming
         // and outgoing transactions
-        public int WeightedCurrentValue { get; set; }
+        public int WeightedValue { get; set; }
 
         public ApplicationUserDTO ApplicationUser { get; set; }
         public RoomDTO Room { get; set; }

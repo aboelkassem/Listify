@@ -175,7 +175,7 @@ namespace Listify.WebAPI.Hubs
                             {
                                 CurrentTime = 0,
                                 SongQueued = nextSong,
-                                Weight = nextSong.WeightedCurrentValue
+                                Weight = nextSong.WeightedValue
                             });
                         }
                     }
@@ -218,6 +218,26 @@ namespace Listify.WebAPI.Hubs
                 }
             }
 
+        }
+
+        public async Task WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request)
+        {
+            try
+            {
+                if (await _services.WagerQuantitySongQueued(request))
+                {
+                    var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+
+                    var songsQueued = await _services.ReadSongQueuedAsync(applicationUserRoom.Room.Id);
+
+                    await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songsQueued);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public async Task SendMessage(ChatMessageVM message)
@@ -301,7 +321,7 @@ namespace Listify.WebAPI.Hubs
                         CurrentTime = 0,
                         PlayerState = (int)ServerStateType.Stopped,
                         SongQueued = songNext,
-                        Weight = songNext.WeightedCurrentValue 
+                        Weight = songNext.WeightedValue
                     });
                 }
                 else
@@ -487,7 +507,7 @@ namespace Listify.WebAPI.Hubs
                         {
                             Room = _mapper.Map<RoomDTO>(room),
                             ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
-                            ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                            //ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
                         };
 
                         await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
@@ -500,7 +520,7 @@ namespace Listify.WebAPI.Hubs
                                 CurrentTime = 0,
                                 PlayerState = (int)ServerStateType.Stopped,
                                 SongQueued = songNext,
-                                Weight = songNext.WeightedCurrentValue
+                                Weight = songNext.WeightedValue
                             });
                         }
                         else

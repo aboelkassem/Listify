@@ -11,7 +11,7 @@ namespace Listify.Lib.Requests
         // and outgoing transactions
         public int QuantityWagered { get; set; }
 
-        public Guid CurrencyId { get; set; }
+        public Guid ApplicationUserRoomCurrencyId { get; set; }
 
         public Guid ApplicationUserRoomId { get; set; }
 
