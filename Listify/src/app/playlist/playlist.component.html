@@ -17,12 +17,13 @@
 <div class="row" *ngIf="songsPlaylist.length > 0">
   <div class="table-responsive">
     <table class="table table-striped">
-      <tr>
-        <th>Songs in Playlist</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </table>
+      <thead>
+        <tr>
+          <th>Songs in Playlist</th>
+          <th></th>
+          <th></th>
+        </tr>
+    </thead>
     <tbody>
       <tr *ngFor="let songPlaylist of songsPlaylist; let i = index">
         <td>{{songPlaylist.song.songName}}</td>
@@ -30,6 +31,7 @@
         <td><button (click)="removeSongFromPlaylist(songPlaylist)">Remove Song From Playlist</button></td>
       </tr>
     </tbody>
+  </table>
   </div>
 </div>
 <div class="row" *ngIf="songsPlaylist.length <= 0">

@@ -16,10 +16,10 @@
         <td>{{songQueued.song.songName}}</td>
         <td>{{songQueued.song.songLengthSec}} seconds long</td>
         <td>{{songQueued.weightedValue}}</td>
-        <td><input class="form-control" [(ngModel)]="quantityWagered" placeholder="Boost" /></td>
+        <td><input class="form-control" [(ngModel)]="songQueued.quantityWagered" placeholder="Boost" /></td>
         <td>
-          <select>
-            <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies" value="applicationUserRoomCurrency.id">
+          <select [(ngModel)]="songQueued.applicationUserRoomCurrencyId">
+            <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [selected]="p == 0" value="applicationUserRoomCurrency.id">
               {{applicationUserRoomCurrency.currency.currencyName}}
             </option>
           </select>

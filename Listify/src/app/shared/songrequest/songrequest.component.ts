@@ -42,7 +42,7 @@ export class SongrequestComponent implements OnInit, OnDestroy {
   }
 
   searchForSong(): void {
-    if (this.searchSnippet != null) {
+    if (this.searchSnippet !== null && this.searchSnippet !== undefined) {
       this.hubService.requestSearchYoutube(this.searchSnippet);
     }
   }

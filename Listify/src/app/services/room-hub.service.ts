@@ -1,17 +1,17 @@
 import { Subject, Observable } from 'rxjs';
 // tslint:disable-next-line:max-line-length
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IPlayFromServerResponse, IWagerQuantitySongQueuedRequest } from './../interfaces';
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency, IPlayFromServerResponse } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
-import { IApplicationUserRoomCurrency } from '../interfaces';
+import {  } from '../interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RoomHubService {
 
-  messages: IChatMessage[];
+  messages: IChatMessage[] = [];
   applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
@@ -27,6 +27,7 @@ export class RoomHubService {
   $serverStateRequestReceived = new Subject<IServerStateRequest>();
   $serverStateResponseReceived = new Subject<IServerStateResponse>();
   $playFromServerResponseReceived = new Subject<IPlayFromServerResponse>();
+  $applicationUserRoomCurrencyReceived = new Subject<IApplicationUserRoomCurrency>();
   $pauseRequestReceived = new Subject<string>();
 
   constructor(private oauthService: OAuthService) { }
@@ -83,6 +84,10 @@ export class RoomHubService {
 
     this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
       this.messages.push(message);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserRoomCurrency', (applicationUserRoomCurrency: IApplicationUserRoomCurrency) => {
+      this.$applicationUserRoomCurrencyReceived.next(applicationUserRoomCurrency);
     });
 
     this._hubConnection.on('ReceivePause', () => {
@@ -213,6 +218,10 @@ export class RoomHubService {
 
   getPlayFromServerResponse(): Observable<IPlayFromServerResponse> {
     return this.$playFromServerResponseReceived.asObservable();
+  }
+
+  getApplicationUserRoomCurrency(): Observable<IApplicationUserRoomCurrency> {
+    return this.$applicationUserRoomCurrencyReceived.asObservable();
   }
 
   isConnected(): boolean {

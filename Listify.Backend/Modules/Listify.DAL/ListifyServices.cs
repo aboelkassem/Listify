@@ -353,7 +353,6 @@ namespace Listify.DAL
 
             if (entity != null)
             {
-                entity.IsOnline = request.IsOnline;
                 entity.HasPingBeenSent = request.HasPingBeenSent;
                 _context.Entry(entity).State = EntityState.Modified;
 
@@ -853,64 +852,111 @@ namespace Listify.DAL
 
             // Validation
 
-            if (request.QuantityWagered <= 0)
+            if (request.SongSearchResult.QuantityWagered <= 0)
             {
                 return null;
             }
 
-            var applicationUserRoom = await ReadApplicationUserRoomAsync(request.ApplicationUserRoomId);
-            var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(request.ApplicationUserRoomCurrencyId);
+            var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
 
-            if (applicationUserRoom != null && 
-                applicationUserRoomCurrency != null &&
-                applicationUserRoomCurrency.Quantity >= request.QuantityWagered)
+            if (applicationUserRoomCurrency != null &&
+                applicationUserRoomCurrency.Quantity >= request.SongSearchResult.QuantityWagered)
             {
-                var song = await ReadSongAsync(request.SongSearchResult.VideoId);
+                var applicationUserRoom = await ReadApplicationUserRoomAsync(applicationUserRoomCurrency.ApplicationUserRoom.Id);
 
-                if (song == null)
+                if (applicationUserRoom != null)
                 {
-                    song = await CreateSongAsync(new SongCreateRequest
-                    {
-                        YoutubeId = request.SongSearchResult.VideoId,
-                        SongLengthSeconds = request.SongSearchResult.LengthSec,
-                        SongName = request.SongSearchResult.SongName
-                    });
-                }
+                    var song = await ReadSongAsync(request.SongSearchResult.VideoId);
 
-                var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
-
-                if (!songsQueued.Any(s => s.Song.Id == song.Id))
-                {
-                    var songQueued = new SongQueued
+                    if (song == null)
                     {
-                        ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
-                        RoomId = applicationUserRoom.Room.Id,
-                        SongId = song.Id,
-                        WeightedValue = request.QuantityWagered,
-                        TransactionsSongQueued = new List<TransactionSongQueued>
+                        // Create the Song
+                        YoutubeSearchResponse response;
+                        using (var httpClient = new HttpClient())
                         {
-                            new TransactionSongQueued
+                            //var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
+                            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                            var result = await httpClient.GetStringAsync(url);
+                            response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
+                        }
+
+                        var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+                        var hours = 0f;
+                        var minutes = 0f;
+                        var seconds = 0f;
+
+                        if (parsedLength.IndexOf("H") > 0)
+                        {
+                            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
                             {
-                                ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
-                                QuantityChange = request.QuantityWagered,
-                                TransactionType = TransactionType.Request
+                                hours = hoursInt;
+                                parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
                             }
                         }
-                    };
 
-                    _context.SongsQueued.Add(songQueued);
-
-                    var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
-                        .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
-
-                    if (applicationUserRoomCurrencyEntity != null)
-                    {
-                        applicationUserRoomCurrencyEntity.Quantity = request.QuantityWagered;
-                        _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
-
-                        if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
+                        if (parsedLength.IndexOf("M") > 0)
                         {
-                            return await ReadSongQueuedAsync(songQueued.Id);
+                            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+                            {
+                                minutes = minutesInt;
+                                parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+                            }
+                        }
+
+                        if (parsedLength.IndexOf("S") > 0)
+                        {
+                            if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+                            {
+                                seconds = secondsInt;
+                                parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+                            }
+                        }
+
+                        var time = (int)Math.Round(TimeSpan.FromHours(hours).Add(TimeSpan.FromMinutes(minutes)).Add(TimeSpan.FromSeconds(seconds)).TotalSeconds);
+                        song = await CreateSongAsync(new SongCreateRequest
+                        {
+                            YoutubeId = request.SongSearchResult.VideoId,
+                            SongLengthSeconds = time,
+                            SongName = request.SongSearchResult.SongName
+                        });
+
+                    }
+
+                    var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
+
+                    if (!songsQueued.Any(s => s.Song.Id == song.Id))
+                    {
+                        var songQueued = new SongQueued
+                        {
+                            ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
+                            RoomId = applicationUserRoom.Room.Id,
+                            SongId = song.Id,
+                            WeightedValue = request.SongSearchResult.QuantityWagered * applicationUserRoomCurrency.Currency.Weight,
+                            TransactionsSongQueued = new List<TransactionSongQueued>
+                            {
+                                new TransactionSongQueued
+                                {
+                                    ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                                    QuantityChange = request.SongSearchResult.QuantityWagered,
+                                    TransactionType = TransactionType.Request
+                                }
+                            }
+                        };
+
+                        _context.SongsQueued.Add(songQueued);
+
+                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
+                            .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+
+                        if (applicationUserRoomCurrencyEntity != null)
+                        {
+                            applicationUserRoomCurrencyEntity.Quantity -= request.SongSearchResult.QuantityWagered;
+                            _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
+
+                            if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
+                            {
+                                return await ReadSongQueuedAsync(songQueued.Id);
+                            }
                         }
                     }
                 }
@@ -1024,15 +1070,18 @@ namespace Listify.DAL
         {
             var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
                 .Include(s => s.Currency)
-                .FirstOrDefaultAsync(s => s.ApplicationUserRoomId == request.ApplicationUserRoom.Id && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == request.ApplicationUserRoomCurrency.Id && s.Active);
 
-            if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= request.Quantity)
+            if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= Math.Abs(request.Quantity))
             {
                 var songQueued = await _context.SongsQueued
                     .FirstOrDefaultAsync(s => s.Id == request.SongQueued.Id);
 
                 if (songQueued != null)
                 {
+                    applicationUserRoomCurrency.Quantity -= Math.Abs(request.Quantity);
+                    _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
+
                     songQueued.WeightedValue += request.Quantity * applicationUserRoomCurrency.Currency.Weight;
 
                     songQueued.TransactionsSongQueued.Add(new TransactionSongQueued
@@ -1275,7 +1324,6 @@ namespace Listify.DAL
 
             // Get Room currency here
             var room = await _context.Rooms
-                .Include(s => s.ApplicationUsersRooms)
                 .FirstOrDefaultAsync(s => s.Id == roomId);
 
             var currency = await _context.Currencies
@@ -1284,20 +1332,18 @@ namespace Listify.DAL
             currency.TimestampLastUpdated = DateTime.UtcNow;
             _context.Entry(currency).State = EntityState.Modified;
 
+            var applicationUserRooms = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == room.Id && s.Active)
+                    .ToListAsync();
+
             if (room != null && currency != null)
             {
                 foreach (var applicationUserRoom in room.ApplicationUsersRooms)
                 {
-                    var applicationUserRoomOnline = await _context.ApplicationUsersRoomsConnections
-                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.IsOnline)
-                            .Select(s => s.ApplicationUserRoom)
-                            .Distinct()
-                            .FirstOrDefaultAsync();
-
-                    if (applicationUserRoomOnline != null)
+                    if (applicationUserRoom != null)
                     {
                         var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
-                            .Where(s => s.ApplicationUserRoomId == applicationUserRoomOnline.Id && s.Active && s.CurrencyId == currencyId)
+                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyId == currencyId)
                             .FirstOrDefaultAsync();
 
                         if (applicationUserRoomCurrency == null)
@@ -1311,6 +1357,7 @@ namespace Listify.DAL
                             };
 
                             _context.ApplicationUsersRoomsCurrencies.Add(applicationUserRoomCurrency);
+                            await _context.SaveChangesAsync();
                         }
 
                         if (!applicationUserRoomCurrencies.Any(s => s.Id == applicationUserRoomCurrency.Id))
@@ -1322,18 +1369,23 @@ namespace Listify.DAL
 
                 foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
                 {
-                    applicationUserRoomCurrency.Quantity += currencyQuantity;
-                    _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
+                    var entity = await _context.ApplicationUsersRoomsCurrencies.FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
 
-                    var transaction = new Transaction
+                    if (entity != null)
                     {
-                        ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
-                        QuantityChange = currencyQuantity,
-                        TransactionType = TransactionType.PollingCurrency,
-                        TimeStamp = DateTime.UtcNow
-                    };
+                        entity.Quantity += currencyQuantity;
+                        _context.Entry(entity).State = EntityState.Modified;
 
-                    _context.Add(transaction);
+                        var transaction = new Transaction
+                        {
+                            ApplicationUserRoomCurrencyId = entity.Id,
+                            QuantityChange = currencyQuantity,
+                            TransactionType = TransactionType.PollingCurrency,
+                            TimeStamp = DateTime.UtcNow
+                        };
+
+                        _context.Add(transaction);
+                    }
                 }
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -1347,39 +1399,84 @@ namespace Listify.DAL
         }
         public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
         {
-            var applicationUsersRoomsConnections = await _context.ApplicationUsersRoomsConnections
+
+            var connectionsToPing = new List<ApplicationUserRoomConnection>();
+
+            var rooms = await _context.Rooms
                 .Where(s => s.Active)
                 .ToListAsync();
 
-            var connectionsToPing = new List<ApplicationUserRoomConnection>();
-            //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
-
-            foreach (var applicationUserRoomConnection in applicationUsersRoomsConnections)
+            foreach (var room in rooms)
             {
-                try
-                {
-                    if (applicationUserRoomConnection.HasPingBeenSent || !applicationUserRoomConnection.IsOnline)
-                    {
-                        // Ping was not responded to - remove connection
-                        if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 20)
-                        {
-                            _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
-                        }
-                        //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
-                    }
-                    else
-                    {
-                        // Send Ping
-                        applicationUserRoomConnection.HasPingBeenSent = true;
-                        _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
+                var applicationUsersRooms = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == room.Id && s.Active)
+                    .ToListAsync();
 
-                        connectionsToPing.Add(applicationUserRoomConnection);
+                var isRoomOnline = true;
+
+                foreach (var applicationUserRoom in applicationUsersRooms)
+                {
+                    var applicationUserRoomConnections = await _context.ApplicationUsersRoomsConnections
+                        .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active)
+                        .ToListAsync();
+
+                    foreach (var applicationUserRoomConnection in applicationUserRoomConnections)
+                    {
+                        try
+                        {
+                            if (applicationUserRoomConnection.HasPingBeenSent || !applicationUserRoomConnection.IsOnline)
+                            {
+                                // Ping was not responded to - remove connection
+                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 3)
+                                {
+                                    _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                                }
+                                //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
+                            }
+                            else
+                            {
+                                // Send Ping
+                                applicationUserRoomConnection.HasPingBeenSent = true;
+                                _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
+                                connectionsToPing.Add(applicationUserRoomConnection);
+                            }
+                        }
+                        catch
+                        { }
                     }
                 }
-                catch
-                { }
+
+                var ownerRooms = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == room.Id &&
+                        s.IsOwner &&
+                        s.Active)
+                    .ToListAsync();
+
+                if (ownerRooms.Count > 0)
+                {
+                    foreach (var ownerRoom in ownerRooms)
+                    {
+                        if (!await _context.ApplicationUsersRoomsConnections
+                            .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
+                                s.IsOnline &&
+                                s.Active)
+                            .AnyAsync())
+                        {
+                            isRoomOnline = false;
+                        }
+                    }
+                }
+
+                room.IsRoomOnline = isRoomOnline;
             }
 
+            //var applicationUsersRoomsConnections = await _context.ApplicationUsersRoomsConnections
+            //    .Where(s => s.Active)
+            //    .ToListAsync();
+
+            //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
+
+            
             if (await _context.SaveChangesAsync() > 0 )
             {
                 var vms = new List<ApplicationUserRoomConnectionVM>();

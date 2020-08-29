@@ -70,6 +70,8 @@ export interface ISongQueued extends ISongRequest {
   weightedValue: number;
   applicationUser: IApplicationUser;
   room: IRoom;
+  applicationUserRoomCurrencyId: string;
+  quantityWagered: number;
 }
 
 export interface ISong {
@@ -108,7 +110,7 @@ export interface ISongSearchResult {
   lengthSec: number;
   videoId: string;
   quantityWagered: number;
-  currencyId: string;
+  applicationUserRoomCurrencyId: string;
 }
 
 export interface IRoomInformation {

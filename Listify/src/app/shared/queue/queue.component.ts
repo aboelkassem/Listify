@@ -1,6 +1,6 @@
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
-import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency } from './../../interfaces';
+import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency, IRoomInformation } from './../../interfaces';
 import { HubService } from './../../services/hub.service';
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { ISongQueued } from 'src/app/interfaces';
@@ -15,11 +15,10 @@ export class QueueComponent implements OnInit, OnDestroy {
   @Input() room: IRoom;
 
   songsQueued: ISongQueued[] = [];
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = this.roomService.applicationUserRoomCurrencies;
-  quantityWagered: number;
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
 
   $songsQueuedSubscription: Subscription;
-
+  $roomReceivedSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
@@ -27,6 +26,10 @@ export class QueueComponent implements OnInit, OnDestroy {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
       this.songsQueued = songsQueued;
+    });
+
+    this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
+      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
     });
   }
 
@@ -38,17 +41,18 @@ export class QueueComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.$songsQueuedSubscription.unsubscribe();
+    this.$roomReceivedSubscription.unsubscribe();
   }
 
-  addQuantityToSongQueued(songQueued: ISongQueued, applicationUserRoomCurrencyId: string): void {
+  addQuantityToSongQueued(songQueued: ISongQueued): void {
     // tslint:disable-next-line:max-line-length
-    const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrencies.filter(x => x.id === applicationUserRoomCurrencyId)[0];
+    const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrencies.filter(x => x.id === songQueued.applicationUserRoomCurrencyId)[0];
     if (applicationUserRoomCurrency !== undefined && applicationUserRoomCurrency !== null) {
       const request: IWagerQuantitySongQueuedRequest = {
         songQueued: songQueued,
         applicationUserRoom: this.roomService.applicationUserRoom,
         applicationUserRoomCurrency: applicationUserRoomCurrency,
-        quantity: this.quantityWagered
+        quantity: songQueued.quantityWagered
       };
 
       this.roomService.wagerQuantitySongQueued(request);

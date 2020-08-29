@@ -17,8 +17,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   roomCode: string;
   searchSnippet: string;
   songsQueued: ISongQueued[];
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = this.roomHubService.applicationUserRoomCurrencies;
-  applicationUserRoomCurrencyIdSelected: string;
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
 
   room: IRoom = this.roomHubService.room;
   songSearchResults: ISongSearchResult[] = [];
@@ -27,6 +26,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   $songsQueuedSubscription: Subscription;
   $playFromServerSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
+  $applicationUserRoomCurrencySubscription: Subscription;
   $pingSubscription: Subscription;
   // $applicationUserSubscription: Subscription;
   // $applicationUserRoomCurrencySubscription: Subscription;
@@ -36,8 +36,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
-    private roomHubService: RoomHubService,
-    private youtubeService: YoutubeService) {
+    private roomHubService: RoomHubService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
       });
@@ -61,6 +60,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
+        this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
 
         // if (!this.roomHubService.applicationUserRoom.isOwner) {
         //   this.roomHubService.requestServerState(this.roomHubService.room.id);
@@ -80,6 +80,17 @@ export class RoomComponent implements OnInit, OnDestroy {
         // this.youtubeService.play();
 
         this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
+      });
+
+      // tslint:disable-next-line:max-line-length
+      this.$applicationUserRoomCurrencySubscription = this.roomHubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
+        const originalCurrency = this.applicationUserRoomCurrencies.filter(x => x.id === applicationUserRoomCurrency.id)[0];
+
+        if (originalCurrency !== undefined && originalCurrency !== null) {
+          const index = this.applicationUserRoomCurrencies.indexOf(originalCurrency);
+          this.applicationUserRoomCurrencies[index] = applicationUserRoomCurrency;
+        }
+
       });
 
       this.$pingSubscription = this.roomHubService.getPing().subscribe(ping => {
@@ -126,6 +137,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.$roomReceivedSubscription.unsubscribe();
     this.$songsQueuedSubscription.unsubscribe();
     this.$playFromServerSubscription.unsubscribe();
+    this.$applicationUserRoomCurrencySubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
     // this.$applicationUserSubscription.unsubscribe();
     // this.$roomSubscription.unsubscribe();
@@ -147,25 +159,20 @@ export class RoomComponent implements OnInit, OnDestroy {
     // this.youtubeService.play();
   }
 
-  addSongToQueue(searchResult: ISongSearchResult, applicationUserRoomCurrency: IApplicationUserRoomCurrency): void {
+  addSongToQueue(searchResult: ISongSearchResult): void {
     const request: ISongQueuedCreateRequest = {
       applicationUserRoomId: this.roomHubService.applicationUserRoom.id,
-      applicationUserRoomCurrencyId: applicationUserRoomCurrency.id,
+      applicationUserRoomCurrencyId: searchResult.applicationUserRoomCurrencyId,
       quantityWagered: searchResult.quantityWagered,
       songSearchResult: searchResult
     };
 
-    // this.hubService.createSongQueued(request);
     this.roomHubService.createSongQueued(request);
     this.songSearchResults = [];
   }
 
 
-  playerState(): void {
-    let state = this.youtubeService.getPlayerState();
-  }
-
-  addToPlaylist(): void {
-
-  }
+  // playerState(): void {
+  //   let state = this.youtubeService.getPlayerState();
+  // }
 }

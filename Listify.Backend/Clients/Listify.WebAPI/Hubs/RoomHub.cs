@@ -82,17 +82,17 @@ namespace Listify.WebAPI.Hubs
                     if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
                     {
                         var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
-                        await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                        await _roomHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                     }
                 }
                 catch
                 {
-                    //await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
-                    //{
-                    //    Id = connection.Id,
-                    //    HasPingBeenSent = connection.HasPingBeenSent,
-                    //    IsOnline = false
-                    //});
+                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        Id = connection.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = false
+                    });
                 }
             }
 
@@ -230,8 +230,11 @@ namespace Listify.WebAPI.Hubs
                     var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
 
                     var songsQueued = await _services.ReadSongQueuedAsync(applicationUserRoom.Room.Id);
-
                     await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songsQueued);
+
+                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(request.ApplicationUserRoomCurrency.Id);
+
+                    await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                 }
             }
             catch (Exception ex)
@@ -252,11 +255,14 @@ namespace Listify.WebAPI.Hubs
                 if (userId != Guid.Empty)
                 {
                     var songQueued = await _services.CreateSongQueuedAsync(request);
-                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(request.ApplicationUserRoomId);
+                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
 
-                    if (songQueued != null && applicationUserRoom != null)
+                    if (songQueued != null && applicationUserRoomCurrency != null)
                     {
+                        var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomCurrency.ApplicationUserRoom.Id);
                         await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songQueued);
+
+                        await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                     }
                 }
 

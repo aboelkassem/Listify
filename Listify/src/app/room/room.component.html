@@ -5,8 +5,12 @@
     (change)= "onChange($event)"
   ></youtube-component>
 </div> -->
-<div>
-  <!-- <span>Currency: {{quantity}} {{currency.currency.currencyName}}</span> -->
+<!-- <div>
+  <span>Currency: {{quantity}} {{currency.currency.currencyName}}</span>
+</div> -->
+
+<div *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies">
+  Currency: {{applicationUserRoomCurrency.currency.currencyName}} <br>  Quantity: {{applicationUserRoomCurrency.quantity}}
 </div>
 <h3>Room Code : {{roomCode}}</h3>
 <div class="row">
@@ -14,10 +18,9 @@
     <app-player></app-player>
   </div>
   <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <input  class="form-control" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+    <input  class="form-control" (keyup.enter)="requestSong()" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
     <button class="btn btn-default" (click)="requestSong()">Request Song</button>
-    <button class="btn btn-default" (click)="addToPlaylist()">Add to Default Playlist</button>
-    <button class="btn btn-default" (click)="playerState()">Get Player State</button>
+
     <div class="row" *ngIf="songSearchResults.length > 0">
       <div class="table-responsive">
         <table class="table table-striped">
@@ -35,13 +38,13 @@
             <td>{{searchResult.songName}}</td>
             <td><input class="form-control" [(ngModel)]="searchResult.quantityWagered" placeholder="Wager Amount"/></td>
             <td>
-              <select [(ngModel)]="applicationUserRoomCurrencyIdSelected">
-                <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies" value="applicationUserRoomCurrency.id">
+              <select [(ngModel)]="searchResult.applicationUserRoomCurrencyId">
+                <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [selected]="p == 0" value="applicationUserRoomCurrency.id">
                   {{applicationUserRoomCurrency.currency.currencyName}}
                 </option>
               </select>
             </td>
-            <td><button (click)="addSongToQueue(searchResult, applicationUserRoomCurrencyIdSelected)">Add Song To Queue</button></td>
+            <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
           </tr>
         </tbody>
       </table>
