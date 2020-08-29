@@ -9,6 +9,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { RoomComponent } from './room/room.component';
 import { PlaylistsComponent } from './playlists/playlists.component';
 import { PlaylistComponent } from './playlist/playlist.component';
+import { CartComponent } from './cart/cart.component';
 
 const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'},
@@ -23,6 +24,7 @@ const routes: Routes = [
   {path: 'currencies', component: CurrenciesComponent},
   {path: 'songrequest', component: SongrequestComponent},
   {path: 'account', component: AccountComponent},
+  {path: 'cart', component: CartComponent},
   {path: ':id', component: RoomComponent},
 ];
 

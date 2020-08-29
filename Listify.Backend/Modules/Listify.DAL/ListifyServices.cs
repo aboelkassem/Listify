@@ -72,7 +72,6 @@ namespace Listify.DAL
                 Room = room
             };
 
-
             _context.ApplicationUsersRooms.Add(applicationUserRoom);
 
             if (await _context.SaveChangesAsync() > 0)
@@ -92,7 +91,7 @@ namespace Listify.DAL
             {
                 entity.Username = request.Username;
                 entity.PlaylistCountMax = request.PlaylistCountMax;
-                entity.SongPoolCountSongsMax = request.SongPoolCountSongsMax;
+                entity.PlaylistSongCount = request.SongPoolCountSongsMax;
                 entity.Room.RoomCode = request.RoomCode;
                 _context.Entry(entity).State = EntityState.Modified;
 

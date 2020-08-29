@@ -21,6 +21,7 @@ import { PlaylistComponent } from './playlist/playlist.component';
 import { PlaylistsComponent } from './playlists/playlists.component';
 import { SongrequestComponent } from './shared/songrequest/songrequest.component';
 import { PlayerComponent } from './shared/player/player.component';
+import { CartComponent } from './cart/cart.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { PlayerComponent } from './shared/player/player.component';
     PlaylistComponent,
     PlaylistsComponent,
     SongrequestComponent,
-    PlayerComponent
+    PlayerComponent,
+    CartComponent
   ],
   imports: [
     BrowserModule,

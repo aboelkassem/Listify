@@ -1,16 +1,9 @@
-export interface ISongQueuedCreateRequest {
-  applicationUserRoomId: string;
-  applicationUserRoomCurrencyId: string;
-  quantityWagered: number;
-  songSearchResult: ISongSearchResult;
-}
-
 export interface IApplicationUser {
   id: string;
   aspNetUserId: string;
   username: string;
   room: IRoom;
-  songPoolCountSongsMax: number;
+  playlistSongCount: number;
   playlistCountMax: number;
 }
 
@@ -18,7 +11,7 @@ export interface IApplicationUserRequest {
   id: string;
   username: string;
   roomCode: string;
-  songPoolCountSongsMax: number;
+  playlistSongCount: number;
   playlistCountMax: number;
 }
 
@@ -28,6 +21,7 @@ export interface IRoom {
   isRoomPublic: boolean;
   songsQueued: ISongQueued[];
 }
+
 export interface IApplicationUserRoom {
   id: string;
   isOnline: boolean;
@@ -72,6 +66,13 @@ export interface ISongQueued extends ISongRequest {
   room: IRoom;
   applicationUserRoomCurrencyId: string;
   quantityWagered: number;
+}
+
+export interface ISongQueuedCreateRequest {
+  applicationUserRoomId: string;
+  applicationUserRoomCurrencyId: string;
+  quantityWagered: number;
+  songSearchResult: ISongSearchResult;
 }
 
 export interface ISong {
@@ -139,4 +140,18 @@ export interface IWagerQuantitySongQueuedRequest {
   applicationUserRoom: IApplicationUserRoom;
   applicationUserRoomCurrency: IApplicationUserRoomCurrency;
   quantity: number;
+}
+
+export interface IPurchase {
+  id: string;
+  purchasableItems: IPurchasableItem[];
+}
+
+export interface IPurchasableItem {
+  id: string;
+  purchasableItemName: string;
+  purchasableItemType: number;
+  quantity: number;
+  unitCost: number;
+  lineCost: number;
 }

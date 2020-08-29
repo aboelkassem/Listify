@@ -79,17 +79,17 @@ namespace Listify.WebAPI.Hubs
                     if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
                     {
                         var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
-                        await _chatHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                        await _chatHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                     }
                 }
                 catch
                 {
-                    //await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
-                    //{
-                    //    Id = connection.Id,
-                    //    HasPingBeenSent = connection.HasPingBeenSent,
-                    //    IsOnline = false
-                    //});
+                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        Id = connection.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = false
+                    });
                 }
             }
 

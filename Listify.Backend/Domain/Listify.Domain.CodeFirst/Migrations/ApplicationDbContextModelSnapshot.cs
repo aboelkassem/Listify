@@ -34,7 +34,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<int>("PlaylistCountMax")
                         .HasColumnType("int");
 
-                    b.Property<int>("SongPoolCountSongsMax")
+                    b.Property<int>("PlaylistSongCount")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TimeStamp")

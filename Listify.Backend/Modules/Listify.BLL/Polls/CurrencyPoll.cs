@@ -18,22 +18,21 @@ namespace Listify.BLL.Polls
         {
             var rooms = await _service.ReadRoomsAsync();
             var currencies = await _service.ReadCurrenciesAsync();
-            //RE: ToDo: Fix this with correct auth and routing
-            var currencyActive = currencies[0];
-            var currencyVM = await _service.ReadCurrencyAsync(currencyActive.Id);
 
-            if (currencyVM != null)
+            foreach (var currency in currencies)
             {
-                foreach (var room in rooms)
-                {
-                    if (room.IsRoomOnline)
-                    {
-                        try
-                        {
-                            var roomVM = await _service.ReadRoomAsync(room.Id);
+                var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
 
-                            foreach (var currency in currencies)
+                if (currencyVM != null)
+                {
+                    foreach (var room in rooms)
+                    {
+                        if (room.IsRoomOnline)
+                        {
+                            try
                             {
+                                var roomVM = await _service.ReadRoomAsync(room.Id);
+
                                 //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
                                 if (currency != null &&
                                     currencyVM.TimestampLastUpdated + TimeSpan.FromSeconds(currencyVM.TimeSecBetweenTick) < DateTime.UtcNow)
@@ -43,15 +42,16 @@ namespace Listify.BLL.Polls
                                     FirePollingEvent(this, new CurrencyPollEventArgs
                                     {
                                         PollingEventType = PollingEventType.CurrencyPoll,
-                                        ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies
+                                        ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies,
+                                        Room = room
                                     });
                                 }
                             }
-                        }
-                    
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
+
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
                         }
                     }
                 }

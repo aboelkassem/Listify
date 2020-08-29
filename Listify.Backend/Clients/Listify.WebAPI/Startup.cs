@@ -35,6 +35,10 @@ namespace Listify.WebAPI
             services.AddDbContext<ApplicationDbContext>();
 
             services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
 
             services.AddCors(options => options.AddPolicy("SignalRCorsPolicy", builder => 
             {

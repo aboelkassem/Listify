@@ -513,7 +513,7 @@ namespace Listify.WebAPI.Hubs
                         {
                             Room = _mapper.Map<RoomDTO>(room),
                             ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
-                            //ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                            ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
                         };
 
                         await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
@@ -521,13 +521,13 @@ namespace Listify.WebAPI.Hubs
                         if (applicationUserRoom.IsOwner)
                         {
                             var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
-                            await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
-                            {
-                                CurrentTime = 0,
-                                PlayerState = (int)ServerStateType.Stopped,
-                                SongQueued = songNext,
-                                Weight = songNext.WeightedValue
-                            });
+                            //await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                            //{
+                            //    CurrentTime = 0,
+                            //    PlayerState = (int)ServerStateType.Stopped,
+                            //    SongQueued = songNext,
+                            //    Weight = songNext.WeightedValue
+                            //});
                         }
                         else
                         {

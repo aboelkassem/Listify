@@ -15,7 +15,7 @@ namespace Listify.Domain.Lib.Entities
 
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 100 songs
-        public int SongPoolCountSongsMax { get; set; } = 100;
+        public int PlaylistSongCount { get; set; } = 100;
 
         public Room Room { get; set; }
 

@@ -171,6 +171,9 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.songSearchResults = [];
   }
 
+  addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrency): void {
+
+  }
 
   // playerState(): void {
   //   let state = this.youtubeService.getPlayerState();

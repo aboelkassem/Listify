@@ -6,17 +6,19 @@
 <div class="row" *ngIf="songSearchResults.length > 0">
   <div class="table-responsive">
     <table class="table table-striped">
-      <tr>
-        <th>Search Results</th>
-        <th></th>
-      </tr>
+      <thead>
+        <tr>
+          <th>Search Results</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let searchResult of songSearchResults; let i = index">
+          <td><a href="https://youtu.be/{{searchResult.videoId}}" target="_blank">{{searchResult.songName}}</a></td>
+          <td><button (click)="addSongToPlaylist(searchResult)">Add Song To Playlist</button></td>
+        </tr>
+      </tbody>
     </table>
-    <tbody>
-      <tr *ngFor="let searchResult of songSearchResults; let i = index">
-        <td>{{searchResult.songName}}</td>
-        <td><button (click)="addSongToPlaylist(searchResult)">Add Song To Playlist</button></td>
-      </tr>
-    </tbody>
   </div>
 </div>
 <div class="row" *ngIf="songSearchResults.length <= 0">
