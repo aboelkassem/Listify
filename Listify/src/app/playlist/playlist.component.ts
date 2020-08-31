@@ -56,7 +56,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
    }
 
   ngOnInit(): void {
-    // this.hubService.requestSongsPlaylist(this.playlist.id);
+    this.hubService.requestSongsPlaylist(this.playlist.id);
   }
 
   ngOnDestroy(): void {

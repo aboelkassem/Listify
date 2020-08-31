@@ -4,8 +4,11 @@ import { IRoom, ISongQueuedCreateRequest, ICurrency, IRoomInformation, IApplicat
 import { Subscription } from 'rxjs';
 import { YoutubeService } from './../services/youtube.service';
 import { HubService } from './../services/hub.service';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-room',
@@ -13,6 +16,11 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./room.component.css']
 })
 export class RoomComponent implements OnInit, OnDestroy {
+
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+  displayedColumns: string[] = ['SongName', 'QuantityWager', 'CurrencyType', 'AddToQueue'];
+  dataSource = new MatTableDataSource<ISongSearchResult>();
 
   roomCode: string;
   searchSnippet: string;
@@ -56,6 +64,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
       this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponse => {
         this.songSearchResults = songSearchResponse.results;
+        this.dataSource.data = this.songSearchResults;
       });
 
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
@@ -128,6 +137,9 @@ export class RoomComponent implements OnInit, OnDestroy {
     if (this.hubService.isConnected) {
       this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
     }
+
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
 
   }
 

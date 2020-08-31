@@ -11,54 +11,63 @@
 
 <div *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies">
   Currency: {{applicationUserRoomCurrency.currency.currencyName}} <br>  Quantity: {{applicationUserRoomCurrency.quantity}}
-  <button type="button" class="btn btn-primary" (click)="addApplicationUserRoomCurrency(applicationUserRoomCurrency)">Add {{applicationUserRoomCurrency.currency.currencyName}}</button>
+  <button mat-stroked-button color="accent" type="button" class="btn btn-primary" (click)="addApplicationUserRoomCurrency(applicationUserRoomCurrency)">Add {{applicationUserRoomCurrency.currency.currencyName}}</button>
 </div>
-<h3>Room Code : {{roomCode}}</h3>
-<div class="row">
-  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <app-player></app-player>
-  </div>
-  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <input  class="form-control" (keyup.enter)="requestSong()" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
-    <button class="btn btn-default" (click)="requestSong()">Request Song</button>
 
-    <div class="row" *ngIf="songSearchResults.length > 0">
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-          <tr>
-            <th>Search Results</th>
-            <th></th>
-            <th></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let searchResult of songSearchResults; let i = index">
-            <!-- Make this a link to youtube video -->
-            <td><a href="https://youtu.be/{{searchResult.videoId}}" target="_blank">{{searchResult.songName}}</a></td>
-            <td><input class="form-control" [(ngModel)]="searchResult.quantityWagered" placeholder="Wager Amount"/></td>
-            <td>
-              <select [(ngModel)]="searchResult.applicationUserRoomCurrencyId">
-                <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [ngValue]="applicationUserRoomCurrency.id">
-                  {{applicationUserRoomCurrency.currency.currencyName}}
-                </option>
-              </select>
-            </td>
-            <td><button (click)="addSongToQueue(searchResult)">Add Song To Queue</button></td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-    </div>
-    <div class="row" *ngIf="songSearchResults.length <= 0">
-      <span>No Results</span>
-    </div>
-  </div>
-  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <app-queue [room]="room"></app-queue>
-  </div>
-  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <app-chat></app-chat>
-  </div>
+<h3>Room Code : {{roomCode}}</h3>
+<app-player></app-player>
+
+<mat-form-field appearance="outline">
+  <input matInput (keyup.enter)="requestSong()" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+</mat-form-field>
+<button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="requestSong()">Request Song</button>
+
+<div *ngIf="songSearchResults.length > 0">
+  <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="SongName">
+      <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+      <td mat-cell *matCellDef="let element">
+        <a href="https://youtu.be/{{element.songName}}" target="_blank">{{element.songName}}</a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="QuantityWager">
+      <th mat-header-cell *matHeaderCellDef>Quantity Wager</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-form-field appearance="outline">
+          <input matInput [(ngModel)]="element.quantityWagered" placeholder="Wager Amount"/>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="CurrencyType">
+      <th mat-header-cell *matHeaderCellDef>Currency Type</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-form-field>
+          <mat-select [(ngModel)]="element.applicationUserRoomCurrencyId">
+            <mat-option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [value]="applicationUserRoomCurrency.id">
+              {{applicationUserRoomCurrency.currency.currencyName}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="AddToQueue">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-stroked-button color="primary-outline" (click)="addSongToQueue(element)">Add Song To Queue</button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <mat-paginator [pageSize]="[5,10,20,25,50]" showFirstLastButtons></mat-paginator>
 </div>
+<div *ngIf="songSearchResults.length <= 0">
+  <span>No Results</span>
+</div>
+
+<app-queue [room]="room"></app-queue>
+<app-chat></app-chat>

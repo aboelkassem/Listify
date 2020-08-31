@@ -1,9 +1,11 @@
+import { MaterialModule } from './material.module';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -48,7 +50,9 @@ import { CartComponent } from './cart/cart.component';
     FormsModule,
     HttpClientModule,
     OAuthModule.forRoot(),
-    YoutubeModule
+    YoutubeModule,
+    BrowserAnimationsModule,
+    MaterialModule
   ],
   providers: [],
   bootstrap: [AppComponent]

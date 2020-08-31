@@ -1,2 +1,34 @@
 /* You can add global styles to this file, and also import other style files */
-@import "~bootstrap/dist/css/bootstrap.css";
+/* @import "~@angular/material/prebuilt-themes/purple-green.css"; */
+/* @import "~bootstrap/dist/css/bootstrap.css"; */
+/* html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; } */
+
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+app-root {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+app-root > div:nth-child(2) {
+  flex-grow: 2;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+app-root > div:nth-child(2) > mat-sidenav-container {
+  flex-grow: 2;
+}

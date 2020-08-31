@@ -15,6 +15,7 @@ export class AppComponent implements OnDestroy, OnInit {
   title = 'Listify';
   claims: any;
   hasLoadedProfile: boolean;
+  opened: boolean;
 
   private _hasConnectedToHub: boolean;
 

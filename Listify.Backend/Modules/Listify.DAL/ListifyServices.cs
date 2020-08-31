@@ -630,24 +630,26 @@ namespace Listify.DAL
         {
             var playlist = await _context.Playlists
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active && s.IsSelected)
-                .Include(s => s.SongsPlaylists)
                 .FirstOrDefaultAsync();
 
             if (playlist != null)
             {
-                var selectedSong = playlist.SongsPlaylists.OrderBy(s => s.PlayCount).FirstOrDefault();
+                var songPlaylist = await _context.SongsPlaylists
+                    .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                    .OrderBy(s => s.PlayCount)
+                    .FirstOrDefaultAsync();
 
-                if (selectedSong != null)
+                if (songPlaylist != null)
                 {
-                    var selectedSongEntity = await _context.SongsPlaylists
+                    var songPlaylistEntity = await _context.SongsPlaylists
                         .Include(s => s.Song)
                         .Include(s => s.Playlist)
-                        .FirstOrDefaultAsync(s => s.Id == selectedSong.Id);
+                        .FirstOrDefaultAsync(s => s.Id == songPlaylist.Id);
 
-                    if (selectedSongEntity != null)
+                    if (songPlaylistEntity != null)
                     {
-                        selectedSong.PlayCount++;
-                        _context.Entry(selectedSong).State = EntityState.Modified;
+                        songPlaylistEntity.PlayCount++;
+                        _context.Entry(songPlaylistEntity).State = EntityState.Modified;
 
                         var applicationUser = await _context.ApplicationUsers
                             .Include(s => s.Room)
@@ -657,7 +659,7 @@ namespace Listify.DAL
                         {
                             ApplicationUser = applicationUser,
                             Room = applicationUser.Room,
-                            Song = selectedSongEntity.Song,
+                            Song = songPlaylistEntity.Song,
                             SongRequestType = SongRequestType.Playlist,
                             WeightedValue = 0,
                         };

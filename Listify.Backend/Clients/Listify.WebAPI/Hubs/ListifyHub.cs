@@ -21,7 +21,7 @@ namespace Listify.WebAPI.Hubs
     public class ListifyHub : Hub, IDisposable
     {
         protected readonly ApplicationDbContext _context;
-        protected readonly IHubContext<ChatHub> _chatHub;
+        protected readonly IHubContext<ListifyHub> _listifyHub;
         protected readonly IListifyServices _services;
         protected readonly IMapper _mapper;
 
@@ -29,17 +29,17 @@ namespace Listify.WebAPI.Hubs
 
         public ListifyHub(
             ApplicationDbContext context,
-            IHubContext<ChatHub> chatHub,
+            IHubContext<ListifyHub> listifyHub,
             IListifyServices services,
             IPingPoll pingPoll,
             IMapper mapper)
         {
             _context = context;
-            _chatHub = chatHub;
+            _listifyHub = listifyHub;
             _services = services;
             _mapper = mapper;
 
-            if (_pingPoll != null)
+            if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
                 _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
@@ -50,7 +50,7 @@ namespace Listify.WebAPI.Hubs
         {
             foreach (var item in args.ConnectionsPinged)
             {
-                await _chatHub.Clients.Client(item.ConnectionId).SendAsync("PingRequest", "Ping");
+                await _listifyHub.Clients.Client(item.ConnectionId).SendAsync("PingRequest", "Ping");
             }
 
             //foreach (var applicationUserRoomConnection in args.PingPoll.ApplicationUserRoomConnectionsRemoved)
@@ -506,7 +506,7 @@ namespace Listify.WebAPI.Hubs
 
                 if (applicationUserRoomConnection == null)
                 {
-                    await _chatHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
+                    await _listifyHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
                     return Guid.Empty;
                 }
             }
