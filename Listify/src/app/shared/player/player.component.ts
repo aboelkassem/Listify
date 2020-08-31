@@ -31,7 +31,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.requestedBy = this.songQueued.applicationUser.username;
         this.playValue = this.songQueued.weightedValue.toString();
 
-        // this.youtubeService.loadVideo(songQueued.song.youtubeId);
+        // this.youtubeService.loadVideo(response.songQueued.song.youtubeId);
         // this.youtubeService.play();
       });
 
@@ -54,12 +54,15 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.requestedBy = response.songQueued.applicationUser.username;
         this.playValue = response.weight.toString();
 
-        // this.youtubeService.loadVideoAndSeek(response.song.youtubeId, response.currentTime);
+        // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
         // this.youtubeService.play();
       });
     }
 
   ngOnInit(): void {
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.body.appendChild(tag);
   }
 
   ngOnDestroy(): void {
@@ -70,9 +73,14 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   onReady(player: any): void {
     this.youtubeService.setPlayer(player, true);
+
+    if (this.roomService.applicationUserRoom.isOwner) {
+      this.youtubeService.loadVideo(this.songQueued.song.youtubeId);
+      this.youtubeService.play();
+    }
   }
 
-  onChange(event: any): void {
+  onStateChange(event: any): void {
     switch (event.data) {
       case YT.PlayerState.ENDED:
         // Load the next song here

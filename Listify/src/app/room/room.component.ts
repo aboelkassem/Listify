@@ -36,6 +36,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
+    private youtubeService: YoutubeService,
     private roomHubService: RoomHubService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
@@ -62,9 +63,9 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.roomCode = roomInformation.room.roomCode;
         this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
 
-        // if (!this.roomHubService.applicationUserRoom.isOwner) {
-        //   this.roomHubService.requestServerState(this.roomHubService.room.id);
-        // }
+        if (!this.roomHubService.applicationUserRoom.isOwner) {
+          this.roomHubService.requestServerState(this.roomHubService.room.id);
+        }
         // this.hubService.requestSongsQueued(roomInformation.room.id);
 
         // If it is the room owner, then request the next queued song, and then load the queue
@@ -76,8 +77,6 @@ export class RoomComponent implements OnInit, OnDestroy {
       });
 
       this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
-        // this.youtubeService.loadVideo(songQueued.song.youtubeId);
-        // this.youtubeService.play();
 
         this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
       });

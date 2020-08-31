@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
-// import { YoutubeModule } from 'angularx-youtube';
+import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
-import { YoutubeModule } from './shared/youtube/youtube.module';
+// import { YoutubeModule } from './shared/youtube';
+// import { NgxYoutubePlayerModule  } from "ngx-youtube-player";
+// import { YouTubePlayerModule } from '@angular/youtube-player';
 
 import { AppComponent } from './app.component';
 import { ChatComponent } from './shared/chat/chat.component';

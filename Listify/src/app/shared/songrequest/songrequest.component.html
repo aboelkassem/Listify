@@ -1,6 +1,6 @@
 <form (ngSubmit)="searchForSong()" #editForm="ngForm">
   <input [(ngModel)]="searchSnippet" name="searchSnippet" placeholder="Enter songs to search ..." required />
-  <button type="submit" [disabled] ="editForm.valid">Search For Song</button>
+  <button type="submit" [disabled] ="!editForm.valid">Search For Song</button>
 </form>
 
 <div class="row" *ngIf="songSearchResults.length > 0">

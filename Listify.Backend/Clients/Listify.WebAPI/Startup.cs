@@ -11,6 +11,7 @@ using Listify.DAL;
 using Listify.Paths;
 using Listify.BLL;
 using Listify.BLL.Polls;
+using System.Collections.Generic;
 
 namespace Listify.WebAPI
 {
@@ -34,13 +35,14 @@ namespace Listify.WebAPI
 
             services.AddDbContext<ApplicationDbContext>();
 
-            services.AddSignalR();
             services.AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
             });
 
-            services.AddCors(options => options.AddPolicy("SignalRCorsPolicy", builder => 
+            services.AddSignalR().AddNewtonsoftJsonProtocol();
+
+            services.AddCors(options => options.AddPolicy("SignalRCorsPolicy", builder =>
             {
                 builder
                 .AllowAnyMethod()

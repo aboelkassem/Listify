@@ -1,10 +1,9 @@
-﻿using Listify.Lib.DTOs;
+﻿using Listify.Domain.Lib.Requests;
 using Listify.Lib.Responses;
-using System;
 
 namespace Listify.Lib.Requests
 {
-    public class SongQueuedCreateRequest : SongRequestCreateRequest
+    public class SongQueuedCreateRequest : BaseRequest
     {
         public YoutubeResults.YoutubeResult SongSearchResult { get; set; }
     }

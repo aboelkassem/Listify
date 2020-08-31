@@ -521,13 +521,16 @@ namespace Listify.WebAPI.Hubs
                         if (applicationUserRoom.IsOwner)
                         {
                             var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
-                            //await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
-                            //{
-                            //    CurrentTime = 0,
-                            //    PlayerState = (int)ServerStateType.Stopped,
-                            //    SongQueued = songNext,
-                            //    Weight = songNext.WeightedValue
-                            //});
+                            if (songNext != null)
+                            {
+                                await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                                {
+                                    CurrentTime = 0,
+                                    PlayerState = (int)ServerStateType.Stopped,
+                                    SongQueued = songNext,
+                                    Weight = songNext.WeightedValue
+                                });
+                            }
                         }
                         else
                         {

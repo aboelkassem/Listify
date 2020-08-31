@@ -1,12 +1,12 @@
 <!-- <youtube-component
-  [videoId]="id"
+  [videoId]="songQueued.song.youtubeId"
   (ready)="onReady($event)"
   (change)="onStateChange($event)"
 ></youtube-component> -->
 
 <youtube-component
   (ready)="onReady($event)"
-  (changed)="onChange($event)"
+  (change)="onStateChange($event)"
 ></youtube-component>
 
 <div>

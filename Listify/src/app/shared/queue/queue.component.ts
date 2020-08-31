@@ -34,8 +34,8 @@ export class QueueComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.hubService.isConnected) {
-      this.hubService.requestSongsQueued(this.room.id);
+    if (this.roomService.isConnected) {
+      this.roomService.requestSongsQueued(this.room.id);
     }
   }
 

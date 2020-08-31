@@ -31,7 +31,9 @@ export class PlaylistComponent implements OnInit, OnDestroy {
       this.playlistName = playlist.playlistName;
       this.isSelected = playlist.isSelected;
       this.playlist = playlist;
-      this.songsPlaylist = playlist.songsPlaylists;
+      if (playlist.songsPlaylists) {
+        this.songsPlaylist = playlist.songsPlaylists;
+      }
     });
 
     this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe(songPlaylist => {
@@ -39,7 +41,9 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     });
 
     this.$songsPlaylistSubscription = this.hubService.getSongsPlaylist().subscribe(songsPlaylist => {
-      this.songsPlaylist = songsPlaylist;
+      if (songsPlaylist) {
+        this.songsPlaylist = songsPlaylist;
+      }
     });
 
     this.route.params.subscribe(params => {
@@ -52,7 +56,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
    }
 
   ngOnInit(): void {
-    this.hubService.requestSongsPlaylist(this.playlist.id);
+    // this.hubService.requestSongsPlaylist(this.playlist.id);
   }
 
   ngOnDestroy(): void {

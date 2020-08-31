@@ -19,7 +19,7 @@ export class YoutubeService implements OnDestroy {
     private roomService: RoomHubService
   ) {
     this.$playSubscription = this.roomService.getPlayFromServerResponse().subscribe(playFromServerResponse => {
-      this.stop();
+      // this.stop();
       this.loadVideoAndSeek(playFromServerResponse.songQueued.song.youtubeId, playFromServerResponse.currentTime);
       this.play();
     });
@@ -68,7 +68,7 @@ export class YoutubeService implements OnDestroy {
   }
 
   seek(seekToTime: number): void {
-    this.player.seekTo(seekToTime);
+    this.player.seekTo(seekToTime, true);
   }
 
   getCurrentTime(): number{
@@ -84,7 +84,7 @@ export class YoutubeService implements OnDestroy {
   }
 
   unmute(): void {
-    this.player.unmute();
+    this.player.unMute();
   }
 
   getPlayerState(): PlayerState {

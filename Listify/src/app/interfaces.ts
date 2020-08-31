@@ -106,7 +106,6 @@ export interface ISongSearchResults {
 }
 
 export interface ISongSearchResult {
-  id: string;
   songName: string;
   lengthSec: number;
   videoId: string;

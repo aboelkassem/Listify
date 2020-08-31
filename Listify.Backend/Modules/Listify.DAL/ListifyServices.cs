@@ -1016,7 +1016,7 @@ namespace Listify.DAL
                 queuedSongNext.TimestampPlayed = DateTime.UtcNow;
                 _context.Entry(queuedSongNext).State = EntityState.Modified;
 
-                _context.SongsQueued.Remove(queuedSongNext);
+                //_context.SongsQueued.Remove(queuedSongNext);
 
                 if (await _context.SaveChangesAsync() > 0)
                 {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Listify.Lib.Requests
 {
-    public class CurrencyCreateRequest : BaseRequest
+    public class CurrencyCreateRequest
     {
         public Guid Id { get; set; }
         public string CurrencyName { get; set; }
