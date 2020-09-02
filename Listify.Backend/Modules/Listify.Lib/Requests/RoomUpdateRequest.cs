@@ -8,5 +8,6 @@ namespace Listify.Lib.Requests
         public string RoomCode { get; set; }
         public bool IsRoomPublic { get; set; }
         public bool IsRoomOnline { get; set; }
+        public int NumberUsersOnline { get; set; }
     }
 }

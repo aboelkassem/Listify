@@ -1,9 +1,11 @@
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
 import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency, IRoomInformation } from './../../interfaces';
-import { HubService } from './../../services/hub.service';
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ISongQueued } from 'src/app/interfaces';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-queue',
@@ -11,6 +13,9 @@ import { ISongQueued } from 'src/app/interfaces';
   styleUrls: ['./queue.component.css']
 })
 export class QueueComponent implements OnInit, OnDestroy {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  displayedColumns: string[] = ['songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued'];
+  dataSource = new MatTableDataSource<ISongQueued>();
 
   @Input() room: IRoom;
 
@@ -21,11 +26,12 @@ export class QueueComponent implements OnInit, OnDestroy {
   $roomReceivedSubscription: Subscription;
 
   constructor(
-    private hubService: HubService,
-    private roomService: RoomHubService) {
+    private roomService: RoomHubService,
+    private toastrService: ToastrService) {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
       this.songsQueued = songsQueued;
+      this.dataSource.data = this.songsQueued;
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
@@ -37,6 +43,8 @@ export class QueueComponent implements OnInit, OnDestroy {
     if (this.roomService.isConnected) {
       this.roomService.requestSongsQueued(this.room.id);
     }
+
+    this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
@@ -45,17 +53,32 @@ export class QueueComponent implements OnInit, OnDestroy {
   }
 
   addQuantityToSongQueued(songQueued: ISongQueued): void {
-    // tslint:disable-next-line:max-line-length
-    const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrencies.filter(x => x.id === songQueued.applicationUserRoomCurrencyId)[0];
-    if (applicationUserRoomCurrency !== undefined && applicationUserRoomCurrency !== null) {
-      const request: IWagerQuantitySongQueuedRequest = {
-        songQueued: songQueued,
-        applicationUserRoom: this.roomService.applicationUserRoom,
-        applicationUserRoomCurrency: applicationUserRoomCurrency,
-        quantity: songQueued.quantityWagered
-      };
+    if (songQueued.quantityWagered <= 0 || songQueued.quantityWagered === undefined || songQueued.quantityWagered === null) {
+      this.toastrService.warning('You must wager more than 0 on a song in the queue, please try again',
+      'Not Enough Wagered');
+    }else {
+      const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrencies
+      .filter(x => x.id === songQueued.applicationUserRoomCurrencyId)[0];
 
-      this.roomService.wagerQuantitySongQueued(request);
+      if (applicationUserRoomCurrency !== undefined && applicationUserRoomCurrency !== null) {
+        if (songQueued.quantityWagered > applicationUserRoomCurrency.quantity) {
+          this.toastrService.warning('You do not have enough ' + applicationUserRoomCurrency.currency.currencyName + ' for this action, you have ' + applicationUserRoomCurrency.quantity + ' available',
+          'Not Enough Currency');
+        }else {
+          const request: IWagerQuantitySongQueuedRequest = {
+            songQueued: songQueued,
+            applicationUserRoom: this.roomService.applicationUserRoom,
+            applicationUserRoomCurrency: applicationUserRoomCurrency,
+            quantity: songQueued.quantityWagered
+          };
+
+          this.roomService.wagerQuantitySongQueued(request);
+          this.toastrService.success('you have added more points to ' + request.songQueued.song.songName, request.quantity + ' added to the song')
+        }
+      }else {
+        this.toastrService.warning('You must select a type of currency to wager on a song in the queue, please try again',
+        'Invalid Selected Currency');
+      }
     }
   }
 

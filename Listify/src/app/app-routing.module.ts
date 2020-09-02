@@ -1,4 +1,3 @@
-import { SongrequestComponent } from './shared/songrequest/songrequest.component';
 import { CurrencyComponent } from './currency/currency.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
 import { HomeComponent } from './home/home.component';
@@ -14,7 +13,6 @@ import { CartComponent } from './cart/cart.component';
 const routes: Routes = [
   {path: '', redirectTo: 'home', pathMatch: 'full'},
   {path: 'home', component: HomeComponent},
-  // {path: 'room', component: RoomComponent},
   {path: 'rooms', component: RoomsComponent},
   {path: 'playlist', component: PlaylistComponent},
   {path: 'playlist/:id', component: PlaylistComponent},
@@ -22,7 +20,6 @@ const routes: Routes = [
   {path: 'currency', component: CurrencyComponent},
   {path: 'currency/:id', component: CurrencyComponent},
   {path: 'currencies', component: CurrenciesComponent},
-  {path: 'songrequest', component: SongrequestComponent},
   {path: 'account', component: AccountComponent},
   {path: 'cart', component: CartComponent},
   {path: ':id', component: RoomComponent},

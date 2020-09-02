@@ -10,6 +10,7 @@ namespace Listify.Lib.VMs
         public string RoomCode { get; set; }
         public bool IsRoomPublic { get; set; }
         public bool IsRoomOnline { get; set; }
+        public int NumberUsersOnline { get; set; }
 
         // This is the Room Owner
         public ApplicationUserDTO ApplicationUser { get; set; }

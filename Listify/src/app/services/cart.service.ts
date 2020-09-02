@@ -31,4 +31,12 @@ export class CartService {
 
     return total;
   }
+
+  updateQuantity(): void {
+    this.purchasableItems.forEach(purchasableItem => {
+      purchasableItem.lineCost = purchasableItem.unitCost * purchasableItem.quantity;
+    });
+
+    this.getSubtotal();
+  }
 }

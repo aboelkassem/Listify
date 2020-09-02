@@ -1,0 +1,8 @@
+.cartTable-Container {
+  display: flex;
+  flex: 1 1 100%;
+}
+
+.mat-column-quantity {
+  padding: 0px 60px 0px 20px;
+}

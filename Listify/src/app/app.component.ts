@@ -4,8 +4,6 @@ import { authConfig } from './authConfig';
 import { OAuthService, OAuthEvent} from 'angular-oauth2-oidc';
 import { JwksValidationHandler } from 'angular-oauth2-oidc-jwks';
 import { Component, OnInit ,OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -25,7 +23,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
   constructor(
     private oauthService: OAuthService,
-    private router: Router,
     private hubService: HubService) {
       this.$disconnectSubscription = this.hubService.getForceDisconnect().subscribe((data: string) => {
         // alert('Force disconnected');
@@ -54,6 +51,7 @@ export class AppComponent implements OnDestroy, OnInit {
       this.configureWithNewConfigApi();
       this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
+
   ngOnInit(): void {
     const accessToken = this.oauthService.getAccessToken();
 
@@ -63,7 +61,9 @@ export class AppComponent implements OnDestroy, OnInit {
     }
     // if (this.claims !== null && this.claims !== undefined) {
     // }
+
   }
+
   ngOnDestroy(): void {
     this.$disconnectSubscription.unsubscribe();
     this.$oauthSubscription.unsubscribe();

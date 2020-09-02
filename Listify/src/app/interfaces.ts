@@ -20,6 +20,7 @@ export interface IRoom {
   roomCode: string;
   isRoomPublic: boolean;
   songsQueued: ISongQueued[];
+  numberUsersOnline: number;
 }
 
 export interface IApplicationUserRoom {
@@ -153,4 +154,8 @@ export interface IPurchasableItem {
   quantity: number;
   unitCost: number;
   lineCost: number;
+}
+
+export interface IConfirmationModalData {
+  isConfirmed: boolean;
 }

@@ -1,3 +1,7 @@
 .sidenav-full {
   height: 600px;
 }
+
+.button-login {
+  display: block;
+}

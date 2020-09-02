@@ -28,6 +28,8 @@ export class RoomHubService {
   $serverStateResponseReceived = new Subject<IServerStateResponse>();
   $playFromServerResponseReceived = new Subject<IPlayFromServerResponse>();
   $applicationUserRoomCurrencyReceived = new Subject<IApplicationUserRoomCurrency>();
+  $applicationUserRoomCurrenciesRoomReceived = new Subject<IApplicationUserRoomCurrency[]>();
+  $messageReceived = new Subject<IChatMessage>();
   $pauseRequestReceived = new Subject<string>();
 
   constructor(private oauthService: OAuthService) { }
@@ -83,11 +85,15 @@ export class RoomHubService {
     });
 
     this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
-      this.messages.push(message);
+      this.$messageReceived.next(message);
     });
 
     this._hubConnection.on('ReceiveApplicationUserRoomCurrency', (applicationUserRoomCurrency: IApplicationUserRoomCurrency) => {
       this.$applicationUserRoomCurrencyReceived.next(applicationUserRoomCurrency);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserRoomCurrenciesRoom', (applicationUserRoomCurrencies: IApplicationUserRoomCurrency[]) => {
+      this.$applicationUserRoomCurrenciesRoomReceived.next(applicationUserRoomCurrencies);
     });
 
     this._hubConnection.on('ReceivePause', () => {
@@ -172,6 +178,12 @@ export class RoomHubService {
     }
   }
 
+  requestApplicationUserRoomCurrencies(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestApplicationUserRoomCurrencies');
+    }
+  }
+
   createSongQueued(request: ISongQueuedCreateRequest): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('CreateSongQueued', request);
@@ -222,6 +234,14 @@ export class RoomHubService {
 
   getApplicationUserRoomCurrency(): Observable<IApplicationUserRoomCurrency> {
     return this.$applicationUserRoomCurrencyReceived.asObservable();
+  }
+
+  getMessageReceived(): Observable<IChatMessage> {
+    return this.$messageReceived.asObservable();
+  }
+
+  getApplicationUserRoomCurrencies(): Observable<IApplicationUserRoomCurrency[]> {
+    return this.$applicationUserRoomCurrenciesRoomReceived.asObservable();
   }
 
   isConnected(): boolean {

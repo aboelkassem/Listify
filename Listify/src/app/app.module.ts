@@ -6,6 +6,7 @@ import { OAuthModule } from 'angular-oauth2-oidc';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -23,9 +24,13 @@ import { CurrencyComponent } from './currency/currency.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
 import { PlaylistComponent } from './playlist/playlist.component';
 import { PlaylistsComponent } from './playlists/playlists.component';
-import { SongrequestComponent } from './shared/songrequest/songrequest.component';
 import { PlayerComponent } from './shared/player/player.component';
 import { CartComponent } from './cart/cart.component';
+import { ApplicationuserroomcurrenciesComponent } from './shared/applicationuserroomcurrencies/applicationuserroomcurrencies.component';
+import { SearchsongplaylistComponent } from './shared/searchsongplaylist/searchsongplaylist.component';
+import { SongsplaylistComponent } from './shared/songsplaylist/songsplaylist.component';
+import { ConfirmationmodalComponent } from './shared/confirmationmodal/confirmationmodal.component';
+import { SearchsongrequestComponent } from './shared/searchsongrequest/searchsongrequest.component';
 
 @NgModule({
   declarations: [
@@ -40,9 +45,16 @@ import { CartComponent } from './cart/cart.component';
     CurrenciesComponent,
     PlaylistComponent,
     PlaylistsComponent,
-    SongrequestComponent,
     PlayerComponent,
-    CartComponent
+    CartComponent,
+    SearchsongplaylistComponent,
+    ApplicationuserroomcurrenciesComponent,
+    SearchsongrequestComponent,
+    SongsplaylistComponent,
+    ConfirmationmodalComponent
+  ],
+  entryComponents: [
+    ConfirmationmodalComponent
   ],
   imports: [
     BrowserModule,
@@ -52,7 +64,8 @@ import { CartComponent } from './cart/cart.component';
     OAuthModule.forRoot(),
     YoutubeModule,
     BrowserAnimationsModule,
-    MaterialModule
+    MaterialModule,
+    ToastrModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]

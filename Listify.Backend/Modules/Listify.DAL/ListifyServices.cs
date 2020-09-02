@@ -1184,7 +1184,18 @@ namespace Listify.DAL
 
             var dtos = new List<RoomDTO>();
 
-            entities.ForEach(s => dtos.Add(_mapper.Map<RoomDTO>(s)));
+            foreach (var entity in entities)
+            {
+                var usersOnline = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
+                    .CountAsync();
+
+                var dto = _mapper.Map<RoomDTO>(entity);
+                dto.NumberUsersOnline = usersOnline;
+                dtos.Add(dto);
+            }
+
+            //entities.ForEach(s => dtos.Add(_mapper.Map<RoomDTO>(s)));
 
             return dtos.ToArray();
         }
@@ -1193,7 +1204,19 @@ namespace Listify.DAL
             var entity = await _context.Rooms
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
-            return entity != null ? _mapper.Map<RoomVM>(entity) : null;
+            if (entity != null)
+            {
+                var vm = _mapper.Map<RoomVM>(entity);
+
+                var usersOnline = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
+                    .CountAsync();
+
+                vm.NumberUsersOnline = usersOnline;
+                return vm;
+            }
+
+            return null;
         }
         public virtual async Task<RoomVM> ReadRoomAsync(string roomCode)
         {

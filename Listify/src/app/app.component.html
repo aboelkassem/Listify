@@ -1,5 +1,9 @@
 <div class="mat-h1">{{title}}</div>
 
+<div *ngIf="!isAuthenticated" class="button-login" >
+  <button mat-raised-button color="primary" (click)="login()">Login</button>
+</div>
+
 <div *ngIf="isAuthenticated && claims !== null">
   <mat-sidenav-container class="sidenav-full">
     <mat-sidenav #sidenav mode="side" opened>
@@ -14,12 +18,8 @@
       </mat-list>
     </mat-sidenav>
     <mat-sidenav-content>
-    <h2>Welcome, {{claims['name']}}!</h2>
-    <router-outlet></router-outlet>
+      <h2>Welcome, {{claims['name']}}!</h2>
+      <router-outlet></router-outlet>
     </mat-sidenav-content>
   </mat-sidenav-container>
-</div>
-
-<div *ngIf="!isAuthenticated">
-  <button mat-raised-button color="primary" (click)="login()">Login</button>
 </div>

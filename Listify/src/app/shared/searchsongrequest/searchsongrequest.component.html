@@ -1,0 +1,51 @@
+<div class="mat-h3">Request a Song</div>
+
+<mat-form-field appearance="outline">
+  <input matInput (keyup.enter)="requestSong()" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+</mat-form-field>
+<button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="requestSong()">Request Song</button>
+<button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="clearSearch()">Clear Search</button>
+
+<div *ngIf="songSearchResults.length > 0">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="SongName">
+      <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+      <td mat-cell *matCellDef="let element">
+        <a href="https://youtu.be/{{element.videoId}}" target="_blank">{{element.songName}}</a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="QuantityWager">
+      <th mat-header-cell *matHeaderCellDef>Quantity Wager</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-form-field appearance="outline">
+          <input matInput [(ngModel)]="element.quantityWagered" placeholder="Wager Amount"/>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="CurrencyType">
+      <th mat-header-cell *matHeaderCellDef>Currency Type</th>
+      <td mat-cell *matCellDef="let element">
+        <mat-form-field>
+          <mat-select [(ngModel)]="element.applicationUserRoomCurrencyId">
+            <mat-option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [value]="applicationUserRoomCurrency.id">
+              {{applicationUserRoomCurrency.currency.currencyName}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="AddToQueue">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-stroked-button color="primary-outline" (click)="addSongToQueue(element)">Add Song To Queue</button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>
+<mat-paginator [pageSize]="[5,10,20,25,50]" showFirstLastButtons></mat-paginator>

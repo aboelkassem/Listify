@@ -1,0 +1,18 @@
+.contentFlex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.contentFlex-player {
+  flex: 1;
+}
+
+.contentFlex-songQueued, .contentFlex-queue {
+  flex: 3 2 100%;
+}
+
+.contentFlex-chat {
+  flex: 2 1;
+}

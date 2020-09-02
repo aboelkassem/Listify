@@ -1,22 +1,20 @@
-<a [routerLink]="['/currency']">New Currency</a>
+<button [routerLink]="['/currency']" mat-stroked-button color="primary" appearance="outline">New Currency</button>
 
-<div class="row" *ngIf="currencies.length > 0">
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <tr>
-        <th>Currencies</th>
-        <th></th>
-      </tr>
-    </table>
-    <tbody>
-      <tr *ngFor="let currency of currencies; let i = index">
-        <td><a [routerLink]="['/currency', currency.id]">{{currency.currencyName}}</a></td>
-        <td><button (click)="deleteCurrency(currency.id)">Delete Currency</button></td>
-      </tr>
-    </tbody>
-  </div>
-</div>
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <ng-container matColumnDef="currencyName">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Currency Name</th>
+    <td mat-cell *matCellDef="let element">
+      <a [routerLink]="['/currency', element.id]">{{element.currencyName}}</a>
+    </td>
+  </ng-container>
 
-<div class="row" *ngIf="currencies.length <= 0">
-  <span>No Currencies</span>
-</div>
+  <ng-container matColumnDef="deleteCurrency">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let element">
+      <button mat-stroked-button color="accent" appearance="outline" (click)="deleteCurrency(element.id)">Delete Currency</button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>

@@ -1,36 +1,50 @@
-<div class="row" *ngIf="songsQueued.length > 0">
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Songs in Queue</th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-          <th></th>
-        </tr>
-      </thead>
-    <tbody>
-      <tr *ngFor="let songQueued of songsQueued; let i = index">
-        <td>{{songQueued.song.songName}}</td>
-        <td>{{songQueued.song.songLengthSec}} seconds long</td>
-        <td>{{songQueued.weightedValue}}</td>
-        <td><input class="form-control" [(ngModel)]="songQueued.quantityWagered" placeholder="Boost" /></td>
-        <td>
-          <select [(ngModel)]="songQueued.applicationUserRoomCurrencyId">
-            <option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [selected]="p == 0" value="applicationUserRoomCurrency.id">
-              {{applicationUserRoomCurrency.currency.currencyName}}
-            </option>
-          </select>
-        </td>
-        <td><button (click)="addQuantityToSongQueued(songQueued)">Add or Remove Boost</button></td>
-        <td><button (click)="removeSongFromQueue(songQueued)">Remove Song From Queue</button></td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-</div>
-<div class="row" *ngIf="songsQueued.length <= 0">
-  <span>No Songs in Queue</span>
-</div>
+<div class="mat-h3">Songs Queued</div>
+
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <ng-container matColumnDef="songName">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+    <td mat-cell *matCellDef="let element">
+      <a href="https://youtu.be/{{element.song.youtubeId}}" target="_blank">{{element.song.songName}}</a>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="weightedValue">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Current Wagered</th>
+    <td mat-cell *matCellDef="let element">
+      {{element.weightedValue}}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="quantityWagered">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Quantity Wagered</th>
+    <td mat-cell *matCellDef="let element">
+      <mat-form-field appearance='outline'>
+        <input matInput [(ngModel)]="element.quantityWagered"  placeholder="Add or Remove Points"/>
+      </mat-form-field>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="applicationUserRoomCurrency">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Currency</th>
+    <td mat-cell *matCellDef="let element">
+      <mat-form-field>
+        <mat-select [(ngModel)]="element.applicationUserRoomCurrencyId">
+          <mat-option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [value]="applicationUserRoomCurrency.id">
+            {{applicationUserRoomCurrency.currency.currencyName}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="addQuantityToSongQueued">
+    <th mat-header-cell mat-sort-header *matHeaderCellDef>Add Or Remove Points</th>
+    <td mat-cell *matCellDef="let element">
+      <button mat-stroked-button color='primary' (click)="addQuantityToSongQueued(element)" placeholder="Add or Remove Points">Add Or Remove Points</button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+<mat-paginator [pageSize]="[5,10,20,25,50]" showFirstLastButtons></mat-paginator>

@@ -12,7 +12,7 @@ namespace Listify.Domain.Lib.Entities
         public string RoomCode { get; set; }
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
-
+        
         // This is the Room Owner
         public Guid ApplicationUserId { get; set; }
         [Required]

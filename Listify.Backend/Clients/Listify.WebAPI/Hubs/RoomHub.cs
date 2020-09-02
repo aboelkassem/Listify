@@ -45,13 +45,13 @@ namespace Listify.WebAPI.Hubs
             _services = services;
             _mapper = mapper;
 
-            if (_currencyPoll != null)
+            if (_currencyPoll == null)
             {
                 _currencyPoll = currencyPoll;
                 _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
             }
 
-            if (_pingPoll != null)
+            if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
                 _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
@@ -236,6 +236,17 @@ namespace Listify.WebAPI.Hubs
 
                     await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestApplicationUserRoomCurrencies()
+        {
+            try
+            {
+
             }
             catch (Exception ex)
             {
@@ -559,7 +570,6 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             await base.OnDisconnectedAsync(exception);

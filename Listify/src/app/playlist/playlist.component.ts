@@ -11,12 +11,12 @@ import { Router, ActivatedRoute } from '@angular/router';
 })
 export class PlaylistComponent implements OnInit, OnDestroy {
 
-  // @Input() playlist: IPlaylist;
   id: string;
   playlistName: string;
   isSelected: boolean;
   playlist: IPlaylist;
   songsPlaylist: ISongPlaylist[] = [];
+  numberOfSongs = this.hubService.applicationUser.playlistSongCount;
 
   $playlistSubscription: Subscription;
   $songPlaylistSubscription: Subscription;
@@ -37,7 +37,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     });
 
     this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe(songPlaylist => {
-      this.getPlaylist(this.id);
+      this.hubService.requestPlaylist(this.id);
     });
 
     this.$songsPlaylistSubscription = this.hubService.getSongsPlaylist().subscribe(songsPlaylist => {
@@ -49,7 +49,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.route.params.subscribe(params => {
       const id = params['id']; // + params converts id to numbers
       if (id != null) {
-        this.getPlaylist(id);
+        this.hubService.requestPlaylist(id);
       }
     });
 
@@ -75,10 +75,6 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
     this.router.navigateByUrl('/playlists');
     // this.location.back();
-  }
-
-  getPlaylist(id: string): void {
-    this.hubService.requestPlaylist(id);
   }
 
   removeSongFromPlaylist(songPlaylist: ISongPlaylist): void {

@@ -1,27 +1,26 @@
-<h3>Account</h3>
+<div class="mat-h3">Account</div>
 
-<div class="row">
-  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-    <form class="form-inline" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
-      <div class="form-group">
-        <label for="username">Username: </label>
-        <input type="text" class="form-control" id="username" name="username" [(ngModel)]="username" required/>
-      </div>
-      <div class="form-group">
-        <label for="roomCode">Your Room Code: </label>
-        <input type="text" class="form-control" id="roomCode" name="roomCode" [(ngModel)]="roomCode" required/>
-      </div>
-      <div class="form-group">
-        <label for="playlistSongCount">Playlist Song Count: </label>
-        <input type="text" class="form-control" id="playlistSongCount" name="playlistSongCount" [(ngModel)]="playlistSongCount" disabled/>
-        <button type="button" (click)="addPlaylistSongCount()" class="btn btn-primary">Add More Songs Per Playlist</button>
-      </div>
-      <div class="form-group">
-        <label for="playlistCount">Playlist Count: </label>
-        <input type="text" class="form-control" id="playlistCount" name="playlistCount" [(ngModel)]="playlistCount" disabled/>
-        <button type="button" (click)="addPlaylistCount()" class="btn btn-primary">Add Another Playlist</button>
-      </div>
-      <button type="submit" class="btn btn-primary" [disabled]="!accountForm.valid">Submit Changes</button>
-    </form>
-  </div>
+<div >
+  <form class="accountForm-container" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
+    <mat-form-field>
+      <input matInput id="username" readonly name="username" placeholder="Username" [(ngModel)]="username" required>
+      <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="changeUsername()">Change Username</button>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput id="roomCode" name="roomCode" placeholder="Room Code" [(ngModel)]="roomCode" required>
+    </mat-form-field>
+
+    <mat-form-field>
+      <input matInput id="playlistSongCount" name="playlistSongCount" placeholder="Playlist Songs Count" [(ngModel)]="playlistSongCount" disabled>
+    </mat-form-field>
+    <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
+
+    <mat-form-field>
+      <input matInput id="playlistCount" name="playlistCount" placeholder="Playlist Count" [(ngModel)]="playlistCount" disabled>
+    </mat-form-field>
+    <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistCount()">Add Another Playlist</button>
+
+    <button mat-stroked-button color="primary" type="submit" [disabled]="!accountForm.valid">Submit Changes</button>
+  </form>
 </div>

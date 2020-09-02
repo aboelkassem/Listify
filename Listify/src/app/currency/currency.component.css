@@ -1,0 +1,15 @@
+.currencyForm-container {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 300px;
+  justify-content: flex-start;
+}
+
+.currencyForm-container > * {
+  width: 40%;
+}
+
+.formButton-container {
+  display: flex;
+  flex: 0 0 100%;
+}
