@@ -176,7 +176,7 @@ namespace Listify.WebAPI.Hubs
 
                         if (nextSong != null)
                         {
-                            var song = await _services.ReadSongAsync(nextSong.Song.Id);
+                            //var song = await _services.ReadSongAsync(nextSong.Song.Id);
                             await Clients.Group(room.RoomCode).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
                             {
                                 CurrentTime = 0,

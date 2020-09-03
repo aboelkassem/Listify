@@ -58,6 +58,7 @@ namespace Listify.Domain.BLL
 
                 c.CreateMap<Song, SongDTO>().ReverseMap();
                 c.CreateMap<Song, SongVM>().ReverseMap();
+                //c.CreateMap<Song, SongVM>().PreserveReferences().ReverseMap();
                 c.CreateMap<SongVM, SongDTO>().ReverseMap();
                 c.CreateMap<SongCreateRequest, Song>();
                 c.CreateMap<SongUpdateRequest, Song>();

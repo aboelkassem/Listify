@@ -576,6 +576,7 @@ namespace Listify.DAL
         public virtual async Task<SongVM> ReadSongAsync(Guid id)
         {
             var entity = await _context.Songs
+                .Include(s => s.SongRequests)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             return entity != null ? _mapper.Map<SongVM>(entity) : null;
