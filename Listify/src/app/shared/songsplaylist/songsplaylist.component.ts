@@ -5,7 +5,6 @@ import { HubService } from 'src/app/services/hub.service';
 import { Subscription } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
 import { ConfirmationmodalComponent } from '../confirmationmodal/confirmationmodal.component';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -16,7 +15,6 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class SongsplaylistComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
   displayedColumns: string[] = ['songName', 'songLengthSec', 'removeSongPlaylist'];
   dataSource = new MatTableDataSource<ISongPlaylist>();
 
@@ -30,8 +28,8 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
     private confirmationModalService: ConfirmationmodalService,
     private confirmationModal: MatDialog) {
     this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
-      if (playlist.songsPlaylists) {
-        this.songsPlaylist = playlist.songsPlaylists;
+      if (playlist.songsPlaylist) {
+        this.songsPlaylist = playlist.songsPlaylist;
         this.dataSource.data = this.songsPlaylist;
       }
     });
@@ -39,7 +37,6 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

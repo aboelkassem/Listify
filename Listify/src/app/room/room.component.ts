@@ -1,14 +1,11 @@
-import { RoomHubService } from './../services/room-hub.service';
-import { ISongSearchResult, ISongQueued } from 'src/app/interfaces';
-import { IRoom, ISongQueuedCreateRequest, ICurrency, IRoomInformation, IApplicationUserRoomCurrency } from './../interfaces';
-import { Subscription } from 'rxjs';
 import { YoutubeService } from './../services/youtube.service';
+import { RoomHubService } from './../services/room-hub.service';
+import { ISongQueued } from 'src/app/interfaces';
+import { IRoom, IRoomInformation } from './../interfaces';
+import { Subscription } from 'rxjs';
 import { HubService } from './../services/hub.service';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-room',
@@ -17,67 +14,30 @@ import { MatTableDataSource } from '@angular/material/table';
 })
 export class RoomComponent implements OnInit, OnDestroy {
 
-  // @ViewChild(MatPaginator) paginator: MatPaginator;
-  // @ViewChild(MatSort) sort: MatSort;
-  // displayedColumns: string[] = ['SongName', 'QuantityWager', 'CurrencyType', 'AddToQueue'];
-  // dataSource = new MatTableDataSource<ISongSearchResult>();
-
   roomCode: string;
-  // searchSnippet: string;
   songsQueued: ISongQueued[];
-  // applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
 
   room: IRoom = this.roomHubService.room;
-  // songSearchResults: ISongSearchResult[] = [];
 
-  // $youtubeSearchSubscription: Subscription;
   $songsQueuedSubscription: Subscription;
   $playFromServerSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
-  // $applicationUserRoomCurrencySubscription: Subscription;
   $pingSubscription: Subscription;
-  // $applicationUserSubscription: Subscription;
-  // $applicationUserRoomCurrencySubscription: Subscription;
-  // $currencySubscription: Subscription;
-  // $roomSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
+    private youtubeService: YoutubeService,
     private roomHubService: RoomHubService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
+        // this.roomHubService.requestRoom(this.roomCode);
       });
-
-      // this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
-      //   // this.hubService.requestRoomByRoomCode(this.roomCode);
-      //   this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
-      // });
-
-      // this.$roomSubscription = this.hubService.getRoom().subscribe(room => {
-      //   this.room = room;
-
-      //   // Now I need to check if it is the host, if it is not, then connect to the proper time in the video,
-      //   // otherwise, we need to set the room to online and pull from the queue/ playlist
-      // });
-
-      // this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponse => {
-      //   this.songSearchResults = songSearchResponse.results;
-      //   this.dataSource.data = this.songSearchResults;
-      // });
 
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
-        // this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
 
-        // if (!this.roomHubService.applicationUserRoom.isOwner) {
-        //   this.roomHubService.requestServerState(this.roomHubService.room.id);
-        // }
-        // this.hubService.requestSongsQueued(roomInformation.room.id);
-
-        // If it is the room owner, then request the next queued song, and then load the queue
-        // If it is not the room owner, request the next song and position, then load the queue
       });
 
       this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
@@ -85,20 +45,13 @@ export class RoomComponent implements OnInit, OnDestroy {
       });
 
       this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
-
         this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
+
+        if (!this.roomHubService.applicationUserRoom.isOwner) {
+          this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+          this.youtubeService.play();
+        }
       });
-
-      // tslint:disable-next-line:max-line-length
-      // this.$applicationUserRoomCurrencySubscription = this.roomHubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
-      //   const originalCurrency = this.applicationUserRoomCurrencies.filter(x => x.id === applicationUserRoomCurrency.id)[0];
-
-      //   if (originalCurrency !== undefined && originalCurrency !== null) {
-      //     const index = this.applicationUserRoomCurrencies.indexOf(originalCurrency);
-      //     this.applicationUserRoomCurrencies[index] = applicationUserRoomCurrency;
-      //   }
-
-      // });
 
       this.$pingSubscription = this.roomHubService.getPing().subscribe(ping => {
         if (ping === 'Ping') {
@@ -106,86 +59,18 @@ export class RoomComponent implements OnInit, OnDestroy {
         }
       });
 
-      // this.$currencySubscription = this.hubService.getCurrencyActive().subscribe(currencyActive => {
-      //   this.currency = currencyActive;
-      //   this.currencyName = currencyActive.currencyName;
-      // });
-
-      // tslint:disable-next-line:max-line-length
-      // this.$applicationUserRoomCurrencySubscription = this.hubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
-      //   this.quantity = applicationUserRoomCurrency.quantity.toString();
-      // });
-
-      // this.$songsQueuedSubscription = this.hubService.getSongsQueued().subscribe(songsQueued => {
-      //   this.songsQueued = songsQueued;
-
-      //   if (this.songsQueued !== undefined && this.songsQueued.length > 0){
-      //     this.youtubeService.loadVideo(this.songsQueued[0].song.youtubeId);
-      //     this.youtubeService.play();
-      //   }
-      // });
     }
 
   ngOnInit(): void {
-    // if (this.roomHubService.isConnected()) {
-    //   // const id = this.route.snapshot.paramMap.get('id');
-    //   this.roomHubService.requestRoom(this.roomCode);
-    // }
-    // this.hubService.requestRoom(this.roomCode);
-    // this.roomHubService.requestRoom(this.roomCode);
     if (this.hubService.isConnected) {
       this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
     }
-
-    // this.dataSource.paginator = this.paginator;
-    // this.dataSource.sort = this.sort;
-
   }
 
   ngOnDestroy(): void {
-    // this.$youtubeSearchSubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
     this.$songsQueuedSubscription.unsubscribe();
     this.$playFromServerSubscription.unsubscribe();
-    // this.$applicationUserRoomCurrencySubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
-    // this.$applicationUserSubscription.unsubscribe();
-    // this.$roomSubscription.unsubscribe();
-    // this.$currencySubscription.unsubscribe();
-    // this.$applicationUserRoomCurrencySubscription.unsubscribe();
   }
-
-  // onReady(player: any): void {
-  //   this.youtubeService.setPlayer(player, true);
-  //   this.hubService.requestSongsQueued(this.room.id);
-  // }
-  // onChange(player: any): void {
-
-  // }
-
-  // requestSong(): void {
-  //   this.hubService.requestSearchYoutube(this.searchSnippet);
-  //   // this.youtubeService.loadVideo(this.searchSnippet);
-  //   // this.youtubeService.play();
-  // }
-
-  // addSongToQueue(searchResult: ISongSearchResult): void {
-  //   const request: ISongQueuedCreateRequest = {
-  //     applicationUserRoomId: this.roomHubService.applicationUserRoom.id,
-  //     applicationUserRoomCurrencyId: searchResult.applicationUserRoomCurrencyId,
-  //     quantityWagered: searchResult.quantityWagered,
-  //     songSearchResult: searchResult
-  //   };
-
-  //   this.roomHubService.createSongQueued(request);
-  //   this.songSearchResults = [];
-  // }
-
-  // addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrency): void {
-
-  // }
-
-  // playerState(): void {
-  //   let state = this.youtubeService.getPlayerState();
-  // }
 }

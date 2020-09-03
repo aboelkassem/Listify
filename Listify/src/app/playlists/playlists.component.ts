@@ -48,7 +48,7 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   createPlaylist(): void {
     // we need logic to test if can create a new playlist - if not, navigate to the cart
     // ToDo: this data need to come from the back end
-    if (this.hubService.applicationUser.playlistCountMax >= this.playlists.length) {
+    if (this.hubService.applicationUser.playlistCountMax > this.playlists.length) {
       const purchasablePlaylist: IPurchasableItem = {
         purchasableItemName: 'playlist',
         purchasableItemType: 1,
@@ -63,7 +63,7 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
 
       this.router.navigateByUrl('/cart');
     }else {
-      this.router.navigateByUrl('/playlists');
+      this.router.navigateByUrl('/playlist');
     }
   }
 

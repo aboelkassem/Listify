@@ -1,7 +1,7 @@
 <div class="mat-h3">Search and add song to playlist</div>
 <form (ngSubmit)="searchForSong()" #editForm="ngForm">
   <mat-form-field>
-    <input matInput appearance="outline" [(ngModel)]="searchSnippet" name="searchSnippet" placeholder="Enter songs to search ..." required />
+    <input matInput appearance="outline" search [(ngModel)]="searchSnippet" name="searchSnippet" placeholder="Enter songs to search ..." required />
   </mat-form-field>
   <button mat-mat-stroked-button color="primary" type="submit" [disabled] ="searchSnippet === '' || searchSnippet === undefined || searchSnippet === null">Search For Song</button>
   <button mat-mat-stroked-button color="accent" (click)="clearSearch()" type="button" [disabled] ="songSearchResults.length <= 0">Clear</button>
@@ -10,7 +10,7 @@
 <div class="row" *ngIf="songSearchResults.length > 0">
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
     <ng-container matColumnDef="songName">
-      <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+      <th mat-header-cell *matHeaderCellDef>Song Name</th>
       <td mat-cell *matCellDef="let element">
         <a href="https://youtu.be/{{element.videoId}}" target="_blank">{{element.songName}}</a>
       </td>

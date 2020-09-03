@@ -1,7 +1,7 @@
 <div class="mat-h3">Request a Song</div>
 
 <mat-form-field appearance="outline">
-  <input matInput (keyup.enter)="requestSong()" [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
+  <input matInput (keyup.enter)="requestSong()" search [(ngModel)]="searchSnippet" placeholder="Enter Search Keywords...."/>
 </mat-form-field>
 <button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="requestSong()">Request Song</button>
 <button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="clearSearch()">Clear Search</button>
@@ -9,7 +9,7 @@
 <div *ngIf="songSearchResults.length > 0">
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
     <ng-container matColumnDef="SongName">
-      <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+      <th mat-header-cell *matHeaderCellDef>Song Name</th>
       <td mat-cell *matCellDef="let element">
         <a href="https://youtu.be/{{element.videoId}}" target="_blank">{{element.songName}}</a>
       </td>

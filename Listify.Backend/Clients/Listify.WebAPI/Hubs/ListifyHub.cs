@@ -15,6 +15,7 @@ using AutoMapper;
 using Listify.Lib.DTOs;
 using Listify.BLL.Polls;
 using Listify.BLL.Events.Args;
+using System.Collections.Generic;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -42,7 +43,10 @@ namespace Listify.WebAPI.Hubs
             if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
-                _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
+                _pingPoll.PollingEvent += async (s, e) =>
+                {
+                    await OnPingPollEvent(s, e);
+                };
             }
         }
 
@@ -161,6 +165,8 @@ namespace Listify.WebAPI.Hubs
                     if (userId != Guid.Empty)
                     {
                         var playlist = await _services.ReadPlaylistAsync(guid, userId);
+                        playlist.SongsPlaylist = await _services.ReadSongsPlaylistAsync(playlist.Id);
+
                         await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
                     }
                 }

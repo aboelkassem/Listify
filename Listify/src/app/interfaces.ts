@@ -48,7 +48,7 @@ export interface IPlaylist {
   playlistName: string;
   isSelected: boolean;
   applicationUser: IApplicationUser;
-  songsPlaylists: ISongPlaylist[];
+  songsPlaylist: ISongPlaylist[];
 }
 
 export interface ISongRequest {

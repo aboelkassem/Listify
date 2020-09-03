@@ -74,12 +74,12 @@ namespace Listify.WebAPI
             pingPoll.Start(10000);
             services.AddSingleton(pingPoll);
             //services.AddSingleton<IBasePoll<PingPoll>, BasePoll<PingPoll>>();
-            //services.AddSingleton<IPingPoll, PingPoll>();
+            services.AddScoped<IPingPoll, PingPoll>();
 
             ICurrencyPoll currencyPoll = new CurrencyPoll(listifyService);
             currencyPoll.Start(5000);
             services.AddSingleton(currencyPoll);
-            //services.AddSingleton<ICurrencyPoll, CurrencyPoll>();
+            services.AddScoped<ICurrencyPoll, CurrencyPoll>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

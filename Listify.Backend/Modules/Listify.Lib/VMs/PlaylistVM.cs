@@ -13,7 +13,7 @@ namespace Listify.Lib.VMs
 
         public ApplicationUserDTO ApplicationUser { get; set; }
 
-        public ICollection<SongPlaylistDTO> SongPlaylists { get; set; } =
-            new List<SongPlaylistDTO>();
+        public ICollection<SongPlaylistVM> SongsPlaylist { get; set; } =
+            new List<SongPlaylistVM>();
     }
 }

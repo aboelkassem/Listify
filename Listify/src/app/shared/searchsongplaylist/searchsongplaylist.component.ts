@@ -27,8 +27,7 @@ export class SearchsongplaylistComponent implements OnInit, OnDestroy {
   private $songPlaylistSubscription: Subscription;
 
   constructor(
-    private hubService: HubService,
-    private router: Router) {
+    private hubService: HubService) {
       this.$searchYoutubeSubscription = this.hubService.getSearchYoutube().subscribe((songSearchResults: ISongSearchResults) => {
         this.songSearchResults = songSearchResults.results;
         this.dataSource.data = this.songSearchResults;

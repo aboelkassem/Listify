@@ -48,6 +48,7 @@ namespace Listify.DAL
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId);
         Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id);
+        Task<ApplicationUserRoomCurrencyVM[]> ReadApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId);
         Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid applicationUserRoomId, Guid currencyId);
         Task<ChatMessageVM> ReadChatMessageAsync(Guid id);
         Task<CurrencyVM> ReadCurrencyAsync(Guid id);

@@ -192,6 +192,19 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<ApplicationUserRoomCurrencyVM[]> ReadApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId)
+        {
+            var entities = await _context.ApplicationUsersRoomsCurrencies
+                .Include(s => s.ApplicationUserRoom)
+                .Where(s => s.ApplicationUserRoomId == applicationUserRoomId && s.Active)
+                .ToListAsync();
+
+            var vms = new List<ApplicationUserRoomCurrencyVM>();
+
+            entities.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
+
+            return vms.ToArray();
+        }
         public virtual async Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsCurrencies
@@ -449,7 +462,7 @@ namespace Listify.DAL
         public virtual async Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId)
         {
             var entities = await _context.Playlists
-                .Include(s => s.SongsPlaylists)
+                .Include(s => s.SongsPlaylist)
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
                 .ToListAsync();
 
@@ -462,7 +475,7 @@ namespace Listify.DAL
         public virtual async Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.Playlists
-                .Include(s => s.SongsPlaylists)
+                .Include(s => s.SongsPlaylist)
                 .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
             return entity != null ? _mapper.Map<PlaylistVM>(entity) : null;
@@ -678,6 +691,7 @@ namespace Listify.DAL
         public virtual async Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId)
         {
             var entities = await _context.SongsPlaylists
+                .Include(s => s.Song)
                 .Where(s => s.Playlist.Id == playlistId && s.Active)
                 .ToListAsync();
 
@@ -711,6 +725,8 @@ namespace Listify.DAL
         public virtual async Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id)
         {
             var entity = await _context.SongsPlaylists
+                .Include(s => s.Song)
+                .Include(s => s.Playlist)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             return entity != null ? _mapper.Map<SongPlaylistVM>(entity) : null;
@@ -726,6 +742,18 @@ namespace Listify.DAL
 
             if (playlist != null)
             {
+                if (song == null)
+                {
+                    var songVM = await CreateSongAsync(new SongCreateRequest
+                    {
+                        YoutubeId = request.SongSearchResult.VideoId,
+                        SongLengthSeconds = 0,
+                        SongName = request.SongSearchResult.SongName
+                    });
+
+                    song = _mapper.Map<Song>(songVM);
+                }
+
                 if (song != null)
                 {
                     // Create the Song

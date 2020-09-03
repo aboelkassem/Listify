@@ -31,12 +31,13 @@ export class PlaylistComponent implements OnInit, OnDestroy {
       this.playlistName = playlist.playlistName;
       this.isSelected = playlist.isSelected;
       this.playlist = playlist;
-      if (playlist.songsPlaylists) {
-        this.songsPlaylist = playlist.songsPlaylists;
+      if (playlist.songsPlaylist) {
+        this.songsPlaylist = playlist.songsPlaylist;
       }
     });
 
     this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe(songPlaylist => {
+      // this.hubService.requestSongsPlaylist(this.playlist.id);
       this.hubService.requestPlaylist(this.id);
     });
 
@@ -56,7 +57,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
    }
 
   ngOnInit(): void {
-    this.hubService.requestSongsPlaylist(this.playlist.id);
+    // this.hubService.requestSongsPlaylist(this.playlist.id);
   }
 
   ngOnDestroy(): void {

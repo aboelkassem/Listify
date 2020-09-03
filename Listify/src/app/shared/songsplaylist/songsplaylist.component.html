@@ -1,21 +1,21 @@
 <div class="mat-h3">Songs in playlist</div>
-<table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
+<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
   <ng-container matColumnDef="songName">
-    <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Name</th>
+    <th mat-header-cell *matHeaderCellDef>Song Name</th>
     <td mat-cell *matCellDef="let element">
       <a href="https://youtu.be/{{element.song.youtubeId}}" target="_blank">{{element.song.songName}}</a>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="songLengthSec">
-    <th mat-header-cell mat-sort-header *matHeaderCellDef>Song Length</th>
+    <th mat-header-cell *matHeaderCellDef>Song Length</th>
     <td mat-cell *matCellDef="let element">
       {{element.song.songLengthSec}} Seconds
     </td>
   </ng-container>
 
   <ng-container matColumnDef="removeSongPlaylist">
-    <th mat-header-cell mat-sort-header *matHeaderCellDef></th>
+    <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let element">
       <button mat-stroked-button color="accent" (click)="removeSongFromPlaylist(element)">Remove Song From Playlist</button>
     </td>

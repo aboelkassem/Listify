@@ -28,7 +28,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       this.messages.push(message);
       this.dataSource.data = this.messages;
 
-      this.receiveMessage(message);
+      // this.receiveMessage(message);
     });
    }
 
@@ -50,7 +50,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.message = '';
   }
 
-  receiveMessage(message: IChatMessage): void {
-    this.messages.push(message);
-  }
+  // receiveMessage(message: IChatMessage): void {
+  // }
 }
