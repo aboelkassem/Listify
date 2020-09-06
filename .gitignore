@@ -5,6 +5,7 @@
 
 # My-Ignoring-Files
 Listify.Backend/Domain/Listify.Paths/Globals.cs
+Listify/src/app/services/globals.service.ts
 
 # User-specific files
 *.rsuser

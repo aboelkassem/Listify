@@ -1,5 +1,6 @@
 import { IPurchasableItem } from './../interfaces';
 import { Injectable } from '@angular/core';
+import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 
 @Injectable({
   providedIn: 'root'
@@ -26,17 +27,77 @@ export class CartService {
     let total = 0;
 
     this.purchasableItems.forEach(purchasableItem => {
-      total += (purchasableItem.quantity * purchasableItem.unitCost);
+      let discountApplied = 1;
+      if (purchasableItem.discountApplied !== undefined || purchasableItem.discountApplied !== null) {
+        discountApplied -= purchasableItem.discountApplied;
+      }
+      total += (purchasableItem.quantity * purchasableItem.unitCost) *  (discountApplied);
     });
 
     return total;
   }
 
   updateQuantity(): void {
+    this.getSubtotal();
+  }
+
+  createPaypalTransaction(): IPurchaseUnit {
+    const subTotal = this.getSubtotal();
+    const itemList: ITransactionItem[] = [];
+
     this.purchasableItems.forEach(purchasableItem => {
-      purchasableItem.lineCost = purchasableItem.unitCost * purchasableItem.quantity;
+      const txItem: ITransactionItem = {
+        name: purchasableItem.purchasableItemName,
+        quantity: purchasableItem.quantity.toString(),
+        category: 'DIGITAL_GOODS',
+        unit_amount: {
+          currency_code: 'USD',
+          value: purchasableItem.unitCost.toString(),
+        },
+        tax: {
+          currency_code: 'USD',
+          value: '0'
+        },
+        sku: purchasableItem.id
+      };
+
+      itemList.push(txItem);
     });
 
-    this.getSubtotal();
+    const payPalTransaction: IPurchaseUnit = {
+      amount: {
+        currency_code: 'USD',
+        value: subTotal.toString(),
+        breakdown: {
+          item_total: {
+            currency_code: 'USD',
+            value: subTotal.toString()
+          },
+          tax_total: {
+            currency_code: 'USD',
+            value: '0.00'
+          },
+          shipping: {
+            currency_code: 'USD',
+            value: '0.00'
+          },
+          handling: {
+            currency_code: 'USD',
+            value: '0'
+          },
+          insurance: {
+            currency_code: 'USD',
+            value: '0'
+          },
+          shipping_discount: {
+            currency_code: 'USD',
+            value: '0'
+          },
+        }
+      },
+      items: itemList
+    };
+
+    return payPalTransaction;
   }
 }

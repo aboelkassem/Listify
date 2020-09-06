@@ -31,7 +31,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.requestedBy = this.songQueued.applicationUser.username;
         this.playValue = this.songQueued.weightedValue.toString();
 
-        // this.youtubeService.loadVideo(response.songQueued.song.youtubeId);
+        // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
         // this.youtubeService.play();
       });
 
@@ -78,6 +78,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       this.youtubeService.loadVideo(this.songQueued.song.youtubeId);
       this.youtubeService.play();
     }
+
   }
 
   onStateChange(event: any): void {

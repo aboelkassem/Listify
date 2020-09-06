@@ -38,6 +38,9 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
 
+        if (!this.roomHubService.applicationUserRoom.isOwner) {
+          this.roomHubService.requestServerState(this.roomHubService.room.id);
+        }
       });
 
       this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
@@ -47,10 +50,8 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
         this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
 
-        if (!this.roomHubService.applicationUserRoom.isOwner) {
-          this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
-          this.youtubeService.play();
-        }
+        this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+        this.youtubeService.play();
       });
 
       this.$pingSubscription = this.roomHubService.getPing().subscribe(ping => {

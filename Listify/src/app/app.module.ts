@@ -7,6 +7,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { NgxPayPalModule } from 'ngx-paypal';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -31,6 +32,8 @@ import { SearchsongplaylistComponent } from './shared/searchsongplaylist/searchs
 import { SongsplaylistComponent } from './shared/songsplaylist/songsplaylist.component';
 import { ConfirmationmodalComponent } from './shared/confirmationmodal/confirmationmodal.component';
 import { SearchsongrequestComponent } from './shared/searchsongrequest/searchsongrequest.component';
+import { PurchasableitemComponent } from './purchasableitem/purchasableitem.component';
+import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
 
 @NgModule({
   declarations: [
@@ -47,11 +50,13 @@ import { SearchsongrequestComponent } from './shared/searchsongrequest/searchson
     PlaylistsComponent,
     PlayerComponent,
     CartComponent,
-    SearchsongplaylistComponent,
     ApplicationuserroomcurrenciesComponent,
+    SearchsongplaylistComponent,
     SearchsongrequestComponent,
     SongsplaylistComponent,
-    ConfirmationmodalComponent
+    ConfirmationmodalComponent,
+    PurchasableitemComponent,
+    PurchasableitemsComponent
   ],
   entryComponents: [
     ConfirmationmodalComponent
@@ -66,6 +71,7 @@ import { SearchsongrequestComponent } from './shared/searchsongrequest/searchson
     BrowserAnimationsModule,
     MaterialModule,
     ToastrModule.forRoot(),
+    NgxPayPalModule
   ],
   providers: [],
   bootstrap: [AppComponent]

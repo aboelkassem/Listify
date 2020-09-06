@@ -165,7 +165,13 @@ namespace Listify.WebAPI.Hubs
             try
             {
                 var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-                
+
+                //if (applicationUserRoomConnection == null)
+                //{
+                //    await CheckConnectionAsync();
+                //    await OnConnectedAsync();
+                //}
+
                 if (applicationUserRoomConnection.ApplicationUserRoom.IsOwner)
                 {
                     var userId = await GetUserIdAsync();

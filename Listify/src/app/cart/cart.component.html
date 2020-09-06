@@ -21,7 +21,7 @@
     <ng-container matColumnDef="cost">
       <th mat-header-cell *matHeaderCellDef>Cost</th>
       <td mat-cell *matCellDef="let element">
-        ${{element.lineCost}}
+        ${{element.quantity * element.unitCost}}
       </td>
     </ng-container>
 
@@ -35,3 +35,4 @@
   <span>Nothing in Cart</span>
 </div>
 
+<ngx-paypal [config]="payPalConfig"></ngx-paypal>

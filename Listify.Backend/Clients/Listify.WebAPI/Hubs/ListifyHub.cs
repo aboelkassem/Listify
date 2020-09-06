@@ -370,6 +370,41 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
+        public async Task RequestPurchasableItems()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestPurchasableItem(Guid id)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task CreatePurchasableItem(PurchasableItemCreateRequest request)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+
         public async Task PingResponse()
         {
             var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);

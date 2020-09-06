@@ -154,6 +154,7 @@ export interface IPurchasableItem {
   quantity: number;
   unitCost: number;
   lineCost: number;
+  discountApplied: number;
 }
 
 export interface IConfirmationModalData {
