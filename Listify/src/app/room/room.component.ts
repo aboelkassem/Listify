@@ -38,6 +38,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
 
+        // deleted
         if (!this.roomHubService.applicationUserRoom.isOwner) {
           this.roomHubService.requestServerState(this.roomHubService.room.id);
         }
@@ -50,6 +51,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
         this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
 
+        // deleted
         this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
         this.youtubeService.play();
       });

@@ -37,6 +37,18 @@ namespace Listify.Domain.Lib.Enums
         Playing
     }
 
+    public enum PurchasableItemType
+    {
+        Playlist,
+        PlyalistSongs,
+        PurchaseCurrency
+    }
+
+    public enum PurchaseMethod
+    {
+        Paypal
+    }
+
     public enum EndpointType
     {
 

@@ -54,8 +54,9 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
         purchasableItemType: 1,
         quantity: 1,
         unitCost: 1,
-        lineCost: 1 * 1,
-        id: ''
+        id: '',
+        discountApplied: 1,
+        imageUri: ''
       };
       this.toastrService.success('Added 1 playlist to your cart.', 'Added to Cart');
 

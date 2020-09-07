@@ -31,6 +31,9 @@ namespace Listify.Domain.Lib.Entities
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
 
+        public ICollection<Purchase> Purchases { get; set; } =
+            new List<Purchase>();
+
         public ICollection<LogAPI> LogsAPI { get; set; } =
             new List<LogAPI>();
 

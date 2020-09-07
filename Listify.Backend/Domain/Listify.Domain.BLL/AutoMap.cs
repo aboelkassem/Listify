@@ -51,6 +51,20 @@ namespace Listify.Domain.BLL
                 c.CreateMap<PlaylistVM, PlaylistDTO>().ReverseMap();
                 c.CreateMap<PlaylistCreateRequest, Playlist>();
 
+                c.CreateMap<PurchasableItem, PurchasableItemDTO>().ReverseMap();
+                c.CreateMap<PurchasableItem, PurchasableItemVM>().ReverseMap();
+                c.CreateMap<PurchasableItemVM, PurchasableItemDTO>().ReverseMap();
+                c.CreateMap<PurchasableItemCreateRequest, PurchasableItem>();
+
+                c.CreateMap<Purchase, PurchaseDTO>().ReverseMap();
+                c.CreateMap<Purchase, PurchaseVM>().ReverseMap();
+                c.CreateMap<PurchaseVM, PurchaseDTO>().ReverseMap();
+                c.CreateMap<PurchaseCreateRequest, Purchase>();
+
+                c.CreateMap<PurchasePurchasableItem, PurchasePurchasableItemDTO>().ReverseMap();
+                c.CreateMap<PurchasePurchasableItem, PurchasePurchasableItemVM>().ReverseMap();
+                c.CreateMap<PurchasePurchasableItemVM, PurchasePurchasableItemDTO>().ReverseMap();
+
                 c.CreateMap<Room, RoomDTO>().ReverseMap();
                 c.CreateMap<Room, RoomVM>().ReverseMap();
                 c.CreateMap<RoomVM, RoomDTO>().ReverseMap();

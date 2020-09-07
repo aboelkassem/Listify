@@ -17,7 +17,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
   displayedColumns: string[] = ['currencyName', 'quantity', 'purchaseCurrency'];
   dataSource = new MatTableDataSource<IApplicationUserRoomCurrency>();
 
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = this.roomHubService.applicationUserRoomCurrencies;
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
 
   $roomReceivedSubscription: Subscription;
   $applicationUserRoomCurrencySubscription: Subscription;
@@ -57,7 +57,8 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
       purchasableItemType: 2,
       quantity: 5,
       unitCost: 5,
-      lineCost: 5 * 5
+      discountApplied: 1,
+      imageUri: ''
     };
 
     this.cartService.addPurchasableItemToCart(item);

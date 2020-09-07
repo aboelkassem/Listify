@@ -1290,6 +1290,156 @@ namespace Listify.DAL
             return false;
         }
 
+        public virtual async Task<ICollection<PurchasableItemDTO>> ReadPurchasableItemsAsync()
+        {
+            var purchasablesItems = await _context.PurchasableItems
+                .Where(s => s.Active)
+                .ToListAsync();
+
+            var dtos = new List<PurchasableItemDTO>();
+
+            purchasablesItems.ForEach(s => dtos.Add(_mapper.Map<PurchasableItemDTO>(s)));
+
+            return dtos;
+        }
+        public virtual async Task<PurchasableItemVM> ReadPurchasableItemAsync(Guid id)
+        {
+            var entity = await _context.PurchasableItems
+                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+            return entity != null ? _mapper.Map<PurchasableItemVM>(entity) : null;
+        }
+        public virtual async Task<PurchasableItemVM> CreatePurchasableItemAsync(PurchasableItemCreateRequest request)
+        {
+            var entity = _mapper.Map<PurchasableItem>(request);
+
+            for (int i = 0; i < Enum.GetNames(typeof(PurchasableItemType)).Length; i++)
+            {
+                if (request.PurchasableItemType == ((PurchasableItemType)i).ToString())
+                {
+                    entity.PurchasableItemType = (PurchasableItemType)i;
+                    break;
+                }
+            }
+
+            _context.PurchasableItems.Add(entity);
+
+            return await _context.SaveChangesAsync() > 0 ? await ReadPurchasableItemAsync(entity.Id) : null;
+        }
+        public virtual async Task<PurchasableItemVM> UpdatePurchasableItemAsync(PurchasableItemCreateRequest request)
+        {
+            var entity = await _context.PurchasableItems
+                .FirstOrDefaultAsync(s => s.Id == request.Id);
+
+            _mapper.Map(request, entity);
+
+            _context.Entry(entity).State = EntityState.Modified;
+
+            return await _context.SaveChangesAsync() > 0 ? await ReadPurchasableItemAsync(entity.Id) : null;
+        }
+
+        public virtual async Task<bool> DeletePurchasableItemAsync(Guid id, Guid applicationUserId)
+        {
+            var entity = await _context.PurchasableItems
+                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+            if (entity != null)
+            {
+                entity.Active = false;
+                _context.Entry(entity).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public virtual async Task<ICollection<PurchaseDTO>> ReadPurchasesAsync()
+        {
+            var purchases = await _context.Purchases
+                .Where(s => s.Active)
+                .OrderByDescending(s => s.TimeStamp)
+                .ThenByDescending(s => s.AmountCharged)
+                .ToListAsync();
+
+            var dtos = new List<PurchaseDTO>();
+
+            purchases.ForEach(s => dtos.Add(_mapper.Map<PurchaseDTO>(s)));
+
+            return dtos;
+        }
+        public virtual async Task<ICollection<PurchaseDTO>> ReadPurchasesAsync(Guid applicationUserId)
+        {
+            var purchases = await _context.Purchases
+                .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
+                .OrderByDescending(s => s.TimeStamp)
+                .ThenByDescending(s => s.AmountCharged)
+                .ToListAsync();
+
+            var dtos = new List<PurchaseDTO>();
+
+            purchases.ForEach(s => dtos.Add(_mapper.Map<PurchaseDTO>(s)));
+
+            return dtos;
+        }
+        public virtual async Task<PurchaseVM> ReadPurchaseAsync(Guid id, Guid applicationUserId)
+        {
+            var entity = await _context.Purchases
+                .FirstOrDefaultAsync(s => s.Id == id &&
+                    s.ApplicationUserId == applicationUserId
+                    && s.Active);
+
+            return entity != null ? _mapper.Map<PurchaseVM>(entity) : null;
+        }
+        public virtual async Task<PurchaseVM> CreatePurchaseAsync(PurchaseCreateRequest request, Guid applicationUserId)
+        {
+            var applicationUser = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+
+            if (applicationUser != null)
+            {
+                var entity = new Purchase
+                {
+                    Active = true,
+                    AmountCharged = request.AmountCharged,
+                    ApplicationUserId = applicationUserId,
+                    PurchaseMethod = request.PurchaseMethod,
+                    Subtotal = request.Subtotal
+                };
+
+                _context.Purchases.Add(entity);
+                
+                foreach (var purchasableItemId in request.PurchasableItemsIds)
+                {
+                    var purchasableItem = await _context.PurchasableItems
+                        .FirstOrDefaultAsync(s => s.Id == purchasableItemId && s.Active);
+
+                    if (purchasableItem != null)
+                    {
+                        _context.PurchasesPurchasableItems.Add(new PurchasePurchasableItem
+                        {
+                            PurchasableItem = purchasableItem,
+                            Purchase = entity
+                        });
+                    }
+                    else
+                    {
+                        // Error if not sending the correct item
+                        return null;
+                    }
+                }
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadPurchaseAsync(entity.Id, applicationUserId);
+                }
+            }
+            return null;
+        }
+
         public virtual async Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet)
         {
             try

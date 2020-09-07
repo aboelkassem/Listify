@@ -21,6 +21,9 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<LogError> LogsErrors { get; set; }
         public virtual DbSet<LogAPI> LogsAPI { get; set; }
         public virtual DbSet<Playlist> Playlists { get; set; }
+        public virtual DbSet<PurchasableItem> PurchasableItems { get; set; }
+        public virtual DbSet<Purchase> Purchases { get; set; }
+        public virtual DbSet<PurchasePurchasableItem> PurchasesPurchasableItems { get; set; }
         public virtual DbSet<Room> Rooms { get; set; }
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<SongPlaylist> SongsPlaylists { get; set; }

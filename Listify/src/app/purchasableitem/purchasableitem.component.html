@@ -1,1 +1,38 @@
-<p>purchasableitem works!</p>
+<form class="purchasableItems-container" (ngSubmit)="savePurchasableItem()" #editForm="ngForm">
+  <mat-form-field>
+    <input matInput id="purchasableItemName" name="purchasableItemName" placeholder="Purchasable Item Name" [(ngModel)]="purchasableItemName" required>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-select [(ngModel)]="purchasableItemType">
+      <mat-option *ngFor="let purchasableItemType of purchasableItemTypes; let p = index" [value]="p">
+        {{purchasableItemType}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input matInput id="quantity" name="quantity" placeholder="Quantity:" [(ngModel)]="quantity" required>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input matInput id="unitCost" name="unitCost" placeholder="Unit Cost:" [(ngModel)]="unitCost" required>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input matInput id="discountApplied" name="discountApplied" placeholder="Discount Applied:" [(ngModel)]="discountApplied" required>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input matInput id="imageUri" name="imageUri" placeholder="ImageUri:" [(ngModel)]="imageUri" required>
+  </mat-form-field>
+
+  <mat-form-field>
+    <img *ngIf="imageUri !== undefined || imageUri !== null || imageUri !== ''" [src]="imageUri" [alt]="purchasableItemName" />
+  </mat-form-field>
+
+  <div>
+    <button mat-stroked-button color="default" type="button" id="back" routerLink="/purchasableItems">Back</button>
+    <button mat-stroked-button color="primary" type="submit" id="save" [disabled]="!editForm.form.valid">Save</button>
+  </div>
+</form>

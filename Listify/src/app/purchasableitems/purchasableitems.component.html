@@ -1,1 +1,54 @@
-<p>purchasableitems works!</p>
+<button mat-stroked-button color="primary" [routerLink]="['/purchasableItem']">Create New Purchasable Item</button>
+
+<div class="row" *ngIf="purchasableItems.length > 0">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="purchasableItemName">
+      <th mat-header-cell *matHeaderCellDef>Name: </th>
+      <td mat-cell *matCellDef="let element">
+        <a [routerLink]="['/purchasableItem', element.id]">{{element.purchasableItemName}}</a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="purchasableItemType">
+      <th mat-header-cell *matHeaderCellDef>Item Type: </th>
+      <td mat-cell *matCellDef="let element">
+        {{getPurchasableItemsTypes()[element.purchasableItemType]}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Quantity: </th>
+      <td mat-cell *matCellDef="let element">
+        {{element.quantity}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="unitCost">
+      <th mat-header-cell *matHeaderCellDef>Unit Cost: </th>
+      <td mat-cell *matCellDef="let element">
+        {{element.unitCost}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="discountApplied">
+      <th mat-header-cell *matHeaderCellDef>Discount: </th>
+      <td mat-cell *matCellDef="let element">
+        {{element.discountApplied}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="image">
+      <th mat-header-cell *matHeaderCellDef>Image: </th>
+      <td mat-cell *matCellDef="let element">
+        <img *ngIf="element.imageUri !== undefined || element.imageUri !== null || element.imageUri !== ''" [src]="element.imageUri" [alt]="element.purchasableItemName" />
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>
+
+<div class="row" *ngIf="purchasableItems.length <= 0">
+  <span>No Purchasable Items yet ...</span>
+</div>

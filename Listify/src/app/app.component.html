@@ -12,9 +12,10 @@
         <mat-list-item routerLink="/rooms"><mat-icon mat-list-icon>room</mat-icon>Rooms</mat-list-item>
         <mat-list-item routerLink="/playlists"><mat-icon mat-list-icon>playlist_play</mat-icon>Playlist</mat-list-item>
         <mat-list-item routerLink="/currencies"><mat-icon mat-list-icon>library_music</mat-icon>Currencies</mat-list-item>
+        <mat-list-item routerLink="/purchasableItems"><mat-icon mat-list-icon>attach_money</mat-icon>Purchasable Items</mat-list-item>
         <mat-list-item routerLink="/account"><mat-icon mat-list-icon>account_box</mat-icon>Account</mat-list-item>
         <mat-list-item routerLink="/cart"><mat-icon mat-list-icon>shopping_cart</mat-icon>Cart</mat-list-item>
-        <mat-list-item routerLink="/cart" (click)="logout()"><mat-icon mat-list-icon>exit_to_app</mat-icon>Logout</mat-list-item>
+        <mat-list-item (click)="logout()"><mat-icon mat-list-icon>exit_to_app</mat-icon>Logout</mat-list-item>
       </mat-list>
     </mat-sidenav>
     <mat-sidenav-content>

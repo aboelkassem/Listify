@@ -374,7 +374,8 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-
+                var purchasableItems = await _services.ReadPurchasableItemsAsync();
+                await Clients.Caller.SendAsync("ReceivePurchasableItems", purchasableItems);
             }
             catch (Exception ex)
             {
@@ -385,7 +386,8 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-
+                var purchasableItem = await _services.ReadPurchasableItemAsync(id);
+                await Clients.Caller.SendAsync("ReceivePurchasableItem", purchasableItem);
             }
             catch (Exception ex)
             {
@@ -396,7 +398,11 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
+                PurchasableItemVM purchasableItem = request.Id == Guid.Empty
+                    ? await _services.CreatePurchasableItemAsync(request)
+                    : await _services.UpdatePurchasableItemAsync(request);
 
+                await Clients.Caller.SendAsync("ReceivePurchasableItem", purchasableItem);
             }
             catch (Exception ex)
             {

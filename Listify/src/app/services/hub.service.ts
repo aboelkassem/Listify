@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -26,6 +26,8 @@ export class HubService {
   $songsPlaylistReceived = new Subject<ISongPlaylist[]>();
   $searchYoutubeReceived = new Subject<ISongSearchResults>();
   $applicationUserReceived = new Subject<IApplicationUser>();
+  $purchasableItemsReceived = new Subject<IPurchasableItem[]>();
+  $purchasableItemReceived = new Subject<IPurchasableItem>();
   $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
 
@@ -88,6 +90,16 @@ export class HubService {
 
       this._hubConnection.on('ReceiveSearchYoutube', (responses: ISongSearchResults) => {
         this.$searchYoutubeReceived.next(responses);
+      });
+
+      this._hubConnection.on('ReceivePurchasableItems', (purchasableItems: IPurchasableItem[]) => {
+        this.$purchasableItemsReceived.next(purchasableItems);
+      });
+
+      this._hubConnection.on('ReceivePurchasableItem', (purchasableItem: IPurchasableItem) => {
+        this.$purchasableItemReceived.next(purchasableItem);
+
+        this.requestPurchasableItems();
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -271,6 +283,23 @@ export class HubService {
     }
   }
 
+  requestPurchasableItems(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestPurchasableItems');
+    }
+  }
+
+  requestPurchasableItem(id: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestPurchasableItem', id);
+    }
+  }
+
+  savePurchasableItem(purchasableItem: IPurchasableItem): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('CreatePurchasableItem', purchasableItem);
+    }
+  }
 
   getApplicationUser(): Observable<IApplicationUser> {
     return this.$applicationUserReceived.asObservable();
@@ -310,6 +339,14 @@ export class HubService {
 
   getSearchYoutube(): Observable<ISongSearchResults> {
     return this.$searchYoutubeReceived.asObservable();
+  }
+
+  getPurchasableItems(): Observable<IPurchasableItem[]> {
+    return this.$purchasableItemsReceived.asObservable();
+  }
+
+  getPurchasableItem(): Observable<IPurchasableItem> {
+    return this.$purchasableItemReceived.asObservable();
   }
 
   getPing(): Observable<string> {

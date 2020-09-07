@@ -3,6 +3,10 @@
   flex: 1 1 100%;
 }
 
+.mat-column-itemName {
+  padding: 0px 100px 0px 0px;
+}
+
 .mat-column-quantity {
   padding: 0px 60px 0px 20px;
 }

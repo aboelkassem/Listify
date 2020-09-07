@@ -85,5 +85,16 @@ namespace Listify.DAL
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections();
         Task RestartSongPlaylistCountAsync(Guid applicationUserId);
         Task<bool> WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request);
+
+        Task<ICollection<PurchaseDTO>> ReadPurchasesAsync();
+        Task<ICollection<PurchaseDTO>> ReadPurchasesAsync(Guid applicationUserId);
+        Task<PurchaseVM> ReadPurchaseAsync(Guid id, Guid applicationUserId);
+        Task<PurchaseVM> CreatePurchaseAsync(PurchaseCreateRequest request, Guid applicationUserId);
+
+        Task<ICollection<PurchasableItemDTO>> ReadPurchasableItemsAsync();
+        Task<PurchasableItemVM> ReadPurchasableItemAsync(Guid id);
+        Task<PurchasableItemVM> CreatePurchasableItemAsync(PurchasableItemCreateRequest request);
+        Task<PurchasableItemVM> UpdatePurchasableItemAsync(PurchasableItemCreateRequest request);
+        Task<bool> DeletePurchasableItemAsync(Guid id, Guid applicationUserId);
     }
 }

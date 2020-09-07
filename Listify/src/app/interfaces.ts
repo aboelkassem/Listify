@@ -144,16 +144,20 @@ export interface IWagerQuantitySongQueuedRequest {
 
 export interface IPurchase {
   id: string;
+  purchaseMethod: number;
+  subtotal: number;
+  amountCharged: number;
+  applicationUser: IApplicationUser;
   purchasableItems: IPurchasableItem[];
 }
 
 export interface IPurchasableItem {
   id: string;
   purchasableItemName: string;
-  purchasableItemType: number;
+  purchasableItemType: string;
   quantity: number;
   unitCost: number;
-  lineCost: number;
+  imageUri: string;
   discountApplied: number;
 }
 
