@@ -154,13 +154,30 @@ export interface IPurchase {
 export interface IPurchasableItem {
   id: string;
   purchasableItemName: string;
-  purchasableItemType: string;
+  purchasableItemType: number;
   quantity: number;
   unitCost: number;
   imageUri: string;
   discountApplied: number;
 }
 
+export interface IPurchasableLineItem extends IPurchasableItem {
+  orderQuantity: number;
+}
+
+export interface IPurchasableItemCurrency extends IPurchasableItem {
+  currency: ICurrency;
+}
+
 export interface IConfirmationModalData {
   isConfirmed: boolean;
+}
+
+export interface IInjectableComponent{
+  type: string;
+  object: any;
+}
+
+export interface IContentComponent {
+  data: any;
 }

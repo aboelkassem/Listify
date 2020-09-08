@@ -26,14 +26,14 @@
     <ng-container matColumnDef="unitCost">
       <th mat-header-cell *matHeaderCellDef>Unit Cost: </th>
       <td mat-cell *matCellDef="let element">
-        {{element.unitCost}}
+        {{element.unitCost | currency}}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="discountApplied">
       <th mat-header-cell *matHeaderCellDef>Discount: </th>
       <td mat-cell *matCellDef="let element">
-        {{element.discountApplied}}
+        {{element.discountApplied | percent}}
       </td>
     </ng-container>
 
@@ -41,6 +41,13 @@
       <th mat-header-cell *matHeaderCellDef>Image: </th>
       <td mat-cell *matCellDef="let element">
         <img *ngIf="element.imageUri !== undefined || element.imageUri !== null || element.imageUri !== ''" [src]="element.imageUri" [alt]="element.purchasableItemName" />
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="removePurchasableItem">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-stroked-button color="accent" (click)="removePurchasableItem(element.id)">Remove Item</button>
       </td>
     </ng-container>
 

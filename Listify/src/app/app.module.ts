@@ -34,6 +34,7 @@ import { ConfirmationmodalComponent } from './shared/confirmationmodal/confirmat
 import { SearchsongrequestComponent } from './shared/searchsongrequest/searchsongrequest.component';
 import { PurchasableitemComponent } from './purchasableitem/purchasableitem.component';
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
+import { PurchasableitemcurrencyComponent } from './purchasableitemcurrency/purchasableitemcurrency.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.c
     SongsplaylistComponent,
     ConfirmationmodalComponent,
     PurchasableitemComponent,
-    PurchasableitemsComponent
+    PurchasableitemsComponent,
+    PurchasableitemcurrencyComponent
   ],
   entryComponents: [
     ConfirmationmodalComponent

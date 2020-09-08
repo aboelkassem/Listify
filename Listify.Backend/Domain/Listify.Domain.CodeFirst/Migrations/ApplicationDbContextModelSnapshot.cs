@@ -335,7 +335,7 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PurchasableItems");
+                    b.ToTable("PurchasableItems","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Purchase", b =>
@@ -366,7 +366,7 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasIndex("ApplicationUserId");
 
-                    b.ToTable("Purchases");
+                    b.ToTable("Purchases","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchasePurchasableItem", b =>
@@ -393,7 +393,7 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasIndex("PurchaseId");
 
-                    b.ToTable("PurchasesPurchasableItems");
+                    b.ToTable("PurchasePurchasableItems","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Room", b =>

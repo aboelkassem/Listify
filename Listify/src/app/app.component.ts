@@ -40,6 +40,15 @@ export class AppComponent implements OnDestroy, OnInit {
       });
 
       this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
+
+        this.oauthService.tryLogin({
+          onTokenReceived: context => {
+            if (!this.hasLoadedProfile) {
+              this.hasLoadedProfile = true;
+              this.oauthService.loadUserProfile();
+            }
+          }
+        });
         const accessToken = this.oauthService.getAccessToken();
         if (accessToken !== undefined && accessToken !== null && accessToken !== '' && this.isAuthenticated && !this._hasConnectedToHub) {
           this._hasConnectedToHub = true;

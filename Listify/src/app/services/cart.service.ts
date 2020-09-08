@@ -1,4 +1,4 @@
-import { IPurchasableItem } from './../interfaces';
+import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 
@@ -7,37 +7,62 @@ import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 })
 export class CartService {
 
-  purchasableItems: IPurchasableItem[] = [];
+  purchasableLineItems: IPurchasableLineItem[] = [];
 
   constructor() { }
 
   addPurchasableItemToCart(purchasableItem: IPurchasableItem): void {
-    this.purchasableItems.push(purchasableItem);
+    const lineItem: IPurchasableLineItem = {
+      id: purchasableItem.id,
+      purchasableItemName: purchasableItem.purchasableItemName,
+      purchasableItemType: purchasableItem.purchasableItemType,
+      quantity: purchasableItem.quantity,
+      unitCost: purchasableItem.unitCost,
+      imageUri: purchasableItem.imageUri,
+      discountApplied: purchasableItem.discountApplied,
+      orderQuantity: 1
+    };
+
+    this.purchasableLineItems.push(lineItem);
+    this.getSubtotal();
   }
 
-  removePurchasableItemFromCart(purchasableItem: IPurchasableItem): void {
-    const itemInList = this.purchasableItems.filter(x => x.id === purchasableItem.id)[0];
+  removePurchasableItemFromCart(id: string): void {
+    const itemInList = this.purchasableLineItems.filter(x => x.id === id)[0];
 
-    if (itemInList !== undefined && itemInList !== null) {
-      this.purchasableItems.splice(this.purchasableItems.indexOf(itemInList), 1);
+    if (itemInList) {
+      this.purchasableLineItems.splice(this.purchasableLineItems.indexOf(itemInList), 1);
     }
+
+    this.getSubtotal();
   }
 
   getSubtotal(): number {
     let total = 0;
 
-    this.purchasableItems.forEach(purchasableItem => {
-      let discountApplied = 1;
-      if (purchasableItem.discountApplied !== undefined || purchasableItem.discountApplied !== null) {
-        discountApplied -= purchasableItem.discountApplied;
+    this.purchasableLineItems.forEach(purchasableLineItem => {
+      if (purchasableLineItem.orderQuantity <= 0) {
+        this.purchasableLineItems.splice(this.purchasableLineItems.indexOf(purchasableLineItem), 1);
+      }else {
+        let discountApplied = 1;
+        if (purchasableLineItem.discountApplied !== undefined || purchasableLineItem.discountApplied !== null) {
+          discountApplied -= purchasableLineItem.discountApplied;
+        }
+        total += purchasableLineItem.orderQuantity * purchasableLineItem.unitCost *  discountApplied;
       }
-      total += (purchasableItem.quantity * purchasableItem.unitCost) *  (discountApplied);
+
     });
 
     return total;
   }
 
   updateQuantity(): void {
+    this.purchasableLineItems.forEach(element => {
+      if (element.orderQuantity <= 0) {
+        this.purchasableLineItems.splice(this.purchasableLineItems.indexOf(element), 1);
+      }
+    });
+
     this.getSubtotal();
   }
 
@@ -45,20 +70,20 @@ export class CartService {
     const subTotal = this.getSubtotal();
     const itemList: ITransactionItem[] = [];
 
-    this.purchasableItems.forEach(purchasableItem => {
+    this.purchasableLineItems.forEach(purchasableLineItem => {
       const txItem: ITransactionItem = {
-        name: purchasableItem.purchasableItemName,
-        quantity: purchasableItem.quantity.toString(),
+        name: purchasableLineItem.purchasableItemName,
+        quantity: purchasableLineItem.quantity.toString(),
         category: 'DIGITAL_GOODS',
         unit_amount: {
           currency_code: 'USD',
-          value: purchasableItem.unitCost.toString(),
+          value: purchasableLineItem.unitCost.toString(),
         },
         tax: {
           currency_code: 'USD',
           value: '0'
         },
-        sku: purchasableItem.id
+        sku: purchasableLineItem.id
       };
 
       itemList.push(txItem);

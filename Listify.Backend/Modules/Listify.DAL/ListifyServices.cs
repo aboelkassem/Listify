@@ -1313,14 +1313,14 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<PurchasableItem>(request);
 
-            for (int i = 0; i < Enum.GetNames(typeof(PurchasableItemType)).Length; i++)
-            {
-                if (request.PurchasableItemType == ((PurchasableItemType)i).ToString())
-                {
-                    entity.PurchasableItemType = (PurchasableItemType)i;
-                    break;
-                }
-            }
+            //for (int i = 0; i < Enum.GetNames(typeof(PurchasableItemType)).Length; i++)
+            //{
+            //    if (request.PurchasableItemType == ((PurchasableItemType)i).ToString())
+            //    {
+            //        entity.PurchasableItemType = (PurchasableItemType)i;
+            //        break;
+            //    }
+            //}
 
             _context.PurchasableItems.Add(entity);
 

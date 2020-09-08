@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, IPurchasableItemCurrency } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -298,6 +298,30 @@ export class HubService {
   savePurchasableItem(purchasableItem: IPurchasableItem): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('CreatePurchasableItem', purchasableItem);
+    }
+  }
+
+  deletePurchasableItem(id: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('DeletePurchasableItem', id);
+    }
+  }
+
+  requestPurchasableItemCurrency(id: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestPurchasableItemCurrency', id);
+    }
+  }
+
+  savePurchasableItemCurrency(purchasableItemCurrency: IPurchasableItemCurrency): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('CreatePurchasableItemCurrency', purchasableItemCurrency);
+    }
+  }
+
+  deletePurchasableItemCurrency(id: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('DeletePurchasableItemCurrency', id);
     }
   }
 

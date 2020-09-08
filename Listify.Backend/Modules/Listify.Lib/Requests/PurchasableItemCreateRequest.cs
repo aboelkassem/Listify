@@ -8,10 +8,9 @@ namespace Listify.Lib.Requests
     {
         public Guid Id { get; set; }
         public string PurchasableItemName { get; set; }
-        public string PurchasableItemType { get; set; }
+        public PurchasableItemType PurchasableItemType { get; set; }
         public float Quantity { get; set; }
         public float UnitCost { get; set; }
         public string ImageUri { get; set; }
-        public float DiscountApplied { get; set; }
     }
 }

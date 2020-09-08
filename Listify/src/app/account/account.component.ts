@@ -22,7 +22,12 @@ export class AccountComponent implements OnInit, OnDestroy {
   playlistSongCount: number;
   playlistCount: number;
 
+  disableAttr = false;
+  private _nextRequestType: NextRequestType;
+
   $userInformationSubscription: Subscription;
+  $purchasableItemsSubscription: Subscription;
+  $purchasableItemSubscription: Subscription;
 
   constructor(
     private router: Router,
@@ -38,6 +43,30 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.playlistCount = user.playlistCountMax;
         this.roomCode = user.room.roomCode;
       });
+
+      this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
+        let selectedItem: IPurchasableItem;
+
+        switch (this._nextRequestType) {
+          case NextRequestType.Playlist:
+          // tslint:disable-next-line:max-line-length
+          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.getPurchasableItemType('Playlist') && x.quantity === 1)[0];
+          break;
+
+          case NextRequestType.PlaylistSongs:
+          // tslint:disable-next-line:max-line-length
+          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.getPurchasableItemType('PlaylistSongs') && x.quantity === 15)[0];
+          break;
+        }
+
+        if (selectedItem) {
+          this.hubService.requestPurchasableItem(selectedItem.id);
+        }
+      });
+
+      this.$purchasableItemSubscription = this.hubService.getPurchasableItem().subscribe(purchasableItem => {
+        this.addPurchasableItemToCard(purchasableItem);
+      });
     }
 
   ngOnInit(): void {
@@ -46,6 +75,13 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.$userInformationSubscription.unsubscribe();
+    this.$purchasableItemsSubscription.unsubscribe();
+    this.$purchasableItemSubscription.unsubscribe();
+  }
+
+  changeUsername(): void {
+    // just make the input field editable and save the request
+    this.disableAttr = true;
   }
 
   saveApplicationUserInfo(): void {
@@ -73,7 +109,7 @@ export class AccountComponent implements OnInit, OnDestroy {
 
           this.hubService.updateApplicationUserInformation(request);
 
-          this.router.navigate(['/account']);
+          this.router.navigate(['/', 'account']);
 
           this.toastrService.success('You have updated your account information successfully', 'Updated Successfully');
         }
@@ -81,41 +117,40 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
   }
 
-  addPlaylistCount(): void {
-    // this needs to come from backend
-    // pass here the purchasable object
-    const purchasableObject: IPurchasableItem = {
-      purchasableItemType: 0,
-      purchasableItemName: 'Add an additional Playlist',
-      id: '',
-      quantity: 1,
-      unitCost: 5,
-      lineCost: 1 * 5
-    };
-
-    this.cartService.addPurchasableItemToCart(purchasableObject);
-
-    this.router.navigate(['/cart']);
-  }
-
   addPlaylistSongCount(): void {
-    // this needs to come from backend
-    // pass here the purchasable object
-    const purchasableObject: IPurchasableItem = {
-      purchasableItemType: 1,
-      purchasableItemName: 'Add an additional song playlist slots',
-      id: '',
-      quantity: 1,
-      unitCost: 2,
-      lineCost: 1 * 2
-    };
-
-    this.cartService.addPurchasableItemToCart(purchasableObject);
-
-    this.router.navigate(['/cart']);
+    this._nextRequestType = NextRequestType.PlaylistSongs;
+    this.hubService.requestPurchasableItems();
   }
 
-  changeUsername(): void {
-
+  addPlaylistCount(): void {
+    this._nextRequestType = NextRequestType.Playlist;
+    this.hubService.requestPurchasableItems();
   }
+
+  addPurchasableItemToCard(purchasableItem: IPurchasableItem): void {
+    this.cartService.addPurchasableItemToCart(purchasableItem);
+
+    this.router.navigate(['/', 'cart']);
+
+    this.toastrService.success('You have added a ' + purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
+  }
+
+  getPurchasableItemType(type: string): number {
+    switch (type) {
+      case 'Playlist':
+        return 0;
+        break;
+      case 'PlaylistSongs':
+        return 1;
+        break;
+      case 'PurchaseCurrency':
+        return 2;
+        break;
+    }
+  }
+}
+
+enum NextRequestType {
+  Playlist,
+  PlaylistSongs
 }

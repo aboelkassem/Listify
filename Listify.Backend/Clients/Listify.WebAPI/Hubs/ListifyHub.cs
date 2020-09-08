@@ -398,7 +398,7 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                PurchasableItemVM purchasableItem = request.Id == Guid.Empty
+                var purchasableItem = request.Id == Guid.Empty
                     ? await _services.CreatePurchasableItemAsync(request)
                     : await _services.UpdatePurchasableItemAsync(request);
 
@@ -409,7 +409,58 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        public async Task DeletePurchasableItem(string id)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                if (Guid.TryParse(id, out var guid))
+                {
+                    if (await _services.DeletePurchasableItemAsync(guid, userId))
+                    {
+                        await Clients.Caller.SendAsync("ReceivePurchasableItem");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
+        //public async Task RequestPurchasableItemCurrency(Guid id)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
+        //public async Task CreatePurchasableItemCurrency(PurchasableItemCurrencyCreateRequest request)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
+        //public async Task DeletePurchasableItemCurrency(string id)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
 
         public async Task PingResponse()
         {

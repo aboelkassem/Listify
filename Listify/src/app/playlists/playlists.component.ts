@@ -51,7 +51,7 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
     if (this.hubService.applicationUser.playlistCountMax > this.playlists.length) {
       const purchasablePlaylist: IPurchasableItem = {
         purchasableItemName: 'playlist',
-        purchasableItemType: 1,
+        purchasableItemType: 0,
         quantity: 1,
         unitCost: 1,
         id: '',

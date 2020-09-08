@@ -1,10 +1,11 @@
 ﻿using Listify.Domain.Lib.Enums;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Listify.Domain.Lib.Entities
 {
+    [Table("Purchases", Schema = "Listify")]
     public class Purchase : BaseEntity
     {
         public PurchaseMethod PurchaseMethod { get; set; }

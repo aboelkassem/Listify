@@ -1,6 +1,7 @@
+import { IInjectableComponent, IContentComponent, ICurrency, IPurchasableItemCurrency } from './../interfaces';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ComponentFactoryResolver, ViewContainerRef } from '@angular/core';
 import { IPurchasableItem } from '../interfaces';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -20,8 +21,11 @@ export class PurchasableitemComponent implements OnInit, OnDestroy {
 
   purchasableItemTypes: string[] = [];
   purchasableItem: IPurchasableItem;
+  currencies: ICurrency[] = [];
+  currency: ICurrency;
 
   $purchasableItemSubscription: Subscription;
+  $currenciesSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
@@ -39,11 +43,15 @@ export class PurchasableitemComponent implements OnInit, OnDestroy {
       this.purchasableItem = purchasableItem;
       this.id = this.purchasableItem.id;
       this.purchasableItemName = this.purchasableItem.purchasableItemName;
-      this.purchasableItemType = this.purchasableItem.purchasableItemType;
+      this.purchasableItemType = this.getPurchasableItemsTypes()[this.purchasableItem.purchasableItemType];
       this.quantity = this.purchasableItem.quantity;
       this.unitCost = this.purchasableItem.unitCost;
       this.imageUri = this.purchasableItem.imageUri;
       this.discountApplied = this.purchasableItem.discountApplied;
+    });
+
+    this.$currenciesSubscription = this.hubService.getCurrencies().subscribe(currencies => {
+      this.currencies = currencies;
     });
   }
 
@@ -53,22 +61,60 @@ export class PurchasableitemComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.$purchasableItemSubscription.unsubscribe();
+    this.$currenciesSubscription.unsubscribe();
   }
 
   savePurchasableItem(): void {
-    const request: IPurchasableItem = {
-      id: this.id,
-      purchasableItemName: this.purchasableItemName,
-      purchasableItemType: this.purchasableItemType,
-      quantity: this.quantity,
-      unitCost: this.unitCost,
-      imageUri: this.imageUri,
-      discountApplied: this.discountApplied,
-    };
+    if (this.currency === undefined || this.currency === null) {
+      const request: IPurchasableItem = {
+        id: this.id,
+        purchasableItemName: this.purchasableItemName,
+        purchasableItemType: this.getPurchasableItemType(this.purchasableItemType),
+        quantity: this.quantity,
+        unitCost: this.unitCost,
+        imageUri: this.imageUri,
+        discountApplied: this.discountApplied,
+      };
 
-    this.hubService.savePurchasableItem(request);
+      this.hubService.savePurchasableItem(request);
+    }else {
+      const request: IPurchasableItemCurrency = {
+        id: this.id,
+        purchasableItemName: this.purchasableItemName,
+        purchasableItemType: this.getPurchasableItemType(this.purchasableItemType),
+        quantity: this.quantity,
+        unitCost: this.unitCost,
+        imageUri: this.imageUri,
+        discountApplied: this.discountApplied,
+        currency: this.currency
+      };
 
+      this.hubService.savePurchasableItemCurrency(request);
+    }
     this.router.navigateByUrl('/purchasableItems');
+  }
+
+  purchasableItemTypeChange(event: any): void {
+    if (event === 'PurchaseCurrency') {
+      this.hubService.requestCurrencies();
+    }else {
+      this.currencies = [];
+      this.currency = undefined;
+    }
+  }
+
+  getPurchasableItemType(type: string): number {
+    switch (type) {
+      case 'Playlist':
+        return 0;
+        break;
+      case 'PlaylistSongs':
+        return 1;
+        break;
+      case 'PurchaseCurrency':
+        return 2;
+        break;
+    }
   }
 
   getPurchasableItemsTypes(): string[] {

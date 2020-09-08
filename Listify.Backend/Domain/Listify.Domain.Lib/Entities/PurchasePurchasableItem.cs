@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Listify.Domain.Lib.Entities
 {
+    [Table("PurchasePurchasableItems", Schema = "Listify")]
     public class PurchasePurchasableItem : BaseEntity
     {
         public Guid PurchasableItemId { get; set; }

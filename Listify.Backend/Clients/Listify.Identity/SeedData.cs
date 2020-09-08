@@ -38,7 +38,7 @@ namespace Listify.Identity
                         Email = "mohamedabdelrahman972@gmail.com"
                     };
 
-                    var result = userMgr.CreateAsync(admin, "@Mm01127244130").Result;
+                    var result = userMgr.CreateAsync(admin, "asdklnAsdfio3w4895!").Result;
 
                     if (!result.Succeeded)
                     {

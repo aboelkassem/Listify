@@ -62,7 +62,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
     };
 
     this.cartService.addPurchasableItemToCart(item);
-    this.router.navigate(['/cart']);
+    this.router.navigate(['/', 'cart']);
 
   }
 }

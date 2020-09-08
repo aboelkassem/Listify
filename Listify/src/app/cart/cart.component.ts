@@ -1,10 +1,11 @@
 import { GlobalsService } from './../services/globals.service';
 import { Router } from '@angular/router';
-import { IPurchasableItem } from './../interfaces';
+import { IPurchasableLineItem } from './../interfaces';
 import { CartService } from './../services/cart.service';
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { IPayPalConfig, ICreateOrderRequest, IPurchaseUnit } from 'ngx-paypal';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-cart',
@@ -12,23 +13,23 @@ import { IPayPalConfig, ICreateOrderRequest, IPurchaseUnit } from 'ngx-paypal';
   styleUrls: ['./cart.component.css']
 })
 export class CartComponent implements OnInit {
-  displayedColumns: string[] = ['itemName', 'quantity', 'cost'];
-  dataSource = new MatTableDataSource<IPurchasableItem>();
+  displayedColumns: string[] = ['itemName', 'orderQuantity', 'cost', 'removeFromCart'];
+  dataSource = new MatTableDataSource<IPurchasableLineItem>();
 
   subTotal: number = this.cartService.getSubtotal();
-  purchasableItems: IPurchasableItem[] = this.cartService.purchasableItems;
+  purchasableLineItems: IPurchasableLineItem[] = this.cartService.purchasableLineItems;
 
   payPalConfig?: IPayPalConfig;
 
   constructor(
     private cartService: CartService,
-    private router: Router,
-    private globalsService: GlobalsService) {}
+    private globalsService: GlobalsService,
+    private toastrService: ToastrService) {}
 
   ngOnInit(): void {
-    this.dataSource.data = this.purchasableItems;
+    this.dataSource.data = this.purchasableLineItems;
 
-    if (this.purchasableItems.length > 0) {
+    if (this.purchasableLineItems.length > 0) {
       this.initPayPalConfig();
     }
   }
@@ -44,7 +45,7 @@ export class CartComponent implements OnInit {
         label: 'paypal',
         layout: 'vertical',
         shape: 'rect',
-        size: 'responsive'
+        size: 'large'
       },
       onApprove: (data, actions) => {
         console.log('onApprove - transaction was approved, but not authorized', data, actions);
@@ -77,7 +78,17 @@ export class CartComponent implements OnInit {
 
   updateQuantity(): void {
     this.cartService.updateQuantity();
-    this.router.navigate(['/cart']);
+    this.dataSource.data = this.purchasableLineItems;
+    this.subTotal = this.cartService.getSubtotal();
+  }
+
+  removeFromCart(id: string): void {
+    this.cartService.removePurchasableItemFromCart(id);
+    this.dataSource.data = this.purchasableLineItems;
+    this.subTotal = this.cartService.getSubtotal();
+
+    const selectedItem = this.purchasableLineItems.filter(x => x.id === id)[0];
+    this.toastrService.success('You have Removed ' + selectedItem.purchasableItemName + ' From your cart', 'Removed From Cart');
   }
 
   checkOut(): void {

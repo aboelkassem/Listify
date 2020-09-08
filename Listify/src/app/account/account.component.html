@@ -3,9 +3,9 @@
 <div >
   <form class="accountForm-container" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
     <mat-form-field>
-      <input matInput id="username" readonly name="username" placeholder="Username" [(ngModel)]="username" required>
-      <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="changeUsername()">Change Username</button>
+      <input matInput id="username" [disabled]="!disableAttr" name="username" placeholder="Username" [(ngModel)]="username" required>
     </mat-form-field>
+    <button type="button" [disabled]="disableAttr" mat-stroked-button appearance="outline" color="primary" type="button" (click)="changeUsername()">Change Username</button>
 
     <mat-form-field>
       <input matInput id="roomCode" name="roomCode" placeholder="Room Code" [(ngModel)]="roomCode" required>
@@ -14,13 +14,13 @@
     <mat-form-field>
       <input matInput id="playlistSongCount" name="playlistSongCount" placeholder="Playlist Songs Count" [(ngModel)]="playlistSongCount" disabled>
     </mat-form-field>
-    <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
+    <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
 
     <mat-form-field>
       <input matInput id="playlistCount" name="playlistCount" placeholder="Playlist Count" [(ngModel)]="playlistCount" disabled>
     </mat-form-field>
-    <button mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistCount()">Add Another Playlist</button>
+    <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistCount()">Add Another Playlist</button>
 
-    <button mat-stroked-button color="primary" type="submit" [disabled]="!accountForm.valid">Submit Changes</button>
+    <button mat-stroked-button color="primary" type="submit" [disabled]="!accountForm.valid || accountForm.dirty">Submit Changes</button>
   </form>
 </div>
