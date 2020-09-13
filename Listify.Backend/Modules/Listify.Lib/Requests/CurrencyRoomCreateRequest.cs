@@ -5,12 +5,13 @@ using System.Text;
 
 namespace Listify.Lib.Requests
 {
-    public class CurrencyCreateRequest
+    public class CurrencyRoomCreateRequest: BaseRequest
     {
         public Guid Id { get; set; }
+        public Guid RoomId { get; set; }
+        public Guid CurrencyId { get; set; }
+
         public string CurrencyName { get; set; }
-        public int Weight { get; set; }
-        public int QuantityIncreasePerTick { get; set; }
-        public int TimeSecBetweenTick { get; set; }
+        public DateTime TimestampLastUpdate { get; set; } = DateTime.UtcNow;
     }
 }

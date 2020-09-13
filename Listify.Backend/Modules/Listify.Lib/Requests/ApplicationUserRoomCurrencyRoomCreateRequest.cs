@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Listify.Lib.Requests
 {
-    public class ApplicationUserRoomCurrencyCreateRequest : BaseRequest
+    public class ApplicationUserRoomCurrencyRoomCreateRequest : BaseRequest
     {
         public int Quantity { get; set; }
 
         public Guid ApplicationUserRoomId { get; set; }
-        public Guid CurrencyId { get; set; }
+        public Guid CurrencyRoomId { get; set; }
     }
 }

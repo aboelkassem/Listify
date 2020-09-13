@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
@@ -14,10 +13,9 @@ namespace Listify.Domain.Lib.Entities
         public string CurrencyName { get; set; }
         public int Weight { get; set; }
         public int QuantityIncreasePerTick { get; set; }
-        public int TimeSecBetweenTick { get; set; }
-        public DateTime TimestampLastUpdated { get; set; } = DateTime.UtcNow;
+        public float TimeSecBetweenTick { get; set; }
 
-        public ICollection<ApplicationUserRoomCurrency> ApplicationUsersRoomsCurrencies { get; set; } =
-            new List<ApplicationUserRoomCurrency>();
+        public ICollection<CurrencyRoom> CurrenciesRoom { get; set; } =
+            new List<CurrencyRoom>();
     }
 }

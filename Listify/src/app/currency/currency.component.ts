@@ -25,12 +25,12 @@ export class CurrencyComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.currencySubscription = this.hubService.getCurrency().subscribe(currency => {
-      this.id = currency.id;
-      this.currencyName = currency.currencyName;
-      this.weight = currency.weight;
-      this.quantityIncreasePerTick = currency.quantityIncreasePerTick;
-      this.timeSecBetweenTick = currency.timeSecBetweenTick;
+    this.currencySubscription = this.hubService.getCurrencyRoom().subscribe(currencyRoom => {
+      this.id = currencyRoom.id;
+      this.currencyName = currencyRoom.currencyName;
+      this.weight = currencyRoom.currency.weight;
+      this.quantityIncreasePerTick = currencyRoom.currency.quantityIncreasePerTick;
+      this.timeSecBetweenTick = currencyRoom.currency.timeSecBetweenTick;
     });
 
     this.route.params.subscribe(params => {
@@ -63,7 +63,7 @@ export class CurrencyComponent implements OnInit, OnDestroy {
   }
 
   getCurrency(id: string): void {
-    this.hubService.requestCurrency(id);
+    this.hubService.requestCurrencyRoom(id);
   }
 
 }

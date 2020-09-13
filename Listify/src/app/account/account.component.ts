@@ -1,6 +1,6 @@
 import { ConfirmationmodalService } from './../services/confirmationmodal.service';
 import { Router } from '@angular/router';
-import { IApplicationUserRequest, IPurchasableItem } from './../interfaces';
+import { IApplicationUserRequest, IPurchasableItem, IPurchasableLineItem } from './../interfaces';
 import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -8,6 +8,7 @@ import { CartService } from '../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationmodalComponent } from '../shared/confirmationmodal/confirmationmodal.component';
+import { GlobalsService } from '../services/globals.service';
 
 @Component({
   selector: 'app-account',
@@ -19,8 +20,13 @@ export class AccountComponent implements OnInit, OnDestroy {
   id: string;
   username: string;
   roomCode: string;
+  roomTitle: string;
+  roomKey: string;
   playlistSongCount: number;
   playlistCount: number;
+  allowRequests: boolean;
+  isLocked: boolean;
+  isPublic: boolean;
 
   disableAttr = false;
   private _nextRequestType: NextRequestType;
@@ -33,6 +39,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     private router: Router,
     private hubService: HubService,
     private cartService: CartService,
+    private globalsService: GlobalsService,
     private toastrService: ToastrService,
     private confirmationModal: MatDialog,
     private confirmationModalService: ConfirmationmodalService) {
@@ -42,6 +49,11 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.playlistSongCount = user.playlistSongCount;
         this.playlistCount = user.playlistCountMax;
         this.roomCode = user.room.roomCode;
+        this.isLocked = user.room.isRoomLocked;
+        this.isPublic = user.room.isRoomPublic;
+        this.roomKey = user.room.roomKey;
+        this.roomTitle = user.room.roomTitle;
+        this.allowRequests = user.room.allowRequests;
       });
 
       this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
@@ -50,12 +62,12 @@ export class AccountComponent implements OnInit, OnDestroy {
         switch (this._nextRequestType) {
           case NextRequestType.Playlist:
           // tslint:disable-next-line:max-line-length
-          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.getPurchasableItemType('Playlist') && x.quantity === 1)[0];
+          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.globalsService.getPurchasableItemType('Playlist') && x.quantity === 1)[0];
           break;
 
           case NextRequestType.PlaylistSongs:
           // tslint:disable-next-line:max-line-length
-          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.getPurchasableItemType('PlaylistSongs') && x.quantity === 15)[0];
+          selectedItem = purchasableItems.filter(x => x.purchasableItemType === this.globalsService.getPurchasableItemType('PlaylistSongs') && x.quantity === 15)[0];
           break;
         }
 
@@ -65,7 +77,11 @@ export class AccountComponent implements OnInit, OnDestroy {
       });
 
       this.$purchasableItemSubscription = this.hubService.getPurchasableItem().subscribe(purchasableItem => {
-        this.addPurchasableItemToCard(purchasableItem);
+        const purchasableLineItem: IPurchasableLineItem = {
+          purchasableItem: purchasableItem,
+          orderQuantity: 1
+        };
+        this.addPurchasableItemToCard(purchasableLineItem);
       });
     }
 
@@ -87,7 +103,14 @@ export class AccountComponent implements OnInit, OnDestroy {
   saveApplicationUserInfo(): void {
 
     if (this.roomCode === undefined || this.roomCode === null || this.roomCode === '') {
-      this.toastrService.error('You have selected and invalid room code, please change the room code and try again', 'Invalid Room Code');
+      this.toastrService.error('You have selected and invalid room code, please change the room code and try to save again', 'Invalid Room Code');
+
+    }else if (this.roomTitle === undefined || this.roomTitle === null || this.roomTitle === '') {
+      this.toastrService.error('You have entered and invalid room Title, please change the room title and try to save again', 'Invalid Room Title');
+
+    }else if (this.isLocked && (this.roomKey === undefined || this.roomKey === null || this.roomKey === '')) {
+      this.toastrService.error('You have selected to lock the room but have not provided a room Key, please enter room key', 'Invalid Room Key');
+
     }else {
 
       this.confirmationModalService.setConfirmationModalMessage('update your account information');
@@ -102,9 +125,13 @@ export class AccountComponent implements OnInit, OnDestroy {
           const request: IApplicationUserRequest = {
             id: this.id,
             username: this.username,
-            playlistSongCount: this.playlistSongCount,
-            playlistCountMax: this.playlistCount,
-            roomCode: this.roomCode
+            roomCode: this.roomCode,
+            roomTitle: this.roomTitle,
+            roomKey: this.roomKey,
+            allowRequests: this.allowRequests,
+            isRoomLocked: this.isLocked,
+            isRoomPublic: this.isPublic,
+            chatColor: ''
           };
 
           this.hubService.updateApplicationUserInformation(request);
@@ -127,26 +154,13 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.hubService.requestPurchasableItems();
   }
 
-  addPurchasableItemToCard(purchasableItem: IPurchasableItem): void {
-    this.cartService.addPurchasableItemToCart(purchasableItem);
+  addPurchasableItemToCard(purchasableLineItem: IPurchasableLineItem): void {
+    this.cartService.addPurchasableItemToCart(purchasableLineItem);
 
     this.router.navigate(['/', 'cart']);
 
-    this.toastrService.success('You have added a ' + purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
-  }
-
-  getPurchasableItemType(type: string): number {
-    switch (type) {
-      case 'Playlist':
-        return 0;
-        break;
-      case 'PlaylistSongs':
-        return 1;
-        break;
-      case 'PurchaseCurrency':
-        return 2;
-        break;
-    }
+    // tslint:disable-next-line:max-line-length
+    this.toastrService.success('You have added a ' + purchasableLineItem.purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
   }
 }
 

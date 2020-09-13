@@ -32,9 +32,9 @@ import { SearchsongplaylistComponent } from './shared/searchsongplaylist/searchs
 import { SongsplaylistComponent } from './shared/songsplaylist/songsplaylist.component';
 import { ConfirmationmodalComponent } from './shared/confirmationmodal/confirmationmodal.component';
 import { SearchsongrequestComponent } from './shared/searchsongrequest/searchsongrequest.component';
-import { PurchasableitemComponent } from './purchasableitem/purchasableitem.component';
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
-import { PurchasableitemcurrencyComponent } from './purchasableitemcurrency/purchasableitemcurrency.component';
+import { RoomkeymodalComponent } from './shared/roomkeymodal/roomkeymodal.component';
+import { CheckoutComponent } from './checkout/checkout.component';
 
 @NgModule({
   declarations: [
@@ -56,12 +56,13 @@ import { PurchasableitemcurrencyComponent } from './purchasableitemcurrency/purc
     SearchsongrequestComponent,
     SongsplaylistComponent,
     ConfirmationmodalComponent,
-    PurchasableitemComponent,
     PurchasableitemsComponent,
-    PurchasableitemcurrencyComponent
+    RoomkeymodalComponent,
+    CheckoutComponent,
   ],
   entryComponents: [
-    ConfirmationmodalComponent
+    ConfirmationmodalComponent,
+    RoomkeymodalComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,5 +1,4 @@
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
-import { PurchasableitemComponent } from './purchasableitem/purchasableitem.component';
 import { CurrencyComponent } from './currency/currency.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
 import { HomeComponent } from './home/home.component';
@@ -22,8 +21,6 @@ const routes: Routes = [
   {path: 'currency', component: CurrencyComponent},
   {path: 'currency/:id', component: CurrencyComponent},
   {path: 'currencies', component: CurrenciesComponent},
-  {path: 'purchasableItem', component: PurchasableitemComponent},
-  {path: 'purchasableItem/:id', component: PurchasableitemComponent},
   {path: 'purchasableItems', component: PurchasableitemsComponent},
   {path: 'account', component: AccountComponent},
   {path: 'cart', component: CartComponent},

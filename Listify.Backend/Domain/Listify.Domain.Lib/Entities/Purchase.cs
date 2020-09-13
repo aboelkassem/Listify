@@ -15,7 +15,7 @@ namespace Listify.Domain.Lib.Entities
         public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
 
-        public ICollection<PurchasePurchasableItem> PurchasePurchasableItems { get; set; } =
-            new List<PurchasePurchasableItem>();
+        public ICollection<PurchaseLineItem> PurchaseLineItems { get; set; } =
+            new List<PurchaseLineItem>();
     }
 }

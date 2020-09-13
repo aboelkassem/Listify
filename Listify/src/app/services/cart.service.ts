@@ -1,4 +1,4 @@
-import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
+import { IPurchasableItem, IPurchasableLineItem, IPurchase } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 
@@ -8,27 +8,21 @@ import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 export class CartService {
 
   purchasableLineItems: IPurchasableLineItem[] = [];
+  purchase: IPurchase;
 
   constructor() { }
 
-  addPurchasableItemToCart(purchasableItem: IPurchasableItem): void {
-    const lineItem: IPurchasableLineItem = {
-      id: purchasableItem.id,
-      purchasableItemName: purchasableItem.purchasableItemName,
-      purchasableItemType: purchasableItem.purchasableItemType,
-      quantity: purchasableItem.quantity,
-      unitCost: purchasableItem.unitCost,
-      imageUri: purchasableItem.imageUri,
-      discountApplied: purchasableItem.discountApplied,
-      orderQuantity: 1
-    };
+  setPurchase(): void {
 
-    this.purchasableLineItems.push(lineItem);
+  }
+
+  addPurchasableItemToCart(purchasableLineItem: IPurchasableLineItem): void {
+    this.purchasableLineItems.push(purchasableLineItem);
     this.getSubtotal();
   }
 
   removePurchasableItemFromCart(id: string): void {
-    const itemInList = this.purchasableLineItems.filter(x => x.id === id)[0];
+    const itemInList = this.purchasableLineItems.filter(x => x.purchasableItem.id === id)[0];
 
     if (itemInList) {
       this.purchasableLineItems.splice(this.purchasableLineItems.indexOf(itemInList), 1);
@@ -45,10 +39,11 @@ export class CartService {
         this.purchasableLineItems.splice(this.purchasableLineItems.indexOf(purchasableLineItem), 1);
       }else {
         let discountApplied = 1;
-        if (purchasableLineItem.discountApplied !== undefined || purchasableLineItem.discountApplied !== null) {
-          discountApplied -= purchasableLineItem.discountApplied;
+        if (purchasableLineItem.purchasableItem.discountApplied !== undefined ||
+          purchasableLineItem.purchasableItem.discountApplied !== null) {
+          discountApplied -= purchasableLineItem.purchasableItem.discountApplied;
         }
-        total += purchasableLineItem.orderQuantity * purchasableLineItem.unitCost *  discountApplied;
+        total += purchasableLineItem.orderQuantity * purchasableLineItem.purchasableItem.unitCost *  discountApplied;
       }
 
     });
@@ -72,18 +67,18 @@ export class CartService {
 
     this.purchasableLineItems.forEach(purchasableLineItem => {
       const txItem: ITransactionItem = {
-        name: purchasableLineItem.purchasableItemName,
-        quantity: purchasableLineItem.quantity.toString(),
+        name: purchasableLineItem.purchasableItem.purchasableItemName,
+        quantity: purchasableLineItem.orderQuantity.toString(),
         category: 'DIGITAL_GOODS',
         unit_amount: {
           currency_code: 'USD',
-          value: purchasableLineItem.unitCost.toString(),
+          value: purchasableLineItem.purchasableItem.unitCost.toString(),
         },
         tax: {
           currency_code: 'USD',
           value: '0'
         },
-        sku: purchasableLineItem.id
+        sku: purchasableLineItem.purchasableItem.id
       };
 
       itemList.push(txItem);
@@ -124,5 +119,9 @@ export class CartService {
     };
 
     return payPalTransaction;
+  }
+
+  clearCart(): void {
+
   }
 }

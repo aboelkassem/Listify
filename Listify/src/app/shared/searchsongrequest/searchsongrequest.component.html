@@ -29,8 +29,8 @@
       <td mat-cell *matCellDef="let element">
         <mat-form-field>
           <mat-select [(ngModel)]="element.applicationUserRoomCurrencyId">
-            <mat-option *ngFor="let applicationUserRoomCurrency of applicationUserRoomCurrencies; let p = index" [value]="applicationUserRoomCurrency.id">
-              {{applicationUserRoomCurrency.currency.currencyName}}
+            <mat-option *ngFor="let applicationUserRoomCurrencyRoom of applicationUserRoomCurrenciesRoom; let p = index" [value]="applicationUserRoomCurrencyRoom.id">
+              {{applicationUserRoomCurrencyRoom.currencyRoom.currency.currencyName}}
             </mat-option>
           </mat-select>
         </mat-form-field>

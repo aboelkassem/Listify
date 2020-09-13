@@ -2,7 +2,7 @@
 
 namespace Listify.Lib.DTOs
 {
-    public class ApplicationUserRoomCurrencyDTO : BaseDTO
+    public class ApplicationUserRoomCurrencyRoomDTO : BaseDTO
     {
         public int Quantity { get; set; }
     }

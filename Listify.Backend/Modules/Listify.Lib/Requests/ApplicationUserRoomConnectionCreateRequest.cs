@@ -1,4 +1,5 @@
-﻿using Listify.Domain.Lib.Requests;
+﻿using Listify.Domain.Lib.Enums;
+using Listify.Domain.Lib.Requests;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,5 +15,6 @@ namespace Listify.Lib.Requests
         public bool HasPingBeenSent { get; set; }
 
         public Guid ApplicationUserRoomId { get; set; }
+        public ConnectionType ConnectionType { get; set; }
     }
 }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Listify.Domain.CodeFirst.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200908123502_adding loginFixed migration")]
-    partial class addingloginFixedmigration
+    [Migration("20200913135409_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -33,10 +33,19 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<string>("AspNetUserId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ChatColor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateJoined")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("PlaylistCountMax")
                         .HasColumnType("int");
 
                     b.Property<int>("PlaylistSongCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QueueCount")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TimeStamp")
@@ -106,6 +115,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<string>("ConnectionId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("ConnectionType")
+                        .HasColumnType("int");
+
                     b.Property<bool>("HasPingBeenSent")
                         .HasColumnType("bit");
 
@@ -126,7 +138,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.ToTable("ApplicationUsersRoomsConnections","Listify");
                 });
 
-            modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrency", b =>
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrencyRoom", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -138,11 +150,11 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("ApplicationUserRoomId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CurrencyId")
+                    b.Property<Guid>("CurrencyRoomId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
+                    b.Property<float>("Quantity")
+                        .HasColumnType("real");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
@@ -151,9 +163,9 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasIndex("ApplicationUserRoomId");
 
-                    b.HasIndex("CurrencyId");
+                    b.HasIndex("CurrencyRoomId");
 
-                    b.ToTable("ApplicationUsersRoomsCurrencies","Listify");
+                    b.ToTable("ApplicationUsersRoomsCurrenciesRoom","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.ChatMessage", b =>
@@ -165,9 +177,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("ApplicationUserRoomId")
                         .HasColumnType("uniqueidentifier");
 
@@ -178,8 +187,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("ApplicationUserRoomId");
 
@@ -201,13 +208,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<int>("QuantityIncreasePerTick")
                         .HasColumnType("int");
 
-                    b.Property<int>("TimeSecBetweenTick")
-                        .HasColumnType("int");
+                    b.Property<float>("TimeSecBetweenTick")
+                        .HasColumnType("real");
 
                     b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("TimestampLastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Weight")
@@ -216,6 +220,51 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Currencies","Listify");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("7385db66-c5d6-4f99-84dc-74cf9695a459"),
+                            Active = true,
+                            CurrencyName = "Tokens",
+                            QuantityIncreasePerTick = 1,
+                            TimeSecBetweenTick = 30f,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 318, DateTimeKind.Utc).AddTicks(6131),
+                            Weight = 1
+                        });
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.CurrencyRoom", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("CurrencyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CurrencyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("TimestampLastUpdate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrencyId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("CurrenciesRoom","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.LogAPI", b =>
@@ -326,8 +375,8 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<int>("PurchasableItemType")
                         .HasColumnType("int");
 
-                    b.Property<float>("Quantity")
-                        .HasColumnType("real");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
@@ -338,6 +387,116 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PurchasableItems","Listify");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("2baf4f54-875d-4668-8843-8e765e66eb00"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001888/Listify%20Photos/1-playlist_gzqfcr.jpg",
+                            PurchasableItemName = "1 Playlist",
+                            PurchasableItemType = 0,
+                            Quantity = 1,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(331),
+                            UnitCost = 1f
+                        },
+                        new
+                        {
+                            Id = new Guid("58542258-d6b4-490e-835a-3e78ec8c9d2d"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001883/Listify%20Photos/3-playlist_p0sg3o.jpg",
+                            PurchasableItemName = "Pack of 3 Playlist",
+                            PurchasableItemType = 0,
+                            Quantity = 3,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1284),
+                            UnitCost = 2f
+                        },
+                        new
+                        {
+                            Id = new Guid("610dfa85-a0d3-4c36-ab8e-0153ff3742ce"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001889/Listify%20Photos/5-playlist_bqmufv.jpg",
+                            PurchasableItemName = "Pack of 5 Playlist",
+                            PurchasableItemType = 0,
+                            Quantity = 5,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1299),
+                            UnitCost = 3f
+                        },
+                        new
+                        {
+                            Id = new Guid("f217aa5a-a01f-4b7e-891b-b7d9210e8a11"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001889/Listify%20Photos/10-playlist_myaf2g.jpg",
+                            PurchasableItemName = "Pack of 10 Playlist",
+                            PurchasableItemType = 0,
+                            Quantity = 10,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1307),
+                            UnitCost = 5f
+                        },
+                        new
+                        {
+                            Id = new Guid("5552e1cc-2a96-4590-b2ca-d3305c229353"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001886/Listify%20Photos/15-songs_ut0thz.jpg",
+                            PurchasableItemName = "15 Additional Songs Per Playlist",
+                            PurchasableItemType = 1,
+                            Quantity = 15,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1310),
+                            UnitCost = 1f
+                        },
+                        new
+                        {
+                            Id = new Guid("018b97a0-c7ea-43e4-9531-3e48dfb3fa6e"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001886/Listify%20Photos/40-songs_xx4al5.jpg",
+                            PurchasableItemName = "40 Additional Songs Per Playlist",
+                            PurchasableItemType = 1,
+                            Quantity = 40,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1313),
+                            UnitCost = 2f
+                        },
+                        new
+                        {
+                            Id = new Guid("5a72bc3c-7494-484d-a30a-5e6a6c698b0d"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001884/Listify%20Photos/80-songs_gdpufy.jpg",
+                            PurchasableItemName = "80 Additional Songs Per Playlist",
+                            PurchasableItemType = 1,
+                            Quantity = 80,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1322),
+                            UnitCost = 3f
+                        },
+                        new
+                        {
+                            Id = new Guid("01237025-4ae3-4c73-8ad8-a94c67de8116"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001888/Listify%20Photos/160-songs_ztgjsd.jpg",
+                            PurchasableItemName = "160 Additional Songs Per Playlist",
+                            PurchasableItemType = 1,
+                            Quantity = 160,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1325),
+                            UnitCost = 5f
+                        },
+                        new
+                        {
+                            Id = new Guid("aa147747-3010-4047-8103-b1b50a93bf7f"),
+                            Active = true,
+                            DiscountApplied = 0f,
+                            ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001885/Listify%20Photos/40-tokens_ppx2qi.jpg",
+                            PurchasableItemName = "40 Currencies Per Room",
+                            PurchasableItemType = 2,
+                            Quantity = 40,
+                            TimeStamp = new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1340),
+                            UnitCost = 1f
+                        });
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Purchase", b =>
@@ -371,7 +530,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.ToTable("Purchases","Listify");
                 });
 
-            modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchasePurchasableItem", b =>
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchaseLineItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -379,6 +538,13 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderQuantity")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("PurchasableItemId")
                         .HasColumnType("uniqueidentifier");
@@ -395,7 +561,9 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.HasIndex("PurchaseId");
 
-                    b.ToTable("PurchasePurchasableItems","Listify");
+                    b.ToTable("PurchaseLineItems","Listify");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("PurchaseLineItem");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Room", b =>
@@ -407,8 +575,14 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("AllowRequests")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsRoomLocked")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRoomOnline")
                         .HasColumnType("bit");
@@ -418,6 +592,12 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.Property<string>("RoomCode")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoomKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoomTitle")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
@@ -525,6 +705,18 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasDiscriminator<string>("Discriminator").HasValue("Transaction");
                 });
 
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchaseLineItemCurrency", b =>
+                {
+                    b.HasBaseType("Listify.Domain.Lib.Entities.PurchaseLineItem");
+
+                    b.Property<Guid>("ApplicationUserRoomCurrencyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ToTable("PurchaseLineItems","Listify");
+
+                    b.HasDiscriminator().HasValue("PurchaseLineItemCurrency");
+                });
+
             modelBuilder.Entity("Listify.Domain.Lib.Entities.SongPlaylist", b =>
                 {
                     b.HasBaseType("Listify.Domain.Lib.Entities.SongRequest");
@@ -608,7 +800,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrency", b =>
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrencyRoom", b =>
                 {
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
                         .WithMany("ApplicationUsersRoomsCurrencies")
@@ -616,23 +808,34 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Listify.Domain.Lib.Entities.Currency", "Currency")
-                        .WithMany("ApplicationUsersRoomsCurrencies")
-                        .HasForeignKey("CurrencyId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Listify.Domain.Lib.Entities.CurrencyRoom", "CurrencyRoom")
+                        .WithMany("ApplicationUsersRoomsCurrenciesRooms")
+                        .HasForeignKey("CurrencyRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.ChatMessage", b =>
                 {
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", null)
-                        .WithMany("ChatMessages")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoom", "ApplicationUserRoom")
                         .WithMany("ChatMessages")
                         .HasForeignKey("ApplicationUserRoomId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.CurrencyRoom", b =>
+                {
+                    b.HasOne("Listify.Domain.Lib.Entities.Currency", "Currency")
+                        .WithMany("CurrenciesRoom")
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Listify.Domain.Lib.Entities.Room", "Room")
+                        .WithMany("CurrenciesRoom")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -672,16 +875,16 @@ namespace Listify.Domain.CodeFirst.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchasePurchasableItem", b =>
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchaseLineItem", b =>
                 {
                     b.HasOne("Listify.Domain.Lib.Entities.PurchasableItem", "PurchasableItem")
-                        .WithMany("PurchasePurchasableItems")
+                        .WithMany()
                         .HasForeignKey("PurchasableItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Listify.Domain.Lib.Entities.Purchase", "Purchase")
-                        .WithMany("PurchasePurchasableItems")
+                        .WithMany("PurchaseLineItems")
                         .HasForeignKey("PurchaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -707,7 +910,7 @@ namespace Listify.Domain.CodeFirst.Migrations
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.Transaction", b =>
                 {
-                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrency", "ApplicationUserRoomCurrency")
+                    b.HasOne("Listify.Domain.Lib.Entities.ApplicationUserRoomCurrencyRoom", "ApplicationUserRoomCurrency")
                         .WithMany("Transactions")
                         .HasForeignKey("ApplicationUserRoomCurrencyId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -21,7 +21,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                     AspNetUserId = table.Column<string>(nullable: true),
                     Username = table.Column<string>(nullable: true),
                     PlaylistCountMax = table.Column<int>(nullable: false),
-                    PlaylistSongCount = table.Column<int>(nullable: false)
+                    PlaylistSongCount = table.Column<int>(nullable: false),
+                    QueueCount = table.Column<int>(nullable: false),
+                    ChatColor = table.Column<string>(nullable: true),
+                    DateJoined = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,12 +42,31 @@ namespace Listify.Domain.CodeFirst.Migrations
                     CurrencyName = table.Column<string>(nullable: true),
                     Weight = table.Column<int>(nullable: false),
                     QuantityIncreasePerTick = table.Column<int>(nullable: false),
-                    TimeSecBetweenTick = table.Column<int>(nullable: false),
-                    TimestampLastUpdated = table.Column<DateTime>(nullable: false)
+                    TimeSecBetweenTick = table.Column<float>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Currencies", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PurchasableItems",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    PurchasableItemName = table.Column<string>(nullable: true),
+                    PurchasableItemType = table.Column<int>(nullable: false),
+                    Quantity = table.Column<int>(nullable: false),
+                    UnitCost = table.Column<float>(nullable: false),
+                    ImageUri = table.Column<string>(nullable: true),
+                    DiscountApplied = table.Column<float>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchasableItems", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -138,6 +160,31 @@ namespace Listify.Domain.CodeFirst.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Purchases",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    PurchaseMethod = table.Column<int>(nullable: false),
+                    Subtotal = table.Column<float>(nullable: false),
+                    AmountCharged = table.Column<float>(nullable: false),
+                    ApplicationUserId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Purchases", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Purchases_ApplicationUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalSchema: "Listify",
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Rooms",
                 schema: "Listify",
                 columns: table => new
@@ -146,6 +193,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                     Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     RoomCode = table.Column<string>(nullable: true),
+                    RoomTitle = table.Column<string>(nullable: true),
+                    RoomKey = table.Column<string>(nullable: true),
+                    AllowRequests = table.Column<bool>(nullable: false),
+                    IsRoomLocked = table.Column<bool>(nullable: false),
                     IsRoomPublic = table.Column<bool>(nullable: false),
                     IsRoomOnline = table.Column<bool>(nullable: false),
                     ApplicationUserId = table.Column<Guid>(nullable: false)
@@ -158,6 +209,39 @@ namespace Listify.Domain.CodeFirst.Migrations
                         column: x => x.ApplicationUserId,
                         principalSchema: "Listify",
                         principalTable: "ApplicationUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PurchaseLineItems",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    OrderQuantity = table.Column<int>(nullable: false),
+                    PurchasableItemId = table.Column<Guid>(nullable: false),
+                    PurchaseId = table.Column<Guid>(nullable: false),
+                    Discriminator = table.Column<string>(nullable: false),
+                    ApplicationUserRoomCurrencyId = table.Column<Guid>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseLineItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PurchaseLineItems_PurchasableItems_PurchasableItemId",
+                        column: x => x.PurchasableItemId,
+                        principalSchema: "Listify",
+                        principalTable: "PurchasableItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PurchaseLineItems_Purchases_PurchaseId",
+                        column: x => x.PurchaseId,
+                        principalSchema: "Listify",
+                        principalTable: "Purchases",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -187,6 +271,38 @@ namespace Listify.Domain.CodeFirst.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ApplicationUsersRooms_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalSchema: "Listify",
+                        principalTable: "Rooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CurrenciesRoom",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    RoomId = table.Column<Guid>(nullable: false),
+                    CurrencyId = table.Column<Guid>(nullable: false),
+                    CurrencyName = table.Column<string>(nullable: true),
+                    TimestampLastUpdate = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CurrenciesRoom", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CurrenciesRoom_Currencies_CurrencyId",
+                        column: x => x.CurrencyId,
+                        principalSchema: "Listify",
+                        principalTable: "Currencies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_CurrenciesRoom_Rooms_RoomId",
                         column: x => x.RoomId,
                         principalSchema: "Listify",
                         principalTable: "Rooms",
@@ -257,6 +373,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                     ConnectionId = table.Column<string>(nullable: true),
                     IsOnline = table.Column<bool>(nullable: false),
                     HasPingBeenSent = table.Column<bool>(nullable: false),
+                    ConnectionType = table.Column<int>(nullable: false),
                     ApplicationUserRoomId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -272,37 +389,6 @@ namespace Listify.Domain.CodeFirst.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApplicationUsersRoomsCurrencies",
-                schema: "Listify",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(nullable: false),
-                    Active = table.Column<bool>(nullable: false),
-                    TimeStamp = table.Column<DateTime>(nullable: false),
-                    Quantity = table.Column<int>(nullable: false),
-                    ApplicationUserRoomId = table.Column<Guid>(nullable: false),
-                    CurrencyId = table.Column<Guid>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ApplicationUsersRoomsCurrencies", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ApplicationUsersRoomsCurrencies_ApplicationUsersRooms_ApplicationUserRoomId",
-                        column: x => x.ApplicationUserRoomId,
-                        principalSchema: "Listify",
-                        principalTable: "ApplicationUsersRooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ApplicationUsersRoomsCurrencies_Currencies_CurrencyId",
-                        column: x => x.CurrencyId,
-                        principalSchema: "Listify",
-                        principalTable: "Currencies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ChatMessages",
                 schema: "Listify",
                 columns: table => new
@@ -311,24 +397,47 @@ namespace Listify.Domain.CodeFirst.Migrations
                     Active = table.Column<bool>(nullable: false),
                     TimeStamp = table.Column<DateTime>(nullable: false),
                     Message = table.Column<string>(nullable: true),
-                    ApplicationUserRoomId = table.Column<Guid>(nullable: false),
-                    ApplicationUserId = table.Column<Guid>(nullable: true)
+                    ApplicationUserRoomId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ChatMessages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ChatMessages_ApplicationUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalSchema: "Listify",
-                        principalTable: "ApplicationUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_ChatMessages_ApplicationUsersRooms_ApplicationUserRoomId",
                         column: x => x.ApplicationUserRoomId,
                         principalSchema: "Listify",
                         principalTable: "ApplicationUsersRooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ApplicationUsersRoomsCurrenciesRoom",
+                schema: "Listify",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Active = table.Column<bool>(nullable: false),
+                    TimeStamp = table.Column<DateTime>(nullable: false),
+                    Quantity = table.Column<float>(nullable: false),
+                    ApplicationUserRoomId = table.Column<Guid>(nullable: false),
+                    CurrencyRoomId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUsersRoomsCurrenciesRoom", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUsersRoomsCurrenciesRoom_ApplicationUsersRooms_ApplicationUserRoomId",
+                        column: x => x.ApplicationUserRoomId,
+                        principalSchema: "Listify",
+                        principalTable: "ApplicationUsersRooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUsersRoomsCurrenciesRoom_CurrenciesRoom_CurrencyRoomId",
+                        column: x => x.CurrencyRoomId,
+                        principalSchema: "Listify",
+                        principalTable: "CurrenciesRoom",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -351,10 +460,10 @@ namespace Listify.Domain.CodeFirst.Migrations
                 {
                     table.PrimaryKey("PK_Transactions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Transactions_ApplicationUsersRoomsCurrencies_ApplicationUserRoomCurrencyId",
+                        name: "FK_Transactions_ApplicationUsersRoomsCurrenciesRoom_ApplicationUserRoomCurrencyId",
                         column: x => x.ApplicationUserRoomCurrencyId,
                         principalSchema: "Listify",
-                        principalTable: "ApplicationUsersRoomsCurrencies",
+                        principalTable: "ApplicationUsersRoomsCurrenciesRoom",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -364,6 +473,29 @@ namespace Listify.Domain.CodeFirst.Migrations
                         principalTable: "SongRequests",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.InsertData(
+                schema: "Listify",
+                table: "Currencies",
+                columns: new[] { "Id", "Active", "CurrencyName", "QuantityIncreasePerTick", "TimeSecBetweenTick", "TimeStamp", "Weight" },
+                values: new object[] { new Guid("7385db66-c5d6-4f99-84dc-74cf9695a459"), true, "Tokens", 1, 30f, new DateTime(2020, 9, 13, 13, 54, 8, 318, DateTimeKind.Utc).AddTicks(6131), 1 });
+
+            migrationBuilder.InsertData(
+                schema: "Listify",
+                table: "PurchasableItems",
+                columns: new[] { "Id", "Active", "DiscountApplied", "ImageUri", "PurchasableItemName", "PurchasableItemType", "Quantity", "TimeStamp", "UnitCost" },
+                values: new object[,]
+                {
+                    { new Guid("2baf4f54-875d-4668-8843-8e765e66eb00"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001888/Listify%20Photos/1-playlist_gzqfcr.jpg", "1 Playlist", 0, 1, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(331), 1f },
+                    { new Guid("58542258-d6b4-490e-835a-3e78ec8c9d2d"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001883/Listify%20Photos/3-playlist_p0sg3o.jpg", "Pack of 3 Playlist", 0, 3, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1284), 2f },
+                    { new Guid("610dfa85-a0d3-4c36-ab8e-0153ff3742ce"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001889/Listify%20Photos/5-playlist_bqmufv.jpg", "Pack of 5 Playlist", 0, 5, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1299), 3f },
+                    { new Guid("f217aa5a-a01f-4b7e-891b-b7d9210e8a11"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001889/Listify%20Photos/10-playlist_myaf2g.jpg", "Pack of 10 Playlist", 0, 10, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1307), 5f },
+                    { new Guid("5552e1cc-2a96-4590-b2ca-d3305c229353"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001886/Listify%20Photos/15-songs_ut0thz.jpg", "15 Additional Songs Per Playlist", 1, 15, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1310), 1f },
+                    { new Guid("018b97a0-c7ea-43e4-9531-3e48dfb3fa6e"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001886/Listify%20Photos/40-songs_xx4al5.jpg", "40 Additional Songs Per Playlist", 1, 40, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1313), 2f },
+                    { new Guid("5a72bc3c-7494-484d-a30a-5e6a6c698b0d"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001884/Listify%20Photos/80-songs_gdpufy.jpg", "80 Additional Songs Per Playlist", 1, 80, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1322), 3f },
+                    { new Guid("01237025-4ae3-4c73-8ad8-a94c67de8116"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001888/Listify%20Photos/160-songs_ztgjsd.jpg", "160 Additional Songs Per Playlist", 1, 160, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1325), 5f },
+                    { new Guid("aa147747-3010-4047-8103-b1b50a93bf7f"), true, 0f, "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001885/Listify%20Photos/40-tokens_ppx2qi.jpg", "40 Currencies Per Room", 2, 40, new DateTime(2020, 9, 13, 13, 54, 8, 320, DateTimeKind.Utc).AddTicks(1340), 1f }
                 });
 
             migrationBuilder.CreateIndex(
@@ -409,28 +541,34 @@ namespace Listify.Domain.CodeFirst.Migrations
                 filter: "[ConnectionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUsersRoomsCurrencies_ApplicationUserRoomId",
+                name: "IX_ApplicationUsersRoomsCurrenciesRoom_ApplicationUserRoomId",
                 schema: "Listify",
-                table: "ApplicationUsersRoomsCurrencies",
+                table: "ApplicationUsersRoomsCurrenciesRoom",
                 column: "ApplicationUserRoomId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApplicationUsersRoomsCurrencies_CurrencyId",
+                name: "IX_ApplicationUsersRoomsCurrenciesRoom_CurrencyRoomId",
                 schema: "Listify",
-                table: "ApplicationUsersRoomsCurrencies",
-                column: "CurrencyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_ApplicationUserId",
-                schema: "Listify",
-                table: "ChatMessages",
-                column: "ApplicationUserId");
+                table: "ApplicationUsersRoomsCurrenciesRoom",
+                column: "CurrencyRoomId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_ApplicationUserRoomId",
                 schema: "Listify",
                 table: "ChatMessages",
                 column: "ApplicationUserRoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CurrenciesRoom_CurrencyId",
+                schema: "Listify",
+                table: "CurrenciesRoom",
+                column: "CurrencyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CurrenciesRoom_RoomId",
+                schema: "Listify",
+                table: "CurrenciesRoom",
+                column: "RoomId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LogErrors_ApplicationUserId",
@@ -448,6 +586,24 @@ namespace Listify.Domain.CodeFirst.Migrations
                 name: "IX_Playlists_ApplicationUserId",
                 schema: "Listify",
                 table: "Playlists",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseLineItems_PurchasableItemId",
+                schema: "Listify",
+                table: "PurchaseLineItems",
+                column: "PurchasableItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseLineItems_PurchaseId",
+                schema: "Listify",
+                table: "PurchaseLineItems",
+                column: "PurchaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_ApplicationUserId",
+                schema: "Listify",
+                table: "Purchases",
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
@@ -521,11 +677,23 @@ namespace Listify.Domain.CodeFirst.Migrations
                 schema: "Listify");
 
             migrationBuilder.DropTable(
+                name: "PurchaseLineItems",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
                 name: "Transactions",
                 schema: "Listify");
 
             migrationBuilder.DropTable(
-                name: "ApplicationUsersRoomsCurrencies",
+                name: "PurchasableItems",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
+                name: "Purchases",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
+                name: "ApplicationUsersRoomsCurrenciesRoom",
                 schema: "Listify");
 
             migrationBuilder.DropTable(
@@ -537,7 +705,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                 schema: "Listify");
 
             migrationBuilder.DropTable(
-                name: "Currencies",
+                name: "CurrenciesRoom",
                 schema: "Listify");
 
             migrationBuilder.DropTable(
@@ -546,6 +714,10 @@ namespace Listify.Domain.CodeFirst.Migrations
 
             migrationBuilder.DropTable(
                 name: "Songs",
+                schema: "Listify");
+
+            migrationBuilder.DropTable(
+                name: "Currencies",
                 schema: "Listify");
 
             migrationBuilder.DropTable(

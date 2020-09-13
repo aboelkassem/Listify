@@ -5,16 +5,16 @@
     <ng-container matColumnDef="currencyName">
       <th mat-header-cell *matHeaderCellDef>Currency Name</th>
       <td mat-cell *matCellDef="let element">
-        <a [routerLink]="['/currency', element.id]">{{element.currencyName}}</a>
+        <a [routerLink]="['/currency', element.id]">{{element.currency.currencyName}}</a>
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="deleteCurrency">
+    <!-- <ng-container matColumnDef="deleteCurrency">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
         <button mat-stroked-button color="accent" appearance="outline" (click)="deleteCurrency(element.id)">Delete Currency</button>
       </td>
-    </ng-container>
+    </ng-container> -->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

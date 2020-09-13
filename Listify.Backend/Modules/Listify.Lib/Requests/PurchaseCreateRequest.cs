@@ -9,7 +9,8 @@ namespace Listify.Lib.Requests
         public PurchaseMethod PurchaseMethod { get; set; }
         public float Subtotal { get; set; }
         public float AmountCharged { get; set; }
+        public float DiscountApplied { get; set; }
 
-        public Guid[] PurchasableItemsIds { get; set; }
+        public string[] PurchasableItemsJSON { get; set; }
     }
 }

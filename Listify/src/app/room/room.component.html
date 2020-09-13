@@ -1,9 +1,10 @@
 <div class="contentFlex-container">
   <div class="contentFlex-player">
-    <app-applicationuserroomcurrencies></app-applicationuserroomcurrencies>
-    <app-player></app-player>
+    <app-player class="appPlayer-tag"></app-player>
   </div>
   <div class="contentFlex-chat"><app-chat></app-chat></div>
   <div class="contentFlex-queue"><app-queue [room]="room"></app-queue></div>
-  <div class="contentFlex-songQueued"><app-searchsongrequest></app-searchsongrequest></div>
+  <div *ngIf="allowRequests || isRoomOwner" class="contentFlex-songQueued">
+    <app-searchsongrequest></app-searchsongrequest>
+  </div>
 </div>

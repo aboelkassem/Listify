@@ -2,7 +2,7 @@ import { Router } from '@angular/router';
 import { IPurchasableItem } from './../../interfaces';
 import { CartService } from './../../services/cart.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { IApplicationUserRoomCurrency, IRoomInformation } from 'src/app/interfaces';
+import { IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 import { RoomHubService } from 'src/app/services/room-hub.service';
@@ -15,9 +15,9 @@ import { RoomHubService } from 'src/app/services/room-hub.service';
 export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy {
 
   displayedColumns: string[] = ['currencyName', 'quantity', 'purchaseCurrency'];
-  dataSource = new MatTableDataSource<IApplicationUserRoomCurrency>();
+  dataSource = new MatTableDataSource<IApplicationUserRoomCurrencyRoom>();
 
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
 
   $roomReceivedSubscription: Subscription;
   $applicationUserRoomCurrencySubscription: Subscription;
@@ -28,12 +28,12 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
     private cartService: CartService) {
 
     this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
-      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
+      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
       this.dataSource.data = this.applicationUserRoomCurrencies;
     });
 
     // tslint:disable-next-line:max-line-length
-    this.$applicationUserRoomCurrencySubscription = this.roomHubService.getApplicationUserRoomCurrency().subscribe(applicationUserRoomCurrency => {
+    this.$applicationUserRoomCurrencySubscription = this.roomHubService.getApplicationUserRoomCurrencyRoom().subscribe(applicationUserRoomCurrency => {
       const originalCurrency = this.applicationUserRoomCurrencies.filter(x => x.id === applicationUserRoomCurrency.id)[0];
 
       if (originalCurrency !== undefined && originalCurrency !== null) {
@@ -50,18 +50,18 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
   ngOnInit(): void {
   }
 
-  addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrency): void {
-    const item: IPurchasableItem = {
-      id: '',
-      purchasableItemName: applicationUserRoomCurrency.currency.currencyName,
-      purchasableItemType: 2,
-      quantity: 5,
-      unitCost: 5,
-      discountApplied: 1,
-      imageUri: ''
-    };
+  addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom): void {
+    // const item: IPurchasableItem = {
+    //   id: '',
+    //   purchasableItemName: applicationUserRoomCurrency.currencyRoom.currency.currencyName,
+    //   purchasableItemType: 2,
+    //   quantity: 5,
+    //   unitCost: 5,
+    //   discountApplied: 1,
+    //   imageUri: ''
+    // };
 
-    this.cartService.addPurchasableItemToCart(item);
+    // this.cartService.addPurchasableItemToCart(item);
     this.router.navigate(['/', 'cart']);
 
   }

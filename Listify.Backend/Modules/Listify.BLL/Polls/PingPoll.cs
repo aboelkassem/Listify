@@ -18,12 +18,12 @@ namespace Listify.BLL
         {
             try
             {
-                var clientsPoll = await _service.PingApplicationUsersRoomsConnections();
-                if (clientsPoll != null && clientsPoll.Count > 0)
+                var clientsPinged = await _service.PingApplicationUsersRoomsConnections();
+                if (clientsPinged != null && clientsPinged.Count > 0)
                 {
                     FirePollingEvent(this, new PingPollEventArgs
                     {
-                        ConnectionsPinged = clientsPoll,
+                        ConnectionsPinged = clientsPinged,
                         PollingEventType = PollingEventType.PingPoll
                     });
                 }

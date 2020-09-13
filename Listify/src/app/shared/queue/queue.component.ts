@@ -1,6 +1,6 @@
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
-import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency, IRoomInformation } from './../../interfaces';
+import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation } from './../../interfaces';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ISongQueued } from 'src/app/interfaces';
 import { MatTableDataSource } from '@angular/material/table';
@@ -20,10 +20,12 @@ export class QueueComponent implements OnInit, OnDestroy {
   @Input() room: IRoom;
 
   songsQueued: ISongQueued[] = [];
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
+  applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
 
   $songsQueuedSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
+  $applicationUserRoomCurrenciesReceived: Subscription;
+  $applicationUserRoomCurrencyReceived: Subscription;
 
   constructor(
     private roomService: RoomHubService,
@@ -35,7 +37,24 @@ export class QueueComponent implements OnInit, OnDestroy {
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
-      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
+      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
+    });
+
+    // tslint:disable-next-line:max-line-length
+    this.$applicationUserRoomCurrenciesReceived = this.roomService.getApplicationUserRoomCurrenciesRoom().subscribe(applicationUserRoomCurrencies => {
+      this.applicationUserRoomCurrencies = applicationUserRoomCurrencies;
+    });
+
+    // tslint:disable-next-line:max-line-length
+    this.$applicationUserRoomCurrencyReceived = this.roomService.getApplicationUserRoomCurrencyRoom().subscribe(applicationUserRoomCurrency => {
+      const applicationUserRoomCurrencySelected = this.applicationUserRoomCurrencies
+        .filter(x => x.id === applicationUserRoomCurrency.id)[0];
+
+      if (applicationUserRoomCurrencySelected) {
+        // tslint:disable-next-line:max-line-length
+        this.applicationUserRoomCurrencies[this.applicationUserRoomCurrencies.indexOf(applicationUserRoomCurrency)]
+        = applicationUserRoomCurrency;
+      }
     });
   }
 
@@ -50,6 +69,8 @@ export class QueueComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.$songsQueuedSubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
+    this.$applicationUserRoomCurrenciesReceived.unsubscribe();
+    this.$applicationUserRoomCurrencyReceived.unsubscribe();
   }
 
   addQuantityToSongQueued(songQueued: ISongQueued): void {
@@ -57,18 +78,18 @@ export class QueueComponent implements OnInit, OnDestroy {
       this.toastrService.warning('You must wager more than 0 on a song in the queue, please try again',
       'Not Enough Wagered');
     }else {
-      const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrencies
+      const applicationUserRoomCurrency = this.roomService.applicationUserRoomCurrenciesRoom
       .filter(x => x.id === songQueued.applicationUserRoomCurrencyId)[0];
 
       if (applicationUserRoomCurrency !== undefined && applicationUserRoomCurrency !== null) {
         if (songQueued.quantityWagered > applicationUserRoomCurrency.quantity) {
-          this.toastrService.warning('You do not have enough ' + applicationUserRoomCurrency.currency.currencyName + ' for this action, you have ' + applicationUserRoomCurrency.quantity + ' available',
+          this.toastrService.warning('You do not have enough ' + applicationUserRoomCurrency.currencyRoom.currency.currencyName + ' for this action, you have ' + applicationUserRoomCurrency.quantity + ' available',
           'Not Enough Currency');
         }else {
           const request: IWagerQuantitySongQueuedRequest = {
             songQueued: songQueued,
             applicationUserRoom: this.roomService.applicationUserRoom,
-            applicationUserRoomCurrency: applicationUserRoomCurrency,
+            applicationUserRoomCurrencyRoom: applicationUserRoomCurrency,
             quantity: songQueued.quantityWagered
           };
 
@@ -81,9 +102,4 @@ export class QueueComponent implements OnInit, OnDestroy {
       }
     }
   }
-
-  removeSongFromQueue(songQueued: ISongQueued): void {
-
-  }
-
 }

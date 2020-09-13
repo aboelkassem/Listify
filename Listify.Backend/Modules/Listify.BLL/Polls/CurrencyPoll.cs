@@ -17,41 +17,36 @@ namespace Listify.BLL.Polls
         protected override async Task TimerTickEvents()
         {
             var rooms = await _service.ReadRoomsAsync();
-            var currencies = await _service.ReadCurrenciesAsync();
 
-            foreach (var currency in currencies)
+            foreach (var room in rooms)
             {
-                var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
-
-                if (currencyVM != null)
+                if (room.IsRoomOnline)
                 {
-                    foreach (var room in rooms)
+                    var currenciesRoom = await _service.ReadCurrenciesRoomAsync(room.Id);
+                    
+                    foreach (var currencyRoom in currenciesRoom)
                     {
-                        if (room.IsRoomOnline)
+                        try
                         {
-                            try
-                            {
-                                var roomVM = await _service.ReadRoomAsync(room.Id);
+                            var roomVM = await _service.ReadRoomAsync(room.Id);
 
-                                //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
-                                if (currency != null &&
-                                    currencyVM.TimestampLastUpdated + TimeSpan.FromSeconds(currencyVM.TimeSecBetweenTick) < DateTime.UtcNow)
+                            //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
+                            if (currencyRoom.TimestampLastUpdate + TimeSpan.FromSeconds(currencyRoom.Currency.TimeSecBetweenTick) < DateTime.UtcNow)
+                            {
+                                var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currencyRoom.Currency.Id, currencyRoom.Currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
+
+                                FirePollingEvent(this, new CurrencyPollEventArgs
                                 {
-                                    var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currency.Id, currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
-
-                                    FirePollingEvent(this, new CurrencyPollEventArgs
-                                    {
-                                        PollingEventType = PollingEventType.CurrencyPoll,
-                                        ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies,
-                                        Room = room
-                                    });
-                                }
+                                    PollingEventType = PollingEventType.CurrencyPoll,
+                                    ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies,
+                                    Room = room
+                                });
                             }
+                        }
 
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
                         }
                     }
                 }

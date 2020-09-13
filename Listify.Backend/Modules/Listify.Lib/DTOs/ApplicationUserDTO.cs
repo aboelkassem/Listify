@@ -1,4 +1,5 @@
 ﻿using Listify.Domain.Lib.DTOs;
+using System;
 
 namespace Listify.Lib.DTOs
 {
@@ -14,5 +15,8 @@ namespace Listify.Lib.DTOs
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 100 songs
         public int PlaylistSongCount { get; set; }
+        public int QueueCount { get; set; }
+        public string ChatColor { get; set; }
+        public DateTime DateJoined { get; set; }
     }
 }

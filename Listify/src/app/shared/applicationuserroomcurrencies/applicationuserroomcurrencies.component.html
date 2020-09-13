@@ -1,7 +1,7 @@
 <table mat-table [dataSource]="dataSource" class="mat-elevation-z8 applicationUserRoomCurrencies-container">
   <ng-container matColumnDef="currencyName">
     <th mat-header-cell *matHeaderCellDef>Name</th>
-    <td mat-cell *matCellDef="let element">{{element.currency.currencyName}}</td>
+    <td mat-cell *matCellDef="let element">{{element.currencyRoom.currency.currencyName}}</td>
   </ng-container>
 
   <ng-container matColumnDef="quantity">
@@ -14,7 +14,7 @@
   <ng-container matColumnDef="purchaseCurrency">
     <th mat-header-cell *matHeaderCellDef>Purchase</th>
     <td mat-cell *matCellDef="let element">
-      <button mat-mat-raised-button color="accent" appearance="outline" (click)="addApplicationUserRoomCurrency(element)">Purchase {{element.currency.currencyName}}</button>
+      <button mat-mat-raised-button color="accent" appearance="outline" (click)="addApplicationUserRoomCurrency(element)">Purchase {{element.currencyRoom.currency.currencyName}}</button>
     </td>
   </ng-container>
 

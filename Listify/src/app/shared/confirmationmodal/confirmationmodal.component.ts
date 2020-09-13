@@ -10,7 +10,7 @@ import { IConfirmationModalData } from 'src/app/interfaces';
   <div mat-dialog-content>
     <p>Are you sure you would like to {{confirmationString}}?</p>
   </div>
-  <div>
+  <div mat-dialog-actions>
     <button mat-stroked-button color="primary" appearance="outline" (click)="onNoClick()">Cancel</button>
     <button mat-stroked-button color="accent" appearance="outline" [mat-dialog-close]="data.isConfirmed" cdkFocusInitial>OK</button>
   </div>

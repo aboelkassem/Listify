@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System;
 
 namespace Listify.Domain.Lib.Entities
 {
@@ -16,11 +17,11 @@ namespace Listify.Domain.Lib.Entities
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 30 songs
         public int PlaylistSongCount { get; set; } = 30;
+        public int QueueCount { get; set; } = 30;
+        public string ChatColor { get; set; } = "#000000";
+        public DateTime DateJoined { get; set; } = DateTime.UtcNow;
 
         public Room Room { get; set; }
-
-        public ICollection<ChatMessage> ChatMessages { get; set; } =
-            new List<ChatMessage>();
 
         public ICollection<ApplicationUserRoom> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoom>();

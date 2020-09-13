@@ -15,6 +15,6 @@ namespace Listify.Lib.VMs
         public TransactionType TransactionType { get; set; }
         public int QuantityChange { get; set; }
 
-        public ApplicationUserRoomCurrencyDTO ApplicationUserRoomCurrency { get; set; }
+        public ApplicationUserRoomCurrencyRoomDTO ApplicationUserRoomCurrency { get; set; }
     }
 }

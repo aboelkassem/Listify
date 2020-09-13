@@ -41,6 +41,11 @@ namespace Listify.DAL
                 .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
+            if (entity.Room.RoomKey != null)
+            {
+                entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+            }
+
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
         }
         public virtual async Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId)
@@ -72,10 +77,12 @@ namespace Listify.DAL
                 Room = room
             };
 
+
             _context.ApplicationUsersRooms.Add(applicationUserRoom);
 
             if (await _context.SaveChangesAsync() > 0)
             {
+                await CheckCurrenciesRoomAsync(room.Id);
                 return await ReadApplicationUserAsync(entity.Id);
             }
 
@@ -89,10 +96,21 @@ namespace Listify.DAL
 
             if (entity != null)
             {
+                string encodedRoomKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(request.RoomKey));
+                if (encodedRoomKey == null)
+                {
+                    encodedRoomKey = "";
+                }
+
                 entity.Username = request.Username;
-                entity.PlaylistCountMax = request.PlaylistCountMax;
-                entity.PlaylistSongCount = request.SongPoolCountSongsMax;
                 entity.Room.RoomCode = request.RoomCode;
+                entity.Room.RoomTitle = request.RoomTitle;
+                entity.Room.RoomKey = encodedRoomKey;
+                entity.Room.AllowRequests = request.AllowRequests;
+                entity.Room.IsRoomLocked = request.IsRoomLocked;
+                entity.Room.IsRoomPublic = request.IsRoomPublic;
+                entity.Room.IsRoomOnline = request.IsRoomOnline;
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -192,66 +210,88 @@ namespace Listify.DAL
             return false;
         }
 
-        public virtual async Task<ApplicationUserRoomCurrencyVM[]> ReadApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId)
+        public virtual async Task<ApplicationUserRoomCurrencyRoomVM[]> ReadApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId)
         {
-            var entities = await _context.ApplicationUsersRoomsCurrencies
+            //await CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomId);
+
+            var entities = await _context.ApplicationUsersRoomsCurrenciesRooms
                 .Include(s => s.ApplicationUserRoom)
+                .Include(s => s.CurrencyRoom)
+                .Include(s => s.CurrencyRoom.Currency)
                 .Where(s => s.ApplicationUserRoomId == applicationUserRoomId && s.Active)
                 .ToListAsync();
 
-            var vms = new List<ApplicationUserRoomCurrencyVM>();
+            var vms = new List<ApplicationUserRoomCurrencyRoomVM>();
 
-            entities.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
+            entities.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyRoomVM>(s)));
 
             return vms.ToArray();
         }
-        public virtual async Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id)
+        public virtual async Task<ApplicationUserRoomCurrencyRoomVM> ReadApplicationUserRoomCurrencyRoomAsync(Guid id)
         {
-            var entity = await _context.ApplicationUsersRoomsCurrencies
+            var entity = await _context.ApplicationUsersRoomsCurrenciesRooms
                 .Include(s => s.ApplicationUserRoom)
-                .Include(s => s.Currency)
+                .Include(s => s.CurrencyRoom)
+                .Include(s => s.CurrencyRoom.Currency)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
-            return entity != null ? _mapper.Map<ApplicationUserRoomCurrencyVM>(entity) : null;
+            return entity != null ? _mapper.Map<ApplicationUserRoomCurrencyRoomVM>(entity) : null;
         }
-        public virtual async Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid applicationUserRoomId, Guid currencyId)
+        public virtual async Task<ApplicationUserRoomCurrencyRoomVM> ReadApplicationUserRoomCurrencyRoomAsync(Guid applicationUserRoomId, Guid currencyRoomId)
         {
-            var entity = await _context.ApplicationUsersRoomsCurrencies
+            await CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomId);
+
+            var entity = await _context.ApplicationUsersRoomsCurrenciesRooms
                 .Include(s => s.ApplicationUserRoom)
-                .Include(s => s.Currency)
+                .Include(s => s.CurrencyRoom)
+                .Include(s => s.CurrencyRoom.Currency)
                 .FirstOrDefaultAsync(s => s.ApplicationUserRoomId == applicationUserRoomId &&
-                s.CurrencyId == currencyId && s.Active);
+                s.CurrencyRoomId == currencyRoomId && s.Active);
 
-            return entity != null ? _mapper.Map<ApplicationUserRoomCurrencyVM>(entity) : null;
+            return entity != null ? _mapper.Map<ApplicationUserRoomCurrencyRoomVM>(entity) : null;
         }
-        public virtual async Task<ApplicationUserRoomCurrencyVM> CreateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyCreateRequest request)
+        public virtual async Task<ApplicationUserRoomCurrencyRoomVM[]> CheckApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId)
         {
-            var entity = _mapper.Map<ApplicationUserRoomCurrency>(request);
+            var applicationUserRoom = await _context.ApplicationUsersRooms
+                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active);
 
-            _context.ApplicationUsersRoomsCurrencies.Add(entity);
-
-            return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomCurrencyAsync(entity.Id) : null;
-        }
-        public virtual async Task<ApplicationUserRoomCurrencyVM> UpdateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyUpdateRequest request)
-        {
-            var entity = await _context.ApplicationUsersRoomsCurrencies
-                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
-
-            if (entity != null)
+            if (applicationUserRoom != null)
             {
-                entity.Quantity = request.QuantityToChange;
-                _context.Entry(entity).State = EntityState.Modified;
+                var currenciesRoom = await _context.CurrenciesRooms
+                    .Where(s => s.RoomId == applicationUserRoom.RoomId && s.Active)
+                    .ToListAsync();
 
-                if (await _context.SaveChangesAsync() > 0)
+                foreach (var currencyRoom in currenciesRoom)
                 {
-                    return await ReadApplicationUserRoomCurrencyAsync(entity.Id);
+                    var applicationUserRoomCurrencyRoom = await _context.ApplicationUsersRoomsCurrenciesRooms
+                        .FirstOrDefaultAsync(s => s.ApplicationUserRoomId == applicationUserRoomId &&
+                        s.CurrencyRoomId == currencyRoom.Id);
+
+                    if (applicationUserRoomCurrencyRoom == null)
+                    {
+                        _context.ApplicationUsersRoomsCurrenciesRooms.Add(new ApplicationUserRoomCurrencyRoom
+                        {
+                            ApplicationUserRoomId = applicationUserRoomId,
+                            CurrencyRoomId = currencyRoom.Id,
+                        });
+                    }
                 }
             }
-            return null;
+
+            await _context.SaveChangesAsync();
+            return await ReadApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomId);
         }
-        public virtual async Task<bool> DeleteApplicationUserRoomCurrencyAsync(Guid id)
+        public virtual async Task<ApplicationUserRoomCurrencyRoomVM> CreateApplicationUserRoomCurrencyRoomAsync(ApplicationUserRoomCurrencyRoomCreateRequest request)
         {
-            var entity = await _context.ApplicationUsersRoomsCurrencies
+            var entity = _mapper.Map<ApplicationUserRoomCurrencyRoom>(request);
+
+            _context.ApplicationUsersRoomsCurrenciesRooms.Add(entity);
+
+            return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomCurrencyRoomAsync(entity.Id) : null;
+        }
+        public virtual async Task<bool> DeleteApplicationUserRoomCurrencyRoomAsync(Guid id)
+        {
+            var entity = await _context.ApplicationUsersRoomsCurrenciesRooms
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             if (entity != null)
@@ -353,6 +393,7 @@ namespace Listify.DAL
             {
                 entity.IsOnline = request.IsOnline;
                 entity.HasPingBeenSent = request.HasPingBeenSent;
+                entity.ConnectionType = request.ConnectionType;
                 _context.Entry(entity).State = EntityState.Modified;
             }
 
@@ -375,7 +416,6 @@ namespace Listify.DAL
             }
             return null;
         }
-
         public virtual async Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id)
         {
             var entity = await _context.ApplicationUsersRoomsConnections
@@ -393,19 +433,6 @@ namespace Listify.DAL
             return false;
         }
 
-        public virtual async Task<CurrencyDTO[]> ReadCurrenciesAsync()
-        {
-            var entities = await _context.Currencies
-                .Where(s => s.Active)
-                .ToListAsync();
-
-            var dtos = new List<CurrencyDTO>();
-
-            entities.ForEach(s => dtos.Add(_mapper.Map<CurrencyDTO>(s)));
-
-            return dtos.ToArray();
-        }
-
         public virtual async Task<CurrencyVM> ReadCurrencyAsync(Guid id)
         {
             var entity = await _context.Currencies
@@ -413,50 +440,62 @@ namespace Listify.DAL
 
             return entity != null ? _mapper.Map<CurrencyVM>(entity) : null;
         }
-        public virtual async Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
-        {
-            var entity = _mapper.Map<Currency>(request);
+        //public virtual async Task<CurrencyDTO[]> ReadCurrenciesAsync()
+        //{
+        //    var entities = await _context.Currencies
+        //        .Where(s => s.Active)
+        //        .ToListAsync();
 
-            _context.Currencies.Add(entity);
+        //    var dtos = new List<CurrencyDTO>();
 
-            return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyAsync(entity.Id) : null;
-        }
-        public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
-        {
-            var entity = await _context.Currencies
-                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
+        //    entities.ForEach(s => dtos.Add(_mapper.Map<CurrencyDTO>(s)));
 
-            if (entity != null)
-            {
-                entity.CurrencyName = request.CurrencyName;
-                entity.Weight = request.Weight;
-                entity.QuantityIncreasePerTick = request.QuantityIncreasePerTick;
-                entity.TimeSecBetweenTick = request.TimeSecBetweenTick;
-                _context.Entry(entity).State = EntityState.Modified;
+        //    return dtos.ToArray();
+        //}
+        //public virtual async Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
+        //{
+        //    var entity = _mapper.Map<Currency>(request);
 
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return await ReadCurrencyAsync(entity.Id);
-                }
-            }
-            return null;
-        }
-        public virtual async Task<bool> DeleteCurrencyAsync(Guid id)
-        {
-            var entity = await _context.Currencies
-                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+        //    _context.Currencies.Add(entity);
 
-            if (entity != null)
-            {
-                entity.Active = false;
-                _context.Entry(entity).State = EntityState.Modified;
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        //    return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyAsync(entity.Id) : null;
+        //}
+        //public virtual async Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId)
+        //{
+        //    var entity = await _context.Currencies
+        //        .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
+
+        //    if (entity != null)
+        //    {
+        //        entity.CurrencyName = request.CurrencyName;
+        //        entity.Weight = request.Weight;
+        //        entity.QuantityIncreasePerTick = request.QuantityIncreasePerTick;
+        //        entity.TimeSecBetweenTick = request.TimeSecBetweenTick;
+        //        _context.Entry(entity).State = EntityState.Modified;
+
+        //        if (await _context.SaveChangesAsync() > 0)
+        //        {
+        //            return await ReadCurrencyAsync(entity.Id);
+        //        }
+        //    }
+        //    return null;
+        //}
+        //public virtual async Task<bool> DeleteCurrencyAsync(Guid id)
+        //{
+        //    var entity = await _context.Currencies
+        //        .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+        //    if (entity != null)
+        //    {
+        //        entity.Active = false;
+        //        _context.Entry(entity).State = EntityState.Modified;
+        //        if (await _context.SaveChangesAsync() > 0)
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //    return false;
+        //}
         
         // return all playlists for current user
         public virtual async Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId)
@@ -503,7 +542,7 @@ namespace Listify.DAL
                         _context.Entry(otherPlaylist).State = EntityState.Modified;
                     }
                 }
-                else if (otherPlaylists.Count() <= 0 || !otherPlaylists.Any(s => s.IsSelected))
+                else if (otherPlaylists.Count <= 0 || !otherPlaylists.Any(s => s.IsSelected))
                 {
                     entity.IsSelected = true;
                 }
@@ -640,6 +679,53 @@ namespace Listify.DAL
             return false;
         }
 
+        //public virtual async Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId)
+        //{
+        //    var applicationUser = await _context.ApplicationUsers
+        //        .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+
+        //    var room = await _context.Rooms
+        //        .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
+
+        //    var playlist = await _context.Playlists
+        //        .FirstOrDefaultAsync(s => s.Id == playlistId && s.Active);
+
+        //    if (room != null && playlist != null)
+        //    {
+        //        var songsQueued = await _context.SongsQueued
+        //            .Where(s => s.RoomId == room.Id && !s.HasBeenPlayed && s.Active)
+        //            .ToListAsync();
+
+        //        var songsPlaylsit = await _context.SongsPlaylists
+        //            .Where(s => s.PlaylistId == playlist.Id && s.Active)
+        //            .ToListAsync();
+
+        //        var counter = songsQueued.Count();
+
+        //        foreach (var songPlaylist in songsPlaylsit)
+        //        {
+        //            if (counter < applicationUser.QueueCount && !songsQueued.Any(s=> s.SongId == songPlaylist.SongId))
+        //            {
+        //                counter++;
+
+        //                _context.SongsQueued.Add(new SongQueued
+        //                {
+        //                    ApplicationUserId = applicationUserId,
+        //                    RoomId = room.Id,
+        //                    SongId = songPlaylist.SongId,
+        //                    WeightedValue = 0,
+        //                    TransactionsSongQueued = new List<TransactionSongQueued>
+        //                    {
+        //                        new TransactionSongQueued
+        //                        {
+        //                            TransactionType = TransactionType.Request
+        //                        }
+        //                    }
+        //                });
+        //            }
+        //        }
+        //    }
+        //}
         public virtual async Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId)
         {
             var playlist = await _context.Playlists
@@ -887,7 +973,7 @@ namespace Listify.DAL
                 return null;
             }
 
-            var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
+            var applicationUserRoomCurrency = await ReadApplicationUserRoomCurrencyRoomAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
 
             if (applicationUserRoomCurrency != null &&
                 applicationUserRoomCurrency.Quantity >= request.SongSearchResult.QuantityWagered)
@@ -961,7 +1047,7 @@ namespace Listify.DAL
                             ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
                             RoomId = applicationUserRoom.Room.Id,
                             SongId = song.Id,
-                            WeightedValue = request.SongSearchResult.QuantityWagered * applicationUserRoomCurrency.Currency.Weight,
+                            WeightedValue = request.SongSearchResult.QuantityWagered * applicationUserRoomCurrency.CurrencyRoom.Currency.Weight,
                             TransactionsSongQueued = new List<TransactionSongQueued>
                             {
                                 new TransactionSongQueued
@@ -975,7 +1061,7 @@ namespace Listify.DAL
 
                         _context.SongsQueued.Add(songQueued);
 
-                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrencies
+                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrenciesRooms
                             .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
 
                         if (applicationUserRoomCurrencyEntity != null)
@@ -1098,9 +1184,10 @@ namespace Listify.DAL
 
         public virtual async Task<bool> WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request)
         {
-            var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
-                .Include(s => s.Currency)
-                .FirstOrDefaultAsync(s => s.Id == request.ApplicationUserRoomCurrency.Id && s.Active);
+            var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
+                .Include(s => s.CurrencyRoom)
+                .Include(s => s.CurrencyRoom.Currency)
+                .FirstOrDefaultAsync(s => s.Id == request.ApplicationUserRoomCurrencyRoom.Id && s.Active);
 
             if (applicationUserRoomCurrency != null && applicationUserRoomCurrency.Quantity >= Math.Abs(request.Quantity))
             {
@@ -1112,7 +1199,7 @@ namespace Listify.DAL
                     applicationUserRoomCurrency.Quantity -= Math.Abs(request.Quantity);
                     _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
 
-                    songQueued.WeightedValue += request.Quantity * applicationUserRoomCurrency.Currency.Weight;
+                    songQueued.WeightedValue += request.Quantity * applicationUserRoomCurrency.CurrencyRoom.Currency.Weight;
 
                     songQueued.TransactionsSongQueued.Add(new TransactionSongQueued
                     {
@@ -1120,6 +1207,12 @@ namespace Listify.DAL
                         QuantityChange = request.Quantity,
                         TransactionType = TransactionType.Wager
                     });
+
+                    if (songQueued.WeightedValue <= 0)
+                    {
+                        // the song should be removed from the queue
+                        songQueued.Active = false;
+                    }
 
                     _context.Entry(songQueued).State = EntityState.Modified;
 
@@ -1163,6 +1256,105 @@ namespace Listify.DAL
                 entity.Active = false;
                 _context.Entry(entity).State = EntityState.Modified;
 
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public virtual async Task<CurrencyRoomVM[]> ReadCurrenciesRoomAsync(Guid roomId)
+        {
+            await CheckCurrenciesRoomAsync(roomId);
+
+            var entities = await _context.CurrenciesRooms
+                .Include(s => s.Currency)
+                .Where(s => s.RoomId == roomId && s.Active)
+                .ToListAsync();
+
+            var vms = new List<CurrencyRoomVM>();
+
+            entities.ForEach(s => vms.Add(_mapper.Map<CurrencyRoomVM>(s)));
+
+            return vms.ToArray();
+        }
+        public virtual async Task<CurrencyRoomVM[]> CheckCurrenciesRoomAsync(Guid roomId)
+        {
+            var room = await _context.Rooms
+                .FirstOrDefaultAsync(s => s.Id == roomId && s.Active);
+
+            if (room != null)
+            {
+                var currencies = await _context.Currencies
+                    .Where(s => s.Active)
+                    .ToListAsync();
+
+                foreach (var currency in currencies)
+                {
+                    var currencyRoom = await _context.CurrenciesRooms
+                        .FirstOrDefaultAsync(s => s.CurrencyId == currency.Id &&
+                            s.RoomId == roomId &&
+                            s.Active);
+
+                    if (currencyRoom == null)
+                    {
+                        _context.CurrenciesRooms.Add(new CurrencyRoom
+                        {
+                            CurrencyId = currency.Id,
+                            CurrencyName = currency.CurrencyName,
+                            RoomId = roomId
+                        });
+                    }
+                }
+
+                return await _context.SaveChangesAsync() > 0 ? await ReadCurrenciesRoomAsync(roomId) : null;
+            }
+            return null;
+        }
+        public virtual async Task<CurrencyRoomVM> ReadCurrencyRoomAsync(Guid id)
+        {
+            var entity = await _context.CurrenciesRooms
+                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+            return entity != null ? _mapper.Map<CurrencyRoomVM>(entity) : null;
+        }
+        public virtual async Task<CurrencyRoomVM> CreateCurrencyRoomAsync(CurrencyRoomCreateRequest request, Guid applicationUserId)
+        {
+            var entity = _mapper.Map<CurrencyRoom>(request);
+
+            _context.CurrenciesRooms.Add(entity);
+
+            return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyRoomAsync(entity.Id) : null;
+        }
+        public virtual async Task<CurrencyRoomVM> UpdateCurrencyRoomAsync(CurrencyRoomCreateRequest request, Guid applicationUserId)
+        {
+            var entity = await _context.CurrenciesRooms
+                .FirstOrDefaultAsync(s => s.Id == request.Id && s.Active);
+
+            if (entity != null)
+            {
+                entity.CurrencyName = request.CurrencyName;
+                entity.CurrencyId = request.CurrencyId;
+                entity.RoomId = request.RoomId;
+                _context.Entry(entity).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadCurrencyRoomAsync(entity.Id);
+                }
+            }
+            return null;
+        }
+        public virtual async Task<bool> DeleteCurrencyRoomAsync(Guid id)
+        {
+            var entity = await _context.CurrenciesRooms
+                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+            if (entity != null)
+            {
+                entity.Active = false;
+                _context.Entry(entity).State = EntityState.Modified;
                 if (await _context.SaveChangesAsync() > 0)
                 {
                     return true;
@@ -1235,6 +1427,10 @@ namespace Listify.DAL
 
             if (entity != null)
             {
+                var currencies = await _context.CurrenciesRooms
+                    .Where(s => s.RoomId == entity.Id && s.Active)
+                    .ToListAsync();
+
                 var vm = _mapper.Map<RoomVM>(entity);
 
                 var usersOnline = await _context.ApplicationUsersRooms
@@ -1251,8 +1447,24 @@ namespace Listify.DAL
         {
             var entity = await _context.Rooms
                 .FirstOrDefaultAsync(s => s.RoomCode.Trim().ToLower() == roomCode.Trim().ToLower() && s.Active);
+            
+            if (entity != null)
+            {
+                var currencies = await _context.CurrenciesRooms
+                    .Where(s => s.RoomId == entity.Id && s.Active)
+                    .ToListAsync();
 
-            return entity != null ? _mapper.Map<RoomVM>(entity) : null;
+                var vm = _mapper.Map<RoomVM>(entity);
+
+                var usersOnline = await _context.ApplicationUsersRooms
+                    .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
+                    .CountAsync();
+
+                vm.NumberUsersOnline = usersOnline;
+                return vm;
+            }
+
+            return null;
         }
         public virtual async Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request)
         {
@@ -1392,6 +1604,10 @@ namespace Listify.DAL
                     s.ApplicationUserId == applicationUserId
                     && s.Active);
 
+            var purchaseLineItems = await _context.PurchaseLineItems
+                .Where(s => s.PurchaseId == entity.Id && s.Active)
+                .ToListAsync();
+
             return entity != null ? _mapper.Map<PurchaseVM>(entity) : null;
         }
         public virtual async Task<PurchaseVM> CreatePurchaseAsync(PurchaseCreateRequest request, Guid applicationUserId)
@@ -1412,18 +1628,63 @@ namespace Listify.DAL
 
                 _context.Purchases.Add(entity);
                 
-                foreach (var purchasableItemId in request.PurchasableItemsIds)
+                foreach (var item in request.PurchasableItemsJSON)
                 {
+                    var deserializedPurchasableItem = JsonConvert.DeserializeObject<PurchasableLineItemCreateRequest>(item);
+
                     var purchasableItem = await _context.PurchasableItems
-                        .FirstOrDefaultAsync(s => s.Id == purchasableItemId && s.Active);
+                        .FirstOrDefaultAsync(s => s.Id == deserializedPurchasableItem.PurchasableItem.Id && s.Active);
 
                     if (purchasableItem != null)
                     {
-                        _context.PurchasesPurchasableItems.Add(new PurchasePurchasableItem
+                        switch (purchasableItem.PurchasableItemType)
                         {
-                            PurchasableItem = purchasableItem,
-                            Purchase = entity
-                        });
+                            case PurchasableItemType.Playlist:
+                                applicationUser.PlaylistCountMax += purchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
+                                _context.Entry(applicationUser).State = EntityState.Modified;
+                                _context.PurchaseLineItems.Add(new PurchaseLineItem
+                                {
+                                    PurchasableItem = purchasableItem,
+                                    Purchase = entity,
+                                    OrderQuantity = deserializedPurchasableItem.OrderQuantity
+                                });
+
+                                break;
+                            case PurchasableItemType.PlyalistSongs:
+                                applicationUser.PlaylistSongCount += purchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
+                                _context.Entry(applicationUser).State = EntityState.Modified;
+                                _context.PurchaseLineItems.Add(new PurchaseLineItemCurrency
+                                {
+                                    PurchasableItem = purchasableItem,
+                                    Purchase = entity,
+                                    OrderQuantity = deserializedPurchasableItem.OrderQuantity
+                                });
+
+                                break;
+                            case PurchasableItemType.PurchaseCurrency:
+                                var deserializedPurchasableCurrency = JsonConvert.DeserializeObject<PurchasableLineItemCurrencyCreateRequest>(item);
+
+                                var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
+                                    .FirstOrDefaultAsync(s => s.Id == deserializedPurchasableCurrency.ApplicationUserRoomCurrencyId && s.Active);
+
+                                if (applicationUserRoomCurrency != null)
+                                {
+                                    applicationUserRoomCurrency.Quantity += deserializedPurchasableItem.PurchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
+                                    _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
+
+                                    _context.PurchaseLineItems.Add(new PurchaseLineItemCurrency
+                                    {
+                                        PurchasableItem = purchasableItem,
+                                        Purchase = entity,
+                                        ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
+                                        OrderQuantity = deserializedPurchasableItem.OrderQuantity
+                                    });
+                                }
+
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     else
                     {
@@ -1521,45 +1782,51 @@ namespace Listify.DAL
             return youtubeResults;
         }
 
-        public async Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType)
+        public virtual async Task<bool> CheckAuthToLockedRoomAsync(string roomKey, Guid roomId)
         {
-            var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrency>();
+            var encodedRoomKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(roomKey));
+
+            return await _context.Rooms.AnyAsync(s => s.Id == roomId && s.RoomKey == encodedRoomKey);
+        }
+
+        public async Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType)
+        {
+            var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrencyRoom>();
 
             // Get Room currency here
             var room = await _context.Rooms
                 .FirstOrDefaultAsync(s => s.Id == roomId);
 
-            var currency = await _context.Currencies
-                .FirstOrDefaultAsync(s => s.Id == currencyId);
+            var currencyRoom = await _context.CurrenciesRooms
+                .FirstOrDefaultAsync(s => s.Id == currencyRoomId);
 
-            currency.TimestampLastUpdated = DateTime.UtcNow;
-            _context.Entry(currency).State = EntityState.Modified;
+            _context.Entry(currencyRoom).State = EntityState.Modified;
 
             var applicationUserRooms = await _context.ApplicationUsersRooms
                     .Where(s => s.RoomId == room.Id && s.Active)
                     .ToListAsync();
 
-            if (room != null && currency != null)
+            if (room != null && currencyRoom != null)
             {
                 foreach (var applicationUserRoom in room.ApplicationUsersRooms)
                 {
                     if (applicationUserRoom != null)
                     {
-                        var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrencies
-                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyId == currencyId)
+                        var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
+                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyRoomId == currencyRoomId)
                             .FirstOrDefaultAsync();
 
                         if (applicationUserRoomCurrency == null)
                         {
-                            applicationUserRoomCurrency = new ApplicationUserRoomCurrency
+                            applicationUserRoomCurrency = new ApplicationUserRoomCurrencyRoom
                             {
                                 ApplicationUserRoomId = applicationUserRoom.Id,
-                                Currency = currency,
+                                CurrencyRoom = currencyRoom,
                                 Quantity = 0,
                                 TimeStamp = DateTime.UtcNow
                             };
 
-                            _context.ApplicationUsersRoomsCurrencies.Add(applicationUserRoomCurrency);
+                            _context.ApplicationUsersRoomsCurrenciesRooms.Add(applicationUserRoomCurrency);
                             await _context.SaveChangesAsync();
                         }
 
@@ -1572,7 +1839,7 @@ namespace Listify.DAL
 
                 foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
                 {
-                    var entity = await _context.ApplicationUsersRoomsCurrencies.FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+                    var entity = await _context.ApplicationUsersRoomsCurrenciesRooms.FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
 
                     if (entity != null)
                     {
@@ -1593,8 +1860,8 @@ namespace Listify.DAL
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
-                    var vms = new List<ApplicationUserRoomCurrencyVM>();
-                    applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyVM>(s)));
+                    var vms = new List<ApplicationUserRoomCurrencyRoomVM>();
+                    applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyRoomVM>(s)));
                     return vms;
                 }
             }
@@ -1603,7 +1870,7 @@ namespace Listify.DAL
         public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
         {
 
-            var connectionsToPing = new List<ApplicationUserRoomConnection>();
+            var connectionsPinged = new List<ApplicationUserRoomConnection>();
 
             var rooms = await _context.Rooms
                 .Where(s => s.Active)
@@ -1627,10 +1894,10 @@ namespace Listify.DAL
                     {
                         try
                         {
-                            if (applicationUserRoomConnection.HasPingBeenSent || !applicationUserRoomConnection.IsOnline)
+                            if (applicationUserRoomConnection.HasPingBeenSent)
                             {
                                 // Ping was not responded to - remove connection
-                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 3)
+                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 1)
                                 {
                                     _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
                                 }
@@ -1641,12 +1908,16 @@ namespace Listify.DAL
                                 // Send Ping
                                 applicationUserRoomConnection.HasPingBeenSent = true;
                                 _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
-                                connectionsToPing.Add(applicationUserRoomConnection);
+                                connectionsPinged.Add(applicationUserRoomConnection);
                             }
                         }
                         catch
                         { }
                     }
+
+                    applicationUserRoom.IsOnline = await _context.ApplicationUsersRoomsConnections
+                        .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
+                            s.IsOnline && s.Active);
                 }
 
                 var ownerRooms = await _context.ApplicationUsersRooms
@@ -1683,7 +1954,7 @@ namespace Listify.DAL
             if (await _context.SaveChangesAsync() > 0 )
             {
                 var vms = new List<ApplicationUserRoomConnectionVM>();
-                connectionsToPing.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
+                connectionsPinged.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
                 return vms;
                 //return new PingPollVM
                 //{

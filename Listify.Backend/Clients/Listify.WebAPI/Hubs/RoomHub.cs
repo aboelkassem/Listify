@@ -48,19 +48,13 @@ namespace Listify.WebAPI.Hubs
             if (_currencyPoll == null)
             {
                 _currencyPoll = currencyPoll;
-                _currencyPoll.PollingEvent += async (s, e) =>
-                {
-                    await OnCurrencyPollEvent(s, e);
-                };
+                _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
             }
 
             if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
-                _pingPoll.PollingEvent += async (s, e) =>
-                {
-                    await OnPingPollEvent(s, e);
-                };
+                _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
             }
         }
 
@@ -88,7 +82,7 @@ namespace Listify.WebAPI.Hubs
                     if (args.ApplicationUserRoomsCurrencies.Any(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id))
                     {
                         var applicationUserRoomCurrency = args.ApplicationUserRoomsCurrencies.First(s => s.ApplicationUserRoom.Id == connection.ApplicationUserRoom.Id);
-                        await _roomHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                        await _roomHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrencyRoom", applicationUserRoomCurrency);
                     }
                 }
                 catch
@@ -244,9 +238,9 @@ namespace Listify.WebAPI.Hubs
                     var songsQueued = await _services.ReadSongQueuedAsync(applicationUserRoom.Room.Id);
                     await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songsQueued);
 
-                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(request.ApplicationUserRoomCurrency.Id);
+                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(request.ApplicationUserRoomCurrencyRoom.Id);
 
-                    await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                    await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrencyRoom", applicationUserRoomCurrency);
                 }
             }
             catch (Exception ex)
@@ -258,11 +252,28 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var userId = await GetUserIdAsync();
-                var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+                var conection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(conection.ApplicationUserRoom.Id);
 
-                var applicationUserRoomCurrencies = await _services.ReadApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
+                var currenciesRoom = await _services.ReadCurrenciesRoomAsync(applicationUserRoom.Room.Id);
+                var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrencyRoomVM>();
+
+                foreach (var currencyRoom in currenciesRoom)
+                {
+                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, currencyRoom.Id);
+
+                    if (applicationUserRoomCurrency == null)
+                    {
+                        var roomCurrencies = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(conection.ApplicationUserRoom.Id);
+
+                        foreach (var roomCurrency in roomCurrencies)
+                        {
+                            applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, roomCurrency.Id);
+                            applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                        }
+                    }
+                    applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                }
 
                 await Clients.Caller.SendAsync("ReceiveApplicationUserRoomCurrenciesRoom", applicationUserRoomCurrencies);
             }
@@ -284,14 +295,14 @@ namespace Listify.WebAPI.Hubs
                 if (userId != Guid.Empty)
                 {
                     var songQueued = await _services.CreateSongQueuedAsync(request);
-                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
+                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
 
                     if (songQueued != null && applicationUserRoomCurrency != null)
                     {
                         var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomCurrency.ApplicationUserRoom.Id);
                         await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songQueued);
 
-                        await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrency", applicationUserRoomCurrency);
+                        await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrencyRoom", applicationUserRoomCurrency);
                     }
                 }
 
@@ -320,30 +331,14 @@ namespace Listify.WebAPI.Hubs
                     }, userId);
                 }
 
-                var currencies = await _services.ReadCurrenciesAsync();
-                var roomCurrencies = new List<ApplicationUserRoomCurrencyVM>();
+                var currenciesRooms = await _services.ReadCurrenciesRoomAsync(room.Id);
 
-                foreach (var currency in currencies)
-                {
-                    var roomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
-
-                    if (roomCurrency == null)
-                    {
-                        roomCurrency = await _services.CreateApplicationUserRoomCurrencyAsync(new ApplicationUserRoomCurrencyCreateRequest
-                        {
-                            ApplicationUserRoomId = applicationUserRoom.Id,
-                            CurrencyId = currency.Id,
-                            Quantity = 0
-                        });
-                    }
-
-                    roomCurrencies.Add(roomCurrency);
-                }
+                var applicationUserRoomCurrenciesRoom = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
 
                 var roomInformation = new RoomInformation
                 {
                     ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
-                    ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                    ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray()
                 };
 
                 await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
@@ -479,14 +474,6 @@ namespace Listify.WebAPI.Hubs
 
                     if (room != null)
                     {
-                        //room = await _services.UpdateRoomAsync(new RoomUpdateRequest
-                        //{
-                        //    Id = room.Id,
-                        //    RoomCode = room.RoomCode,
-                        //    IsRoomPublic = true,
-                        //    IsRoomOnline = true
-                        //});
-
                         var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
                         if (applicationUserRoom == null)
@@ -505,44 +492,54 @@ namespace Listify.WebAPI.Hubs
                             {
                                 ApplicationUserRoomId = applicationUserRoom.Id,
                                 ConnectionId = Context.ConnectionId,
-                                IsOnline = true
+                                IsOnline = true,
+                                ConnectionType = ConnectionType.RoomHub
                             })
                             : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                             {
                                 HasPingBeenSent = connection.HasPingBeenSent,
                                 IsOnline = true,
-                                Id = connection.Id
+                                Id = connection.Id,
+                                ApplicationUserRoomId = applicationUserRoom.Id
                             });
 
-                        var currencies = await _services.ReadCurrenciesAsync();
-                        var roomCurrencies = new List<ApplicationUserRoomCurrencyVM>();
-
-                        foreach (var currency in currencies)
+                        if (applicationUserRoom.IsOwner)
                         {
-                            var roomCurrency = await _services.ReadApplicationUserRoomCurrencyAsync(applicationUserRoom.Id, currency.Id);
+                            var applicationUserRoomConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
 
-                            if (roomCurrency == null)
+                            foreach (var appConnection in applicationUserRoomConnections)
                             {
-                                roomCurrency = await _services.CreateApplicationUserRoomCurrencyAsync(new ApplicationUserRoomCurrencyCreateRequest
+                                await Clients.Client(appConnection.ConnectionId).SendAsync("ForceServerDisconnect");
+
+                                var applicationUserRoomTemp = await _services.ReadApplicationUserRoomAsync(appConnection.ApplicationUserRoom.Id);
+
+                                await Clients.Group(applicationUserRoomTemp.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoomTemp);
+
+                                await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                                 {
-                                    ApplicationUserRoomId = applicationUserRoom.Id,
-                                    CurrencyId = currency.Id,
-                                    Quantity = 0
+                                    ApplicationUserRoomId = appConnection.ApplicationUserRoom.Id,
+                                    HasPingBeenSent = appConnection.HasPingBeenSent,
+                                    Id = appConnection.Id,
+                                    IsOnline = false
                                 });
                             }
-
-                            roomCurrencies.Add(roomCurrency);
                         }
+
+                        var applicationUserRoomCurrenciesRoom = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
 
                         await base.OnConnectedAsync();
 
                         await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomCode);
+                        await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOnline", applicationUserRoom);
+
+                        var roomEntity = await _services.ReadRoomAsync(applicationUserRoom.Room.Id);
 
                         var roomInformation = new RoomInformation
                         {
                             Room = _mapper.Map<RoomDTO>(room),
                             ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
-                            ApplicationUserRoomCurrencies = roomCurrencies.ToArray()
+                            ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray(),
+                            RoomOwner = roomEntity.ApplicationUser
                         };
 
                         await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);

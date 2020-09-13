@@ -5,16 +5,16 @@ using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
-    [Table("ApplicationUsersRoomsCurrencies", Schema = "Listify")]
-    public class ApplicationUserRoomCurrency : BaseEntity
+    [Table("ApplicationUsersRoomsCurrenciesRoom", Schema = "Listify")]
+    public class ApplicationUserRoomCurrencyRoom : BaseEntity
     {
-        public int Quantity { get; set; }
+        public float Quantity { get; set; }
 
         public Guid ApplicationUserRoomId { get; set; }
-        public Guid CurrencyId { get; set; }
+        public Guid CurrencyRoomId { get; set; }
 
         public ApplicationUserRoom ApplicationUserRoom { get; set; }
-        public Currency Currency { get; set; }
+        public CurrencyRoom CurrencyRoom { get; set; }
 
         public ICollection<Transaction> Transactions { get; set; } =
             new List<Transaction>();

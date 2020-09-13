@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
-    [Table("PurchasePurchasableItems", Schema = "Listify")]
-    public class PurchasePurchasableItem : BaseEntity
+    [Table("PurchaseLineItems", Schema = "Listify")]
+    public class PurchaseLineItem : BaseEntity
     {
+        public int OrderQuantity { get; set; }
+
         public Guid PurchasableItemId { get; set; }
         public Guid PurchaseId { get; set; }
 

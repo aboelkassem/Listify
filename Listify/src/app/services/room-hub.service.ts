@@ -1,10 +1,9 @@
 import { Subject, Observable } from 'rxjs';
 // tslint:disable-next-line:max-line-length
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrency, IPlayFromServerResponse } from './../interfaces';
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IPlayFromServerResponse } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
-import {  } from '../interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +11,7 @@ import {  } from '../interfaces';
 export class RoomHubService {
 
   messages: IChatMessage[] = [];
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = [];
+  applicationUserRoomCurrenciesRoom: IApplicationUserRoomCurrencyRoom[] = [];
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
 
@@ -27,8 +26,8 @@ export class RoomHubService {
   $serverStateRequestReceived = new Subject<IServerStateRequest>();
   $serverStateResponseReceived = new Subject<IServerStateResponse>();
   $playFromServerResponseReceived = new Subject<IPlayFromServerResponse>();
-  $applicationUserRoomCurrencyReceived = new Subject<IApplicationUserRoomCurrency>();
-  $applicationUserRoomCurrenciesRoomReceived = new Subject<IApplicationUserRoomCurrency[]>();
+  $applicationUserRoomCurrencyRoomReceived = new Subject<IApplicationUserRoomCurrencyRoom>();
+  $applicationUserRoomCurrenciesRoomReceived = new Subject<IApplicationUserRoomCurrencyRoom[]>();
   $messageReceived = new Subject<IChatMessage>();
   $pauseRequestReceived = new Subject<string>();
 
@@ -53,7 +52,7 @@ export class RoomHubService {
 
     // this function is fired when the hub first connect
     this._hubConnection.on('ReceiveRoomInformation', (roomInformation: IRoomInformation) => {
-      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
+      this.applicationUserRoomCurrenciesRoom = roomInformation.applicationUserRoomCurrenciesRoom;
       this.applicationUserRoom = roomInformation.applicationUserRoom;
       this.room = roomInformation.room;
       this.$roomInformationReceived.next(roomInformation);
@@ -88,11 +87,20 @@ export class RoomHubService {
       this.$messageReceived.next(message);
     });
 
-    this._hubConnection.on('ReceiveApplicationUserRoomCurrency', (applicationUserRoomCurrency: IApplicationUserRoomCurrency) => {
-      this.$applicationUserRoomCurrencyReceived.next(applicationUserRoomCurrency);
+    this._hubConnection.on('ReceiveApplicationUserRoomCurrencyRoom', (applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom) => {
+      this.$applicationUserRoomCurrencyRoomReceived.next(applicationUserRoomCurrency);
     });
 
-    this._hubConnection.on('ReceiveApplicationUserRoomCurrenciesRoom', (applicationUserRoomCurrencies: IApplicationUserRoomCurrency[]) => {
+    this._hubConnection.on('ReceiveApplicationUserRoomOnline', (applicationUserRoom: IApplicationUserRoom) => {
+      // ToDO: Need to complete in frontend
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserRoomOffline', (applicationUserRoom: IApplicationUserRoom) => {
+      // ToDO: Need to complete in frontend
+    });
+
+    // tslint:disable-next-line:max-line-length
+    this._hubConnection.on('ReceiveApplicationUserRoomCurrenciesRoom', (applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[]) => {
       this.$applicationUserRoomCurrenciesRoomReceived.next(applicationUserRoomCurrencies);
     });
 
@@ -232,15 +240,15 @@ export class RoomHubService {
     return this.$playFromServerResponseReceived.asObservable();
   }
 
-  getApplicationUserRoomCurrency(): Observable<IApplicationUserRoomCurrency> {
-    return this.$applicationUserRoomCurrencyReceived.asObservable();
+  getApplicationUserRoomCurrencyRoom(): Observable<IApplicationUserRoomCurrencyRoom> {
+    return this.$applicationUserRoomCurrencyRoomReceived.asObservable();
   }
 
   getMessageReceived(): Observable<IChatMessage> {
     return this.$messageReceived.asObservable();
   }
 
-  getApplicationUserRoomCurrencies(): Observable<IApplicationUserRoomCurrency[]> {
+  getApplicationUserRoomCurrenciesRoom(): Observable<IApplicationUserRoomCurrencyRoom[]> {
     return this.$applicationUserRoomCurrenciesRoomReceived.asObservable();
   }
 

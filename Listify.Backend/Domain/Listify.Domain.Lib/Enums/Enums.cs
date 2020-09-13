@@ -49,6 +49,18 @@ namespace Listify.Domain.Lib.Enums
         Paypal
     }
 
+    public enum AuthToLockedRoomResponseType
+    {
+        Success,
+        Fail
+    }
+
+    public enum ConnectionType
+    {
+        ListifyHub,
+        RoomHub
+    }
+
     public enum EndpointType
     {
 

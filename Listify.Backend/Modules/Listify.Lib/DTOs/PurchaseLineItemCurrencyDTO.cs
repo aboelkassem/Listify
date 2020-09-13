@@ -6,7 +6,8 @@ using System.Text;
 
 namespace Listify.Lib.DTOs
 {
-    public class PurchasePurchasableItemDTO : BaseDTO
+    public class PurchaseLineItemCurrencyDTO : BaseDTO
     {
+        public Guid ApplicationUserRoomCurrencyId { get; set; }
     }
 }

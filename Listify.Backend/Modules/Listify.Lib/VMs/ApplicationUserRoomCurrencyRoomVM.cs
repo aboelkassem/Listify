@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace Listify.Lib.VMs
 {
-    public class ApplicationUserRoomCurrencyVM : BaseVM
+    public class ApplicationUserRoomCurrencyRoomVM : BaseVM
     {
         public int Quantity { get; set; }
 
         public ApplicationUserRoomDTO ApplicationUserRoom { get; set; }
-        public CurrencyDTO Currency { get; set; }
+        public CurrencyRoomVM CurrencyRoom { get; set; }
 
         //public ICollection<TransactionDTO> Transactions { get; set; } =
         //    new List<TransactionDTO>();

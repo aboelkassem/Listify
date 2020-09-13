@@ -11,6 +11,7 @@ namespace Listify.Lib.Requests
         public string AspNetUserId { get; set; }
         public string Username { get; set; }
         public string RoomCode { get; set; }
+        public string RoomTitle { get; set; }
 
         // This is the number of Song Pools/ Playlists the user has, it should be purchasable
         // Default starting value is 1 song pool

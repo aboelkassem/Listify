@@ -1,6 +1,6 @@
 import { ConfirmationmodalService } from './../services/confirmationmodal.service';
 import { ConfirmationmodalComponent } from './../shared/confirmationmodal/confirmationmodal.component';
-import { IPurchasableItem } from './../interfaces';
+import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
 import { CartService } from './../services/cart.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -10,6 +10,7 @@ import { IPlaylist } from '../interfaces';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
+import { GlobalsService } from '../services/globals.service';
 
 @Component({
   selector: 'app-playlists',
@@ -17,17 +18,19 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrls: ['./playlists.component.css']
 })
 export class PlaylistsComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['playlistName', 'deletePlaylist', 'isSelected'];
+  displayedColumns: string[] = ['playlistName', 'isSelected', 'deletePlaylist'];
   dataSource = new MatTableDataSource<IPlaylist>();
 
   playlists: IPlaylist[] = [];
   numberOfPlaylist = this.hubService.applicationUser.playlistCountMax;
 
   $playlistsSubscription: Subscription;
+  $purchasableItemsSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
     private cartService: CartService,
+    private globalsService: GlobalsService,
     private toastrService: ToastrService,
     private router: Router,
     private confirmationModalService: ConfirmationmodalService,
@@ -36,6 +39,20 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
       this.playlists = playlists;
       this.dataSource.data = this.playlists;
     });
+
+    this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
+      const playlistPurchasableItem = purchasableItems
+        .filter(x => x.purchasableItemType === this.globalsService.getPurchasableItemType('Playlist') && x.quantity === 1)[0];
+
+      const purchasableLineItem: IPurchasableLineItem = {
+        purchasableItem: playlistPurchasableItem,
+        orderQuantity: 1
+      };
+
+      this.toastrService.success('Added 1 playlist to your cart', 'Added To Cart');
+      this.cartService.addPurchasableItemToCart(purchasableLineItem);
+      this.router.navigateByUrl('/cart');
+    });
   }
 
   ngOnInit(): void {
@@ -43,26 +60,14 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.$playlistsSubscription.unsubscribe();
+    this.$purchasableItemsSubscription.unsubscribe();
   }
 
   createPlaylist(): void {
     // we need logic to test if can create a new playlist - if not, navigate to the cart
     // ToDo: this data need to come from the back end
-    if (this.hubService.applicationUser.playlistCountMax > this.playlists.length) {
-      const purchasablePlaylist: IPurchasableItem = {
-        purchasableItemName: 'playlist',
-        purchasableItemType: 0,
-        quantity: 1,
-        unitCost: 1,
-        id: '',
-        discountApplied: 1,
-        imageUri: ''
-      };
-      this.toastrService.success('Added 1 playlist to your cart.', 'Added to Cart');
-
-      this.cartService.addPurchasableItemToCart(purchasablePlaylist);
-
-      this.router.navigateByUrl('/cart');
+    if (this.hubService.applicationUser.playlistCountMax < this.playlists.length) {
+      this.hubService.requestPurchasableItems();
     }else {
       this.router.navigateByUrl('/playlist');
     }

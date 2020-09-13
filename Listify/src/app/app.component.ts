@@ -5,6 +5,7 @@ import { OAuthService, OAuthEvent} from 'angular-oauth2-oidc';
 import { JwksValidationHandler } from 'angular-oauth2-oidc-jwks';
 import { Component, OnInit ,OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { IApplicationUser } from './interfaces';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -14,13 +15,15 @@ export class AppComponent implements OnDestroy, OnInit {
   title = 'Listify';
   claims: any;
   hasLoadedProfile: boolean;
-  opened: boolean;
+  applicationUser: IApplicationUser = this.hubService.applicationUser;
+  username = '';
 
   private _hasConnectedToHub: boolean;
 
   private $oauthSubscription: Subscription;
   private $disconnectSubscription: Subscription;
   private $pingSubscription: Subscription;
+  private $applicationUserSubscription: Subscription;
 
   constructor(
     private oauthService: OAuthService,
@@ -37,6 +40,11 @@ export class AppComponent implements OnDestroy, OnInit {
 
       this.$pingSubscription = this.hubService.getPing().subscribe((ping: string) => {
         this.hubService.requestPing();
+      });
+
+      this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
+        this.username = applicationUser.username;
+        this.applicationUser = applicationUser;
       });
 
       this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
@@ -81,6 +89,7 @@ export class AppComponent implements OnDestroy, OnInit {
     this.$disconnectSubscription.unsubscribe();
     this.$oauthSubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
+    this.$applicationUserSubscription.unsubscribe();
   }
 
   private configureWithNewConfigApi(): void {

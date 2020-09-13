@@ -20,7 +20,7 @@ namespace Listify.Lib.VMs
 
         public RoomDTO Room { get; set; }
 
-        public ICollection<ApplicationUserRoomCurrencyDTO> ApplicationUsersRoomsCurrencies { get; set; } =
-            new List<ApplicationUserRoomCurrencyDTO>();
+        public ICollection<ApplicationUserRoomCurrencyRoomDTO> ApplicationUsersRoomsCurrencies { get; set; } =
+            new List<ApplicationUserRoomCurrencyRoomDTO>();
     }
 }

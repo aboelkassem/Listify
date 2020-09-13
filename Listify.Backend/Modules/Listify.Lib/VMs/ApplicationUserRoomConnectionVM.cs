@@ -1,4 +1,5 @@
-﻿using Listify.Domain.Lib.VMs;
+﻿using Listify.Domain.Lib.Enums;
+using Listify.Domain.Lib.VMs;
 using Listify.Lib.DTOs;
 
 namespace Listify.Lib.VMs
@@ -10,6 +11,7 @@ namespace Listify.Lib.VMs
 
         public bool IsOnline { get; set; }
         public bool HasPingBeenSent { get; set; }
+        public ConnectionType ConnectionType { get; set; }
 
         public ApplicationUserRoomDTO ApplicationUserRoom { get; set; }
     }

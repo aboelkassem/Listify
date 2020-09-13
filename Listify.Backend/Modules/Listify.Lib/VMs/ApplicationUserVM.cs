@@ -1,5 +1,6 @@
 ﻿using Listify.Domain.Lib.VMs;
 using Listify.Lib.DTOs;
+using System;
 using System.Collections.Generic;
 
 namespace Listify.Lib.VMs
@@ -16,11 +17,11 @@ namespace Listify.Lib.VMs
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 100 songs
         public int PlaylistSongCount { get; set; }
+        public int QueueCount { get; set; }
+        public string ChatColor { get; set; }
+        public DateTime DateJoined { get; set; }
 
-        public RoomDTO Room { get; set; }
-
-        public ICollection<ChatMessageDTO> ChatMessages { get; set; } =
-            new List<ChatMessageDTO>();
+        public RoomVM Room { get; set; }
 
         public ICollection<ApplicationUserRoomDTO> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoomDTO>();

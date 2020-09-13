@@ -3,7 +3,7 @@ import { HubService } from './../../services/hub.service';
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { ISongSearchResult, ISongQueuedCreateRequest, IApplicationUserRoomCurrency, IRoomInformation } from 'src/app/interfaces';
+import { ISongSearchResult, ISongQueuedCreateRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
 import { Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
@@ -20,7 +20,7 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
 
   searchSnippet: string;
   songSearchResults: ISongSearchResult[] = [];
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[] = this.roomService.applicationUserRoomCurrencies;
+  applicationUserRoomCurrenciesRoom: IApplicationUserRoomCurrencyRoom[] = this.roomService.applicationUserRoomCurrenciesRoom;
 
   $youtubeSearchSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
@@ -38,7 +38,7 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
-      this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrencies;
+      this.applicationUserRoomCurrenciesRoom = roomInformation.applicationUserRoomCurrenciesRoom;
 
       // if (!this.roomService.applicationUserRoom.isOwner) {
       //   this.roomService.requestServerState(this.roomService.room.id);
@@ -63,6 +63,11 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
     }
   }
 
+  clearSearch(): void {
+    this.songSearchResults = [];
+    this.searchSnippet = '';
+  }
+
   addSongToQueue(searchResult: ISongSearchResult): void {
     if (searchResult.applicationUserRoomCurrencyId === '00000000-0000-0000-0000-000000000000' ||
       searchResult.applicationUserRoomCurrencyId === undefined ||
@@ -72,13 +77,13 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
       this.toastrService.error('You must wager more than 0 to place a song request', 'Not Enough Wagered');
     }
     else {
-      const correctCurrency = this.roomService.applicationUserRoomCurrencies
+      const correctCurrency = this.roomService.applicationUserRoomCurrenciesRoom
       .filter(x => x.id === searchResult.applicationUserRoomCurrencyId)[0];
 
       if (correctCurrency !== undefined && correctCurrency !== null) {
 
         if (searchResult.quantityWagered > correctCurrency.quantity) {
-          this.toastrService.error('You do not have enough ' + correctCurrency.currency.currencyName
+          this.toastrService.error('You do not have enough ' + correctCurrency.currencyRoom.currency.currencyName
             + ' for this action. You have ' + correctCurrency.quantity + ' available.',
             'Not Enough Currency');
         }else {
@@ -96,10 +101,5 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
         }
       }
     }
-  }
-
-  clearSearch(): void {
-    this.songSearchResults = [];
-    this.searchSnippet = '';
   }
 }

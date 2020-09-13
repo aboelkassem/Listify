@@ -9,7 +9,7 @@ namespace Listify.Lib.Requests
     {
         public SongQueuedDTO SongQueued { get; set; }
         public ApplicationUserRoomDTO ApplicationUserRoom { get; set; }
-        public ApplicationUserRoomCurrencyDTO ApplicationUserRoomCurrency { get; set; }
+        public ApplicationUserRoomCurrencyRoomDTO ApplicationUserRoomCurrencyRoom { get; set; }
         public int Quantity { get; set; }
     }
 }

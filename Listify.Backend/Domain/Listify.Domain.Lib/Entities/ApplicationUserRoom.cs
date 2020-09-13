@@ -19,8 +19,8 @@ namespace Listify.Domain.Lib.Entities
         public ICollection<ChatMessage> ChatMessages { get; set; } =
             new List<ChatMessage>();
 
-        public ICollection<ApplicationUserRoomCurrency> ApplicationUsersRoomsCurrencies { get; set; } =
-            new List<ApplicationUserRoomCurrency>();
+        public ICollection<ApplicationUserRoomCurrencyRoom> ApplicationUsersRoomsCurrencies { get; set; } =
+            new List<ApplicationUserRoomCurrencyRoom>();
 
         public ICollection<ApplicationUserRoomConnection> ApplicationUsersRoomsConnections { get; set; } =
             new List<ApplicationUserRoomConnection>();

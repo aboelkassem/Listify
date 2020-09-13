@@ -15,6 +15,6 @@ namespace Listify.Domain.Lib.Entities
         public int QuantityChange { get; set; }
 
         public Guid ApplicationUserRoomCurrencyId { get; set; }
-        public ApplicationUserRoomCurrency ApplicationUserRoomCurrency { get; set; }
+        public ApplicationUserRoomCurrencyRoom ApplicationUserRoomCurrency { get; set; }
     }
 }

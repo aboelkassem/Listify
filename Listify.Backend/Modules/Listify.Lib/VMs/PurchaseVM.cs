@@ -1,7 +1,6 @@
 ﻿using Listify.Domain.Lib.Enums;
 using Listify.Domain.Lib.VMs;
 using Listify.Lib.DTOs;
-using System;
 using System.Collections.Generic;
 
 namespace Listify.Lib.VMs
@@ -14,7 +13,7 @@ namespace Listify.Lib.VMs
 
         public ApplicationUserDTO ApplicationUser { get; set; }
 
-        public ICollection<PurchasePurchasableItemDTO> PurchasePurchasableItems { get; set; } =
-            new List<PurchasePurchasableItemDTO>();
+        public ICollection<PurchaseLineItemVM> PurchaseLineItems { get; set; } =
+            new List<PurchaseLineItemVM>();
     }
 }

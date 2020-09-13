@@ -7,8 +7,8 @@ namespace Listify.BLL.Events.Args
 {
     public class CurrencyPollEventArgs : BasePollingEventArgs
     {
-        public ICollection<ApplicationUserRoomCurrencyVM> ApplicationUserRoomsCurrencies { get; set; } =
-            new List<ApplicationUserRoomCurrencyVM>();
+        public ICollection<ApplicationUserRoomCurrencyRoomVM> ApplicationUserRoomsCurrencies { get; set; } =
+            new List<ApplicationUserRoomCurrencyRoomVM>();
 
         public RoomDTO Room { get; set; }
     }

@@ -14,9 +14,9 @@ namespace Listify.DAL
         Task<ApplicationUserVM> CreateApplicationUserAsync(ApplicationUserCreateRequest request);
         Task<ApplicationUserRoomVM> CreateApplicationUserRoomAsync(ApplicationUserRoomCreateRequest request, Guid applicationUserId);
         Task<ApplicationUserRoomConnectionVM> CreateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionCreateRequest request);
-        Task<ApplicationUserRoomCurrencyVM> CreateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyCreateRequest request);
+        Task<ApplicationUserRoomCurrencyRoomVM> CreateApplicationUserRoomCurrencyRoomAsync(ApplicationUserRoomCurrencyRoomCreateRequest request);
+        Task<ApplicationUserRoomCurrencyRoomVM[]> CheckApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId);
         Task<ChatMessageVM> CreateChatMessageAsync(ChatMessageCreateRequest request);
-        Task<CurrencyVM> CreateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId);
         Task<LogAPIVM> CreateLogAPIAsync(LogAPICreateRequest request, Guid applicationUserId);
         Task<LogErrorVM> CreateLogErrorAsync(LogErrorCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> CreatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
@@ -28,9 +28,9 @@ namespace Listify.DAL
         Task<bool> DeleteApplicationUserAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteApplicationUserRoomAsync(Guid id);
         Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id);
-        Task<bool> DeleteApplicationUserRoomCurrencyAsync(Guid id);
+        Task<bool> DeleteApplicationUserRoomCurrencyRoomAsync(Guid id);
         Task<bool> DeleteChatMessageAsync(Guid id);
-        Task<bool> DeleteCurrencyAsync(Guid id);
+        //Task<bool> DeleteCurrencyAsync(Guid id);
         Task<bool> DeletePlaylistAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteRoomAsync(Guid id);
         Task<bool> DeleteSongAsync(Guid id);
@@ -47,16 +47,15 @@ namespace Listify.DAL
         Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(Guid applicationUserRoomId);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id);
         Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(string connectionId);
-        Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid id);
-        Task<ApplicationUserRoomCurrencyVM[]> ReadApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId);
-        Task<ApplicationUserRoomCurrencyVM> ReadApplicationUserRoomCurrencyAsync(Guid applicationUserRoomId, Guid currencyId);
+        Task<ApplicationUserRoomCurrencyRoomVM> ReadApplicationUserRoomCurrencyRoomAsync(Guid id);
+        Task<ApplicationUserRoomCurrencyRoomVM> ReadApplicationUserRoomCurrencyRoomAsync(Guid applicationUserRoomId, Guid currencyRoomId);
         Task<ChatMessageVM> ReadChatMessageAsync(Guid id);
         Task<CurrencyVM> ReadCurrencyAsync(Guid id);
         Task<LogAPIVM> ReadLogAPIAsync(Guid id);
         Task<LogErrorVM> ReadLogErrorAsync(Guid id);
         Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId);
         Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId);
-        Task<CurrencyDTO[]> ReadCurrenciesAsync();
+        //Task<CurrencyDTO[]> ReadCurrenciesAsync();
         Task<RoomVM> ReadRoomAsync(string roomCode);
         Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
@@ -65,23 +64,22 @@ namespace Listify.DAL
         Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
+        //Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId);
         Task<SongQueuedVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
-        Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
+        //Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
         Task<SongQueuedVM[]> ReadSongsQueuedAsync(Guid roomId);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
         Task<TransactionSongQueuedVM> ReadTransactionSongQueuedAsync(Guid id);
         Task<ApplicationUserVM> UpdateApplicationUserAsync(ApplicationUserUpdateRequest request, Guid applicationUserId);
         Task<ApplicationUserRoomVM> UpdateApplicationUserRoomAsync(ApplicationUserRoomUpdateRequest request);
-        Task<ApplicationUserRoomCurrencyVM> UpdateApplicationUserRoomCurrencyAsync(ApplicationUserRoomCurrencyUpdateRequest request);
         Task<ApplicationUserRoomConnectionVM> UpdateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionUpdateRequest request);
-        Task<CurrencyVM> UpdateCurrencyAsync(CurrencyCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request);
         Task<SongVM> UpdateSongAsync(SongUpdateRequest request);
 
         Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet);
         Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
-        Task<ICollection<ApplicationUserRoomCurrencyVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyId, int currencyQuantity, TransactionType transactionType);
+        Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType);
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections();
         Task RestartSongPlaylistCountAsync(Guid applicationUserId);
         Task<bool> WagerQuantitySongQueued(WagerQuantitySongQueuedRquest request);
@@ -96,5 +94,14 @@ namespace Listify.DAL
         Task<PurchasableItemVM> CreatePurchasableItemAsync(PurchasableItemCreateRequest request);
         Task<PurchasableItemVM> UpdatePurchasableItemAsync(PurchasableItemCreateRequest request);
         Task<bool> DeletePurchasableItemAsync(Guid id, Guid applicationUserId);
+
+        Task<CurrencyRoomVM[]> ReadCurrenciesRoomAsync(Guid roomId);
+        Task<CurrencyRoomVM[]> CheckCurrenciesRoomAsync(Guid roomId);
+        Task<CurrencyRoomVM> ReadCurrencyRoomAsync(Guid id);
+        Task<CurrencyRoomVM> CreateCurrencyRoomAsync(CurrencyRoomCreateRequest request, Guid applicationUserId);
+        Task<CurrencyRoomVM> UpdateCurrencyRoomAsync(CurrencyRoomCreateRequest request, Guid applicationUserId);
+        Task<bool> DeleteCurrencyRoomAsync(Guid id);
+
+        Task<bool> CheckAuthToLockedRoomAsync(string roomCode, Guid roomId);
     }
 }

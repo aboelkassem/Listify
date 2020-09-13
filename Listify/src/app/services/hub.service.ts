@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, IPurchasableItemCurrency } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IPurchaseCreateRequest } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -20,14 +20,16 @@ export class HubService {
   $roomsReceived = new Subject<IRoom[]>();
   $playlistReceived = new Subject<IPlaylist>();
   $playlistsReceived = new Subject<IPlaylist[]>();
-  $currencyReceived = new Subject<ICurrency>();
-  $currenciesReceived = new Subject<ICurrency[]>();
+  $currencyRoomReceived = new Subject<ICurrencyRoom>();
+  $currenciesRoomReceived = new Subject<ICurrencyRoom[]>();
   $songPlaylistReceived = new Subject<ISongPlaylist>();
   $songsPlaylistReceived = new Subject<ISongPlaylist[]>();
   $searchYoutubeReceived = new Subject<ISongSearchResults>();
   $applicationUserReceived = new Subject<IApplicationUser>();
   $purchasableItemsReceived = new Subject<IPurchasableItem[]>();
   $purchasableItemReceived = new Subject<IPurchasableItem>();
+  $receivePurchase = new Subject<IPurchase>();
+  $authToLockedRoomResponse = new Subject<IAuthToLockedRoomResponse>();
   $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
 
@@ -72,12 +74,12 @@ export class HubService {
         this.$playlistReceived.next(playlist);
       });
 
-      this._hubConnection.on('ReceiveCurrency', (currency: ICurrency) => {
-        this.$currencyReceived.next(currency);
+      this._hubConnection.on('ReceiveCurrencyRoom', (currency: ICurrencyRoom) => {
+        this.$currencyRoomReceived.next(currency);
       });
 
-      this._hubConnection.on('ReceiveCurrencies', (currencies: ICurrency[]) => {
-        this.$currenciesReceived.next(currencies);
+      this._hubConnection.on('ReceiveCurrenciesRoom', (currencies: ICurrencyRoom[]) => {
+        this.$currenciesRoomReceived.next(currencies);
       });
 
       this._hubConnection.on('ReceiveSongPlaylist', (songPlaylist: ISongPlaylist) => {
@@ -100,6 +102,16 @@ export class HubService {
         this.$purchasableItemReceived.next(purchasableItem);
 
         this.requestPurchasableItems();
+      });
+
+      this._hubConnection.on('ReceivePurchase', (purchase: IPurchase) => {
+        this.$receivePurchase.next(purchase);
+
+        this.requestPurchasableItems();
+      });
+
+      this._hubConnection.on('ResponseAuthToLockedRoom', (authToLockedRoomResponse: IAuthToLockedRoomResponse) => {
+        this.$authToLockedRoomResponse.next(authToLockedRoomResponse);
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -205,15 +217,15 @@ export class HubService {
   //     this._hubConnection.invoke('GetRooms');
   //   }
   // }
-  requestCurrencies(): void {
+  requestCurrenciesRoom(roomId: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestCurrencies');
+      this._hubConnection.invoke('RequestCurrenciesRoom', roomId);
     }
   }
 
-  requestCurrency(id: string): void {
+  requestCurrencyRoom(id: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestCurrency', id);
+      this._hubConnection.invoke('RequestCurrencyRoom', id);
     }
   }
 
@@ -223,11 +235,11 @@ export class HubService {
     }
   }
 
-  deleteCurrency(id: string): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('DeleteCurrency', id);
-    }
-  }
+  // deleteCurrency(id: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('DeleteCurrency', id);
+  //   }
+  // }
 
   requestSearchYoutube(searchSnippet: string): void {
     if (this._hubConnection) {
@@ -295,33 +307,45 @@ export class HubService {
     }
   }
 
-  savePurchasableItem(purchasableItem: IPurchasableItem): void {
+  // savePurchasableItem(purchasableItem: IPurchasableItem): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('CreatePurchasableItem', purchasableItem);
+  //   }
+  // }
+
+  // deletePurchasableItem(id: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('DeletePurchasableItem', id);
+  //   }
+  // }
+
+  // requestPurchasableItemCurrency(id: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('RequestPurchasableItemCurrency', id);
+  //   }
+  // }
+
+  // savePurchasableItemCurrency(purchasableItemCurrency: IPurchasableItemCurrency): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('CreatePurchasableItemCurrency', purchasableItemCurrency);
+  //   }
+  // }
+
+  // deletePurchasableItemCurrency(id: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('DeletePurchasableItemCurrency', id);
+  //   }
+  // }
+
+  createPurchase(purchase: IPurchaseCreateRequest): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('CreatePurchasableItem', purchasableItem);
+      this._hubConnection.invoke('CreatePurchase', purchase);
     }
   }
 
-  deletePurchasableItem(id: string): void {
+  requestAuthToLockedRoom(roomKey: string, roomId: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('DeletePurchasableItem', id);
-    }
-  }
-
-  requestPurchasableItemCurrency(id: string): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('RequestPurchasableItemCurrency', id);
-    }
-  }
-
-  savePurchasableItemCurrency(purchasableItemCurrency: IPurchasableItemCurrency): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('CreatePurchasableItemCurrency', purchasableItemCurrency);
-    }
-  }
-
-  deletePurchasableItemCurrency(id: string): void {
-    if (this._hubConnection) {
-      this._hubConnection.invoke('DeletePurchasableItemCurrency', id);
+      this._hubConnection.invoke('RequestAuthToLockedRoom', roomKey, roomId);
     }
   }
 
@@ -345,12 +369,12 @@ export class HubService {
     return this.$playlistReceived.asObservable();
   }
 
-  getCurrencies(): Observable<ICurrency[]> {
-    return this.$currenciesReceived.asObservable();
+  getCurrenciesRoom(): Observable<ICurrencyRoom[]> {
+    return this.$currenciesRoomReceived.asObservable();
   }
 
-  getCurrency(): Observable<ICurrency> {
-    return this.$currencyReceived.asObservable();
+  getCurrencyRoom(): Observable<ICurrencyRoom> {
+    return this.$currencyRoomReceived.asObservable();
   }
 
   getSongsPlaylist(): Observable<ISongPlaylist[]> {
@@ -371,6 +395,14 @@ export class HubService {
 
   getPurchasableItem(): Observable<IPurchasableItem> {
     return this.$purchasableItemReceived.asObservable();
+  }
+
+  getPurchase(): Observable<IPurchase> {
+    return this.$receivePurchase.asObservable();
+  }
+
+  getAuthToLockedRoom(): Observable<IAuthToLockedRoomResponse> {
+    return this.$authToLockedRoomResponse.asObservable();
   }
 
   getPing(): Observable<string> {

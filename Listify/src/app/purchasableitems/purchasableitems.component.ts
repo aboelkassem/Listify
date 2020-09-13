@@ -15,7 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrls: ['./purchasableitems.component.css']
 })
 export class PurchasableitemsComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['purchasableItemName', 'purchasableItemType', 'quantity', 'unitCost', 'discountApplied', 'image', 'removePurchasableItem'];
+  displayedColumns: string[] = ['image', 'purchasableItemName', 'purchasableItemType', 'quantity', 'unitCost', 'discountApplied'];
   dataSource = new MatTableDataSource<IPurchasableItem>();
 
   purchasableItems: IPurchasableItem[] = [];
@@ -49,23 +49,23 @@ export class PurchasableitemsComponent implements OnInit, OnDestroy {
   }
 
 
-  removePurchasableItem(id: string): void {
+  // removePurchasableItem(id: string): void {
 
-    this.confirmationModalService.setConfirmationModalMessage('remove this purchasable item');
+  //   this.confirmationModalService.setConfirmationModalMessage('remove this purchasable item');
 
-    const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
-      width: '250px',
-      data: {isConfirmed: false}
-    });
+  //   const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+  //     width: '250px',
+  //     data: {isConfirmed: false}
+  //   });
 
-    confirmationModal.afterClosed().subscribe(result => {
-      if (result !== undefined) {
-        this.hubService.deletePurchasableItem(id);
-        this.router.navigateByUrl('/purchasableItems');
+  //   confirmationModal.afterClosed().subscribe(result => {
+  //     if (result !== undefined) {
+  //       this.hubService.deletePurchasableItem(id);
+  //       this.router.navigateByUrl('/purchasableItems');
 
-        this.toastrService.success('You have successfully deleted the purchasable item', 'Update Success');
-      }
-    });
+  //       this.toastrService.success('You have successfully deleted the purchasable item', 'Update Success');
+  //     }
+  //   });
 
-  }
+  // }
 }

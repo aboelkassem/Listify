@@ -15,8 +15,8 @@ namespace Listify.Lib.VMs
         public ICollection<ChatMessageDTO> ChatMessages { get; set; } =
             new List<ChatMessageDTO>();
 
-        public ICollection<ApplicationUserRoomCurrencyDTO> ApplicationUsersRoomsCurrencies { get; set; } =
-            new List<ApplicationUserRoomCurrencyDTO>();
+        public ICollection<ApplicationUserRoomCurrencyRoomDTO> ApplicationUsersRoomsCurrenciesRoom { get; set; } =
+            new List<ApplicationUserRoomCurrencyRoomDTO>();
 
         public ICollection<ApplicationUserRoomConnectionDTO> ApplicationUsersRoomsConnections { get; set; } =
             new List<ApplicationUserRoomConnectionDTO>();

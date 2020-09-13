@@ -5,19 +5,31 @@ export interface IApplicationUser {
   room: IRoom;
   playlistSongCount: number;
   playlistCountMax: number;
+  chatColor: string;
+  queueCount: number;
+  timestamp: string;
+  dateJoined: string;
 }
 
 export interface IApplicationUserRequest {
   id: string;
   username: string;
   roomCode: string;
-  playlistSongCount: number;
-  playlistCountMax: number;
+  roomTitle: string;
+  roomKey: string;
+  allowRequests: boolean;
+  isRoomPublic: boolean;
+  isRoomLocked: boolean;
+  chatColor: string;
 }
 
 export interface IRoom {
   id: string;
   roomCode: string;
+  roomTitle: string;
+  roomKey: string;
+  allowRequests: boolean;
+  isRoomLocked: boolean;
   isRoomPublic: boolean;
   songsQueued: ISongQueued[];
   numberUsersOnline: number;
@@ -31,11 +43,18 @@ export interface IApplicationUserRoom {
   isOwner: boolean;
 }
 
-export interface IApplicationUserRoomCurrency {
+export interface IApplicationUserRoomCurrencyRoom {
   id: string;
   quantity: number;
   applicationUserRoom: IApplicationUserRoom;
+  currencyRoom: ICurrencyRoom;
+}
+
+export interface ICurrencyRoom {
+  id: string;
+  currencyName: string;
   currency: ICurrency;
+  room: IRoom;
 }
 
 export interface IChatMessage {
@@ -117,7 +136,8 @@ export interface ISongSearchResult {
 export interface IRoomInformation {
   room: IRoom;
   applicationUserRoom: IApplicationUserRoom;
-  applicationUserRoomCurrencies: IApplicationUserRoomCurrency[];
+  applicationUserRoomCurrenciesRoom: IApplicationUserRoomCurrencyRoom[];
+  roomOwner: IApplicationUser;
 }
 
 export interface IPlayFromServerResponse {
@@ -138,7 +158,7 @@ export interface IServerStateResponse extends IPlayFromServerResponse {
 export interface IWagerQuantitySongQueuedRequest {
   songQueued: ISongQueued;
   applicationUserRoom: IApplicationUserRoom;
-  applicationUserRoomCurrency: IApplicationUserRoomCurrency;
+  applicationUserRoomCurrencyRoom: IApplicationUserRoomCurrencyRoom;
   quantity: number;
 }
 
@@ -147,8 +167,15 @@ export interface IPurchase {
   purchaseMethod: number;
   subtotal: number;
   amountCharged: number;
-  applicationUser: IApplicationUser;
   purchasableItems: IPurchasableItem[];
+}
+
+export interface IPurchaseCreateRequest {
+  id: string;
+  purchaseMethod: number;
+  subtotal: number;
+  amountCharged: number;
+  purchasableItemsJSON: string[];
 }
 
 export interface IPurchasableItem {
@@ -161,23 +188,24 @@ export interface IPurchasableItem {
   discountApplied: number;
 }
 
-export interface IPurchasableLineItem extends IPurchasableItem {
+export interface IPurchasableLineItem{
+  purchasableItem: IPurchasableItem;
   orderQuantity: number;
 }
 
-export interface IPurchasableItemCurrency extends IPurchasableItem {
-  currency: ICurrency;
+export interface IPurchasableCurrencyLineItem extends IPurchasableLineItem{
+  applicationUserRoomCurrencyId: string;
 }
 
 export interface IConfirmationModalData {
   isConfirmed: boolean;
 }
 
-export interface IInjectableComponent{
-  type: string;
-  object: any;
+export interface IRoomKeyModalData {
+  roomKey: string;
 }
 
-export interface IContentComponent {
-  data: any;
+export interface IAuthToLockedRoomResponse {
+  authToLockedRoomResponseType: number;
+  room: IRoom;
 }

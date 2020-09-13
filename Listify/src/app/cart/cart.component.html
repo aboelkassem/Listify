@@ -21,7 +21,7 @@
     <ng-container matColumnDef="cost">
       <th mat-header-cell *matHeaderCellDef>Cost</th>
       <td mat-cell *matCellDef="let element">
-        ${{element.orderQuantity * element.unitCost * (1 - element.discountApplied) | currency}}
+        {{element.orderQuantity * element.unitCost * (1 - element.discountApplied) | currency}}
       </td>
     </ng-container>
 

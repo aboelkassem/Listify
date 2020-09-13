@@ -26,10 +26,22 @@ export class PlayerComponent implements OnInit, OnDestroy {
     private youtubeService: YoutubeService) {
       // this sets the properties for a server ordered play
       this.$playFromServerSubscription = this.roomService.getPlayFromServerResponse().subscribe(response => {
-        this.songQueued = response.songQueued;
-        this.songName = this.songQueued.song.songName;
-        this.requestedBy = this.songQueued.applicationUser.username;
-        this.playValue = this.songQueued.weightedValue.toString();
+
+        if(response.songQueued) {
+          this.songQueued = response.songQueued;
+          this.songName = this.songQueued.song.songName;
+          this.requestedBy = this.songQueued.applicationUser.username;
+          // this.requestedByColor = this.songQueued.applicationUser.chatColor;
+          // this.requestedById = this.songQueued.applicationUser.id;
+          this.playValue = this.songQueued.weightedValue.toString();
+        }else {
+          this.songQueued = undefined;
+          this.songName = '';
+          this.requestedBy = '';
+          // this.requestedByColor = '';
+          // this.requestedById = '';
+          this.playValue = '';
+        }
 
         // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
         // this.youtubeService.play();

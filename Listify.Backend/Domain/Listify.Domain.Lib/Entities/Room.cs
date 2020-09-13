@@ -10,6 +10,10 @@ namespace Listify.Domain.Lib.Entities
     {
         // the identifier for the room that can be chosen by the user
         public string RoomCode { get; set; }
+        public string RoomTitle { get; set; }
+        public string RoomKey { get; set; }
+        public bool AllowRequests { get; set; } = true;
+        public bool IsRoomLocked { get; set; }
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
         
@@ -20,6 +24,9 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<ApplicationUserRoom> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoom>();
+
+        public ICollection<CurrencyRoom> CurrenciesRoom { get; set; } =
+            new List<CurrencyRoom>();
 
         // this is SongQueued instead of song Request because if isn't
         // a song in the queue, a record will be created for one for the

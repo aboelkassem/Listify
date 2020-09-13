@@ -1,6 +1,7 @@
+import { HubService } from 'src/app/services/hub.service';
 import { GlobalsService } from './../services/globals.service';
 import { Router } from '@angular/router';
-import { IPurchasableLineItem } from './../interfaces';
+import { IPurchasableLineItem, IPurchaseCreateRequest } from './../interfaces';
 import { CartService } from './../services/cart.service';
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
@@ -24,6 +25,7 @@ export class CartComponent implements OnInit {
   constructor(
     private cartService: CartService,
     private globalsService: GlobalsService,
+    private hubService: HubService,
     private toastrService: ToastrService) {}
 
   ngOnInit(): void {
@@ -87,11 +89,29 @@ export class CartComponent implements OnInit {
     this.dataSource.data = this.purchasableLineItems;
     this.subTotal = this.cartService.getSubtotal();
 
-    const selectedItem = this.purchasableLineItems.filter(x => x.id === id)[0];
-    this.toastrService.success('You have Removed ' + selectedItem.purchasableItemName + ' From your cart', 'Removed From Cart');
+    const selectedItem = this.purchasableLineItems.filter(x => x.purchasableItem.id === id)[0];
+    this.toastrService.success('You have Removed ' + selectedItem.purchasableItem.purchasableItemName + ' From your cart', 'Removed From Cart');
   }
 
   checkOut(): void {
 
+  }
+
+  createPurchase(): void {
+    const json: string[] = [];
+
+    this.cartService.purchasableLineItems.forEach(element => {
+      json.push(JSON.stringify(element));
+    });
+
+    const purchase: IPurchaseCreateRequest = {
+      id: '',
+      purchaseMethod: this.globalsService.getPurchaseMethodType('Paypal'),
+      subtotal: this.cartService.getSubtotal(),
+      amountCharged: this.cartService.getSubtotal(),
+      purchasableItemsJSON: json
+    };
+
+    this.hubService.createPurchase(purchase);
   }
 }

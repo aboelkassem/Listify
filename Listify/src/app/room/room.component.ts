@@ -17,12 +17,16 @@ export class RoomComponent implements OnInit, OnDestroy {
   roomCode: string;
   songsQueued: ISongQueued[];
 
+  allowRequests: boolean;
+  isRoomOwner: boolean;
   room: IRoom = this.roomHubService.room;
 
   $songsQueuedSubscription: Subscription;
+  $songQueuedSubscription: Subscription;
   $playFromServerSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
   $pingSubscription: Subscription;
+  $applicationUserReceivedSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
@@ -37,6 +41,8 @@ export class RoomComponent implements OnInit, OnDestroy {
       this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
+        this.allowRequests = roomInformation.room.allowRequests;
+        this.isRoomOwner = this.roomHubService.applicationUserRoom.isOwner;
 
         // deleted
         if (!this.roomHubService.applicationUserRoom.isOwner) {
@@ -44,8 +50,16 @@ export class RoomComponent implements OnInit, OnDestroy {
         }
       });
 
+      this.$applicationUserReceivedSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
+        this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+      });
+
       this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
         this.songsQueued = songsQueued;
+      });
+
+      this.$songQueuedSubscription = this.roomHubService.getSongQueued().subscribe(songQueued => {
+        this.roomHubService.requestApplicationUserRoomCurrencies();
       });
 
       this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
@@ -65,7 +79,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     }
 
   ngOnInit(): void {
-    if (this.hubService.isConnected) {
+    if (this.hubService.isConnected && this.hubService.applicationUser) {
       this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
     }
   }
@@ -73,7 +87,9 @@ export class RoomComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.$roomReceivedSubscription.unsubscribe();
     this.$songsQueuedSubscription.unsubscribe();
+    this.$songQueuedSubscription.unsubscribe();
     this.$playFromServerSubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
+    this.$applicationUserReceivedSubscription.unsubscribe();
   }
 }
