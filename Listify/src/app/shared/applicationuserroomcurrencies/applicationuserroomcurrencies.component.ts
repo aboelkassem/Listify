@@ -39,6 +39,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
       if (originalCurrency !== undefined && originalCurrency !== null) {
         const index = this.applicationUserRoomCurrencies.indexOf(originalCurrency);
         this.applicationUserRoomCurrencies[index] = applicationUserRoomCurrency;
+        this.dataSource.data = this.applicationUserRoomCurrencies;
       }
     });
   }

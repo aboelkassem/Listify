@@ -12,6 +12,8 @@ using Listify.Paths;
 using Listify.BLL;
 using Listify.BLL.Polls;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Listify.WebAPI
 {
@@ -33,7 +35,7 @@ namespace Listify.WebAPI
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>();
+            services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
 
             services.AddSignalR(options =>
             {
@@ -73,13 +75,12 @@ namespace Listify.WebAPI
             IPingPoll pingPoll = new PingPoll(listifyService);
             pingPoll.Start(10000);
             services.AddSingleton(pingPoll);
-            //services.AddSingleton<IBasePoll<PingPoll>, BasePoll<PingPoll>>();
-            services.AddScoped<IPingPoll, PingPoll>();
+            //services.AddScoped<IPingPoll, PingPoll>();
 
             ICurrencyPoll currencyPoll = new CurrencyPoll(listifyService);
             currencyPoll.Start(5000);
             services.AddSingleton(currencyPoll);
-            services.AddScoped<ICurrencyPoll, CurrencyPoll>();
+            //services.AddScoped<ICurrencyPoll, CurrencyPoll>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

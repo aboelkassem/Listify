@@ -45,16 +45,16 @@ namespace Listify.WebAPI.Hubs
             _services = services;
             _mapper = mapper;
 
-            if (_currencyPoll == null)
-            {
-                _currencyPoll = currencyPoll;
-                _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
-            }
-
             if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
                 _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
+            }
+
+            if (_currencyPoll == null)
+            {
+                _currencyPoll = currencyPoll;
+                _currencyPoll.PollingEvent += async (s, e) => await OnCurrencyPollEvent(s, e);
             }
         }
 
@@ -599,6 +599,15 @@ namespace Listify.WebAPI.Hubs
                 });
 
                 var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                
+                if (applicationUserRoom.IsOwner)
+                {
+                    applicationUserRoom.IsOnline = false;
+                    applicationUserRoom.Room.IsRoomOnline = false;
+                    _context.Entry(applicationUserRoom).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
+
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
             }
         }

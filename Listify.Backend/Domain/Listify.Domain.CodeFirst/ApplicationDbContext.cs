@@ -6,11 +6,15 @@ namespace Listify.Domain.CodeFirst
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        public ApplicationDbContext()
         {
 
         }
 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+
+        }
 
         public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public virtual DbSet<ApplicationUserRoom> ApplicationUsersRooms { get; set; }
@@ -92,9 +96,9 @@ namespace Listify.Domain.CodeFirst
                    Active = true,
                    CurrencyName = "Tokens",
                    Id = new System.Guid("7385DB66-C5D6-4F99-84DC-74CF9695A459"),
-                   QuantityIncreasePerTick = 1,
+                   QuantityIncreasePerTick = 2,
                    TimeSecBetweenTick = 30,
-                   Weight = 1,
+                   Weight = 2,
                    TimeStamp = System.DateTime.UtcNow
                });
 

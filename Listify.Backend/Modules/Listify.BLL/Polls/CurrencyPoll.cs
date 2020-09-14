@@ -16,40 +16,37 @@ namespace Listify.BLL.Polls
 
         protected override async Task TimerTickEvents()
         {
-            var rooms = await _service.ReadRoomsAsync();
-
-            foreach (var room in rooms)
+            try
             {
-                if (room.IsRoomOnline)
+                var rooms = await _service.ReadRoomsAsync();
+
+                foreach (var room in rooms)
                 {
                     var currenciesRoom = await _service.ReadCurrenciesRoomAsync(room.Id);
                     
                     foreach (var currencyRoom in currenciesRoom)
                     {
-                        try
-                        {
-                            var roomVM = await _service.ReadRoomAsync(room.Id);
 
-                            //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
-                            if (currencyRoom.TimestampLastUpdate + TimeSpan.FromSeconds(currencyRoom.Currency.TimeSecBetweenTick) < DateTime.UtcNow)
+                        var roomVM = await _service.ReadRoomAsync(room.Id);
+
+                        //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
+                        if (currencyRoom.TimestampLastUpdate + TimeSpan.FromSeconds(currencyRoom.Currency.TimeSecBetweenTick) < DateTime.UtcNow)
+                        {
+                            var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currencyRoom.Id, currencyRoom.Currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
+
+                            FirePollingEvent(this, new CurrencyPollEventArgs
                             {
-                                var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currencyRoom.Currency.Id, currencyRoom.Currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
-
-                                FirePollingEvent(this, new CurrencyPollEventArgs
-                                {
-                                    PollingEventType = PollingEventType.CurrencyPoll,
-                                    ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies,
-                                    Room = room
-                                });
-                            }
-                        }
-
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
+                                PollingEventType = PollingEventType.CurrencyPoll,
+                                ApplicationUserRoomsCurrencies = applicationUserRoomsCurrencies,
+                                Room = room
+                            });
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
     }

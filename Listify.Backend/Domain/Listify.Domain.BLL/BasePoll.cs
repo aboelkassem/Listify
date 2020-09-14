@@ -46,8 +46,9 @@ namespace Listify.Domain.BLL
                     {
                         await TimerTickEvents();
                     }
-                    catch
+                    catch(Exception ex)
                     {
+                        Console.WriteLine(ex.Message);
                     }
                     _isTimerEventsRunning = false;
                 });

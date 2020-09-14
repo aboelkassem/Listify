@@ -46,10 +46,7 @@ namespace Listify.WebAPI.Hubs
             if (_pingPoll == null)
             {
                 _pingPoll = pingPoll;
-                _pingPoll.PollingEvent += async (s, e) =>
-                {
-                    await OnPingPollEvent(s, e);
-                };
+                _pingPoll.PollingEvent += async (s, e) => await OnPingPollEvent(s, e);
             }
         }
 

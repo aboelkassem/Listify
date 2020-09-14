@@ -28,7 +28,7 @@ namespace Listify.DAL
         protected readonly IMapper _mapper;
 
         public ListifyServices(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             IMapper mapper)
         {
             _context = context;
@@ -342,15 +342,26 @@ namespace Listify.DAL
 
         public virtual async Task<ApplicationUserRoomConnectionVM[]> ReadApplicationUsersRoomsConnectionsAsync(Guid roomId)
         {
-            var connections = await _context.ApplicationUsersRoomsConnections
-                .Include(s => s.ApplicationUserRoom)
-                .Where(s => s.ApplicationUserRoom.RoomId == roomId && s.Active && s.ApplicationUserRoom.Active)
-                .ToListAsync();
+            try
+            {
+                using (var context = new ApplicationDbContext())
+                {
+                    var connections = await context.ApplicationUsersRoomsConnections
+                    .Include(s => s.ApplicationUserRoom)
+                    .Where(s => s.ApplicationUserRoom.RoomId == roomId && s.Active && s.ApplicationUserRoom.Active)
+                    .ToListAsync();
 
-            var vms = new List<ApplicationUserRoomConnectionVM>();
-            connections.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
+                    var vms = new List<ApplicationUserRoomConnectionVM>();
+                    connections.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
 
-            return vms.ToArray();
+                    return vms.ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
         public virtual async Task<ApplicationUserRoomConnectionVM> ReadApplicationUserRoomConnectionAsync(Guid id)
         {
@@ -1266,10 +1277,13 @@ namespace Listify.DAL
 
         public virtual async Task<CurrencyRoomVM[]> ReadCurrenciesRoomAsync(Guid roomId)
         {
+
             await CheckCurrenciesRoomAsync(roomId);
 
             var entities = await _context.CurrenciesRooms
                 .Include(s => s.Currency)
+                .Include(s => s.ApplicationUsersRoomsCurrenciesRooms)
+                .Include(s => s.Room)
                 .Where(s => s.RoomId == roomId && s.Active)
                 .ToListAsync();
 
@@ -1278,6 +1292,7 @@ namespace Listify.DAL
             entities.ForEach(s => vms.Add(_mapper.Map<CurrencyRoomVM>(s)));
 
             return vms.ToArray();
+            
         }
         public virtual async Task<CurrencyRoomVM[]> CheckCurrenciesRoomAsync(Guid roomId)
         {
@@ -1400,8 +1415,8 @@ namespace Listify.DAL
         public virtual async Task<RoomDTO[]> ReadRoomsAsync()
         {
             var entities = await _context.Rooms
-                        .Where(s => s.IsRoomOnline && s.IsRoomPublic && s.Active)
-                        .ToListAsync();
+                    .Where(s => s.IsRoomOnline && s.IsRoomPublic && s.Active)
+                    .ToListAsync();
 
             var dtos = new List<RoomDTO>();
 
@@ -1423,6 +1438,7 @@ namespace Listify.DAL
         public virtual async Task<RoomVM> ReadRoomAsync(Guid id)
         {
             var entity = await _context.Rooms
+                .Include(s => s.CurrenciesRoom)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             if (entity != null)
@@ -1800,14 +1816,15 @@ namespace Listify.DAL
             var currencyRoom = await _context.CurrenciesRooms
                 .FirstOrDefaultAsync(s => s.Id == currencyRoomId);
 
-            _context.Entry(currencyRoom).State = EntityState.Modified;
-
             var applicationUserRooms = await _context.ApplicationUsersRooms
                     .Where(s => s.RoomId == room.Id && s.Active)
                     .ToListAsync();
 
             if (room != null && currencyRoom != null)
             {
+                currencyRoom.TimestampLastUpdate = DateTime.UtcNow;
+                _context.Entry(currencyRoom).State = EntityState.Modified;
+
                 foreach (var applicationUserRoom in room.ApplicationUsersRooms)
                 {
                     if (applicationUserRoom != null)
@@ -1869,7 +1886,6 @@ namespace Listify.DAL
         }
         public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
         {
-
             var connectionsPinged = new List<ApplicationUserRoomConnection>();
 
             var rooms = await _context.Rooms
@@ -1897,7 +1913,8 @@ namespace Listify.DAL
                             if (applicationUserRoomConnection.HasPingBeenSent)
                             {
                                 // Ping was not responded to - remove connection
-                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 1)
+                                // total connection per 1 song/ room without ping is 30 minutes
+                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 30)
                                 {
                                     _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
                                 }
