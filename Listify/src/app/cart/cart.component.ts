@@ -14,7 +14,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./cart.component.css']
 })
 export class CartComponent implements OnInit {
-  displayedColumns: string[] = ['itemName', 'orderQuantity', 'cost', 'removeFromCart'];
+  displayedColumns: string[] = ['image', 'itemName', 'orderQuantity', 'cost', 'removeFromCart'];
   dataSource = new MatTableDataSource<IPurchasableLineItem>();
 
   subTotal: number = this.cartService.getSubtotal();
@@ -85,7 +85,7 @@ export class CartComponent implements OnInit {
   }
 
   removeFromCart(id: string): void {
-    this.cartService.removePurchasableItemFromCart(id);
+    this.cartService.removePurchasableLineItemFromCart(id);
     this.dataSource.data = this.purchasableLineItems;
     this.subTotal = this.cartService.getSubtotal();
 

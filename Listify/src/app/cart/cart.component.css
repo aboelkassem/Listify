@@ -8,5 +8,18 @@
 }
 
 .mat-column-quantity {
-  padding: 0px 60px 0px 20px;
+  padding: 0px 60px 0px 30px;
 }
+
+.mat-column-cost {
+  padding: 0px 10px 0px 30px;
+}
+
+.mat-column-removeFromCart {
+  padding: 0px 20px 0px 30px;
+}
+
+.mat-column-image {
+  padding: 0px 30px 0px 30px;
+}
+

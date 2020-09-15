@@ -16,7 +16,7 @@ namespace Listify.DAL
         Task<ApplicationUserRoomConnectionVM> CreateApplicationUserRoomConnectionAsync(ApplicationUserRoomConnectionCreateRequest request);
         Task<ApplicationUserRoomCurrencyRoomVM> CreateApplicationUserRoomCurrencyRoomAsync(ApplicationUserRoomCurrencyRoomCreateRequest request);
         Task<ApplicationUserRoomCurrencyRoomVM[]> CheckApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId);
-        Task<bool> UpdateApplicationUserRoomAndRoomToOffline(Guid applicationUserRoomId);
+        Task<bool> UpdateApplicationUserRoomAndRoomToOfflineAsync(Guid applicationUserRoomId);
         Task<ChatMessageVM> CreateChatMessageAsync(ChatMessageCreateRequest request);
         Task<LogAPIVM> CreateLogAPIAsync(LogAPICreateRequest request, Guid applicationUserId);
         Task<LogErrorVM> CreateLogErrorAsync(LogErrorCreateRequest request, Guid applicationUserId);

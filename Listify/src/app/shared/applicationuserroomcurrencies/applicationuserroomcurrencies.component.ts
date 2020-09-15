@@ -1,5 +1,8 @@
+import { ToastrService } from 'ngx-toastr';
+import { GlobalsService } from './../../services/globals.service';
+import { HubService } from 'src/app/services/hub.service';
 import { Router } from '@angular/router';
-import { IPurchasableItem } from './../../interfaces';
+import { IPurchasableLineItem, IPurchasableItem } from './../../interfaces';
 import { CartService } from './../../services/cart.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
@@ -18,13 +21,18 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
   dataSource = new MatTableDataSource<IApplicationUserRoomCurrencyRoom>();
 
   applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
+  purchasableItems: IPurchasableItem[] = [];
 
   $roomReceivedSubscription: Subscription;
   $applicationUserRoomCurrencySubscription: Subscription;
+  $purchasableItemsSubscription: Subscription;
 
   constructor(
     private roomHubService: RoomHubService,
     private router: Router,
+    private hubService: HubService,
+    private globalsService: GlobalsService,
+    private toastrService: ToastrService,
     private cartService: CartService) {
 
     this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
@@ -42,28 +50,44 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
         this.dataSource.data = this.applicationUserRoomCurrencies;
       }
     });
+
+    this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
+      this.purchasableItems = purchasableItems;
+    });
   }
   ngOnDestroy(): void {
     this.$applicationUserRoomCurrencySubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
+    this.$purchasableItemsSubscription.unsubscribe();
   }
 
   ngOnInit(): void {
+    this.hubService.requestPurchasableItems();
   }
 
   addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom): void {
-    // const item: IPurchasableItem = {
-    //   id: '',
-    //   purchasableItemName: applicationUserRoomCurrency.currencyRoom.currency.currencyName,
-    //   purchasableItemType: 2,
-    //   quantity: 5,
-    //   unitCost: 5,
-    //   discountApplied: 1,
-    //   imageUri: ''
-    // };
+    const selectedItem = this.purchasableItems
+    .filter(x => x.purchasableItemType === this.globalsService.getPurchasableItemType('PurchaseCurrency') && x.quantity === 40)[0];
 
-    // this.cartService.addPurchasableItemToCart(item);
-    this.router.navigate(['/', 'cart']);
+    if (selectedItem) {
+      const purchasableLineItem: IPurchasableLineItem = {
+        purchasableItem: {
+          id: selectedItem.id,
+          purchasableItemName: selectedItem.purchasableItemName + ' ' + applicationUserRoomCurrency.currencyRoom.room.roomCode,
+          purchasableItemType: selectedItem.purchasableItemType,
+          discountApplied: selectedItem.discountApplied,
+          unitCost: selectedItem.unitCost,
+          quantity: selectedItem.quantity,
+          imageUri: selectedItem.imageUri,
+        },
+        orderQuantity: 1
+      };
+      this.cartService.addPurchasableItemToCart(purchasableLineItem);
 
+      this.router.navigate(['/', 'cart']);
+
+      // tslint:disable-next-line:max-line-length
+      this.toastrService.success('You have added a ' + purchasableLineItem.purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { IPurchasableItem, IPurchasableLineItem, IPurchase } from './../interfaces';
+import { IPurchasableLineItem, IPurchase } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 
@@ -21,7 +21,7 @@ export class CartService {
     this.getSubtotal();
   }
 
-  removePurchasableItemFromCart(id: string): void {
+  removePurchasableLineItemFromCart(id: string): void {
     const itemInList = this.purchasableLineItems.filter(x => x.purchasableItem.id === id)[0];
 
     if (itemInList) {

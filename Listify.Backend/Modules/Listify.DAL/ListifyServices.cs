@@ -120,24 +120,6 @@ namespace Listify.DAL
             }
             return null;
         }
-        public virtual async Task<bool> UpdateApplicationUserRoomAndRoomToOffline(Guid applicationUserRoomId)
-        {
-            var applicaitonUserRoom = await _context.ApplicationUsersRooms
-                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active && s.IsOnline && s.Room.IsRoomOnline);
-
-            if (applicaitonUserRoom != null)
-            {
-                applicaitonUserRoom.IsOnline = false;
-                applicaitonUserRoom.Room.IsRoomOnline = false;
-                _context.Entry(applicaitonUserRoom).State = EntityState.Modified;
-
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         public virtual async Task<bool> DeleteApplicationUserAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.ApplicationUsers
@@ -209,6 +191,25 @@ namespace Listify.DAL
                 }
             }
             return null;
+        }
+        public virtual async Task<bool> UpdateApplicationUserRoomAndRoomToOfflineAsync(Guid applicationUserRoomId)
+        {
+            var applicaitonUserRoom = await _context.ApplicationUsersRooms
+                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active && s.IsOnline && s.Room.IsRoomOnline);
+
+            if (applicaitonUserRoom != null)
+            {
+                applicaitonUserRoom.IsOnline = false;
+                applicaitonUserRoom.Room.IsRoomOnline = false;
+                _context.Entry(applicaitonUserRoom).State = EntityState.Modified;
+                _context.Entry(applicaitonUserRoom.Room).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         public virtual async Task<bool> DeleteApplicationUserRoomAsync(Guid id)
         {
@@ -461,7 +462,6 @@ namespace Listify.DAL
             }
             return false;
         }
-
 
         public virtual async Task<CurrencyVM> ReadCurrencyAsync(Guid id)
         {
@@ -765,41 +765,35 @@ namespace Listify.DAL
             if (playlist != null)
             {
                 var songPlaylist = await _context.SongsPlaylists
+                    .Include(s => s.Song)
+                    .Include(s => s.Playlist)
                     .Where(s => s.PlaylistId == playlist.Id && s.Active)
                     .OrderBy(s => s.PlayCount)
                     .FirstOrDefaultAsync();
 
                 if (songPlaylist != null)
                 {
-                    var songPlaylistEntity = await _context.SongsPlaylists
-                        .Include(s => s.Song)
-                        .Include(s => s.Playlist)
-                        .FirstOrDefaultAsync(s => s.Id == songPlaylist.Id);
+                    songPlaylist.PlayCount++;
+                    _context.Entry((SongPlaylist)songPlaylist).State = EntityState.Modified;
 
-                    if (songPlaylistEntity != null)
+                    var applicationUser = await _context.ApplicationUsers
+                        .Include(s => s.Room)
+                        .FirstOrDefaultAsync(s => s.Id == applicationUserId);
+
+                    var queuedSong = new SongQueued
                     {
-                        songPlaylistEntity.PlayCount++;
-                        _context.Entry(songPlaylistEntity).State = EntityState.Modified;
+                        ApplicationUser = applicationUser,
+                        Room = applicationUser.Room,
+                        Song = songPlaylist.Song,
+                        SongRequestType = SongRequestType.Playlist,
+                        WeightedValue = 0,
+                    };
 
-                        var applicationUser = await _context.ApplicationUsers
-                            .Include(s => s.Room)
-                            .FirstOrDefaultAsync(s => s.Id == applicationUserId);
+                    _context.SongsQueued.Add(queuedSong);
 
-                        var queuedSong = new SongQueued
-                        {
-                            ApplicationUser = applicationUser,
-                            Room = applicationUser.Room,
-                            Song = songPlaylistEntity.Song,
-                            SongRequestType = SongRequestType.Playlist,
-                            WeightedValue = 0,
-                        };
-
-                        _context.SongsQueued.Add(queuedSong);
-
-                        if (await _context.SaveChangesAsync() > 0)
-                        {
-                            return _mapper.Map<SongQueuedVM>(queuedSong);
-                        }
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return _mapper.Map<SongQueuedVM>(queuedSong);
                     }
                 }
             }
@@ -997,7 +991,6 @@ namespace Listify.DAL
         {
 
             // Validation
-
             if (request.SongSearchResult.QuantityWagered <= 0)
             {
                 return null;

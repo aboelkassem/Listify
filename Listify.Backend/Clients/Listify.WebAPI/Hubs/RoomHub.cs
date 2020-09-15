@@ -604,7 +604,7 @@ namespace Listify.WebAPI.Hubs
 
                     var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
 
-                    if (await _services.UpdateApplicationUserRoomAndRoomToOffline(applicationUserRoom.Id))
+                    if (await _services.UpdateApplicationUserRoomAndRoomToOfflineAsync(applicationUserRoom.Id))
                     {
                         await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
                     }
