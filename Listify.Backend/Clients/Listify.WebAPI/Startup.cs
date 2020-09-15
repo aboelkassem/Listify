@@ -35,7 +35,7 @@ namespace Listify.WebAPI
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
+            services.AddDbContext<ApplicationDbContext>();
 
             services.AddSignalR(options =>
             {
@@ -65,7 +65,7 @@ namespace Listify.WebAPI
             services.AddControllers();
 
             //services.AddTransient<IPathsListify, PathsListify>();
-            services.AddTransient<IListifyServices, ListifyServices>();
+            services.AddScoped<IListifyServices, ListifyServices>();
 
             services.AddSingleton(AutoMap.CreateAutoMapper());
 

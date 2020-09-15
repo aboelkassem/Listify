@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using IdentityServer4.EntityFramework.Entities;
 using Listify.Lib.Responses;
 using Listify.Domain.Lib.Enums;
+using Listify.Domain.Lib.Entities;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -418,8 +419,9 @@ namespace Listify.WebAPI.Hubs
                         IsOnline = true
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                 }
             }
         }
@@ -587,28 +589,30 @@ namespace Listify.WebAPI.Hubs
         }
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            await base.OnDisconnectedAsync(exception);
-            var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-            if (connection != null)
+            try
             {
-                connection = await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                await base.OnDisconnectedAsync(exception);
+                var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                if (connection != null)
                 {
-                    Id = connection.Id,
-                    HasPingBeenSent = connection.HasPingBeenSent,
-                    IsOnline = false
-                });
+                    connection = await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        Id = connection.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = false
+                    });
 
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
-                
-                if (applicationUserRoom.IsOwner)
-                {
-                    applicationUserRoom.IsOnline = false;
-                    applicationUserRoom.Room.IsRoomOnline = false;
-                    _context.Entry(applicationUserRoom).State = EntityState.Modified;
-                    await _context.SaveChangesAsync();
+                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+
+                    if (await _services.UpdateApplicationUserRoomAndRoomToOffline(applicationUserRoom.Id))
+                    {
+                        await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
+                    }
                 }
-
-                await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 

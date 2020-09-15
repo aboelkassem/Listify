@@ -547,8 +547,9 @@ namespace Listify.WebAPI.Hubs
                         IsOnline = true
                     });
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                 }
             }
         }

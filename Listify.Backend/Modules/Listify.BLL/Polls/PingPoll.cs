@@ -3,6 +3,7 @@ using Listify.BLL.Polls;
 using Listify.DAL;
 using Listify.Domain.BLL;
 using Listify.Domain.Lib.Enums;
+using System;
 using System.Threading.Tasks;
 
 namespace Listify.BLL
@@ -28,8 +29,9 @@ namespace Listify.BLL
                     });
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine(ex.Message);
             }
         }
     }

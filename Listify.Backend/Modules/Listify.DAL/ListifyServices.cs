@@ -120,6 +120,24 @@ namespace Listify.DAL
             }
             return null;
         }
+        public virtual async Task<bool> UpdateApplicationUserRoomAndRoomToOffline(Guid applicationUserRoomId)
+        {
+            var applicaitonUserRoom = await _context.ApplicationUsersRooms
+                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active && s.IsOnline && s.Room.IsRoomOnline);
+
+            if (applicaitonUserRoom != null)
+            {
+                applicaitonUserRoom.IsOnline = false;
+                applicaitonUserRoom.Room.IsRoomOnline = false;
+                _context.Entry(applicaitonUserRoom).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public virtual async Task<bool> DeleteApplicationUserAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.ApplicationUsers
@@ -443,6 +461,7 @@ namespace Listify.DAL
             }
             return false;
         }
+
 
         public virtual async Task<CurrencyVM> ReadCurrencyAsync(Guid id)
         {
@@ -1807,180 +1826,199 @@ namespace Listify.DAL
 
         public async Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType)
         {
-            var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrencyRoom>();
-
-            // Get Room currency here
-            var room = await _context.Rooms
-                .FirstOrDefaultAsync(s => s.Id == roomId);
-
-            var currencyRoom = await _context.CurrenciesRooms
-                .FirstOrDefaultAsync(s => s.Id == currencyRoomId);
-
-            var applicationUserRooms = await _context.ApplicationUsersRooms
-                    .Where(s => s.RoomId == room.Id && s.Active)
-                    .ToListAsync();
-
-            if (room != null && currencyRoom != null)
+            try
             {
-                currencyRoom.TimestampLastUpdate = DateTime.UtcNow;
-                _context.Entry(currencyRoom).State = EntityState.Modified;
+                var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrencyRoom>();
 
-                foreach (var applicationUserRoom in room.ApplicationUsersRooms)
+                // Get Room currency here
+                var room = await _context.Rooms
+                    .FirstOrDefaultAsync(s => s.Id == roomId);
+
+                var currencyRoom = await _context.CurrenciesRooms
+                    .FirstOrDefaultAsync(s => s.Id == currencyRoomId);
+
+                var applicationUserRooms = await _context.ApplicationUsersRooms
+                        .Where(s => s.RoomId == room.Id && s.Active)
+                        .ToListAsync();
+
+                if (room != null && currencyRoom != null)
                 {
-                    if (applicationUserRoom != null)
-                    {
-                        var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
-                            .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyRoomId == currencyRoomId)
-                            .FirstOrDefaultAsync();
+                    currencyRoom.TimestampLastUpdate = DateTime.UtcNow;
+                    _context.Entry(currencyRoom).State = EntityState.Modified;
 
-                        if (applicationUserRoomCurrency == null)
+                    foreach (var applicationUserRoom in room.ApplicationUsersRooms)
+                    {
+                        if (applicationUserRoom != null)
                         {
-                            applicationUserRoomCurrency = new ApplicationUserRoomCurrencyRoom
+                            var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
+                                .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyRoomId == currencyRoomId)
+                                .FirstOrDefaultAsync();
+
+                            if (applicationUserRoomCurrency == null)
                             {
-                                ApplicationUserRoomId = applicationUserRoom.Id,
-                                CurrencyRoom = currencyRoom,
-                                Quantity = 0,
+                                applicationUserRoomCurrency = new ApplicationUserRoomCurrencyRoom
+                                {
+                                    ApplicationUserRoomId = applicationUserRoom.Id,
+                                    CurrencyRoom = currencyRoom,
+                                    Quantity = 0,
+                                    TimeStamp = DateTime.UtcNow
+                                };
+
+                                _context.ApplicationUsersRoomsCurrenciesRooms.Add(applicationUserRoomCurrency);
+                                await _context.SaveChangesAsync();
+                            }
+
+                            if (!applicationUserRoomCurrencies.Any(s => s.Id == applicationUserRoomCurrency.Id))
+                            {
+                                applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                            }
+                        }
+                    }
+
+                    foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
+                    {
+                        var entity = await _context.ApplicationUsersRoomsCurrenciesRooms.FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+
+                        if (entity != null)
+                        {
+                            entity.Quantity += currencyQuantity;
+                            _context.Entry(entity).State = EntityState.Modified;
+
+                            var transaction = new Transaction
+                            {
+                                ApplicationUserRoomCurrencyId = entity.Id,
+                                QuantityChange = currencyQuantity,
+                                TransactionType = TransactionType.PollingCurrency,
                                 TimeStamp = DateTime.UtcNow
                             };
 
-                            _context.ApplicationUsersRoomsCurrenciesRooms.Add(applicationUserRoomCurrency);
-                            await _context.SaveChangesAsync();
-                        }
-
-                        if (!applicationUserRoomCurrencies.Any(s => s.Id == applicationUserRoomCurrency.Id))
-                        {
-                            applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                            _context.Add(transaction);
                         }
                     }
-                }
 
-                foreach (var applicationUserRoomCurrency in applicationUserRoomCurrencies)
-                {
-                    var entity = await _context.ApplicationUsersRoomsCurrenciesRooms.FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
-
-                    if (entity != null)
+                    if (await _context.SaveChangesAsync() > 0)
                     {
-                        entity.Quantity += currencyQuantity;
-                        _context.Entry(entity).State = EntityState.Modified;
-
-                        var transaction = new Transaction
-                        {
-                            ApplicationUserRoomCurrencyId = entity.Id,
-                            QuantityChange = currencyQuantity,
-                            TransactionType = TransactionType.PollingCurrency,
-                            TimeStamp = DateTime.UtcNow
-                        };
-
-                        _context.Add(transaction);
+                        var vms = new List<ApplicationUserRoomCurrencyRoomVM>();
+                        applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyRoomVM>(s)));
+                        return vms;
                     }
                 }
-
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    var vms = new List<ApplicationUserRoomCurrencyRoomVM>();
-                    applicationUserRoomCurrencies.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomCurrencyRoomVM>(s)));
-                    return vms;
-                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
         public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
         {
-            var connectionsPinged = new List<ApplicationUserRoomConnection>();
-
-            var rooms = await _context.Rooms
-                .Where(s => s.Active)
-                .ToListAsync();
-
-            foreach (var room in rooms)
+            using (var context = new ApplicationDbContext())
             {
-                var applicationUsersRooms = await _context.ApplicationUsersRooms
-                    .Where(s => s.RoomId == room.Id && s.Active)
-                    .ToListAsync();
-
-                var isRoomOnline = true;
-
-                foreach (var applicationUserRoom in applicationUsersRooms)
+                try
                 {
-                    var applicationUserRoomConnections = await _context.ApplicationUsersRoomsConnections
-                        .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active)
+                    var connectionsPinged = new List<ApplicationUserRoomConnection>();
+
+                    var rooms = await context.Rooms
+                        .Where(s => s.Active)
                         .ToListAsync();
 
-                    foreach (var applicationUserRoomConnection in applicationUserRoomConnections)
+                    foreach (var room in rooms)
                     {
-                        try
+                        var applicationUsersRooms = await context.ApplicationUsersRooms
+                            .Where(s => s.RoomId == room.Id && s.Active)
+                            .ToListAsync();
+
+                        var isRoomOnline = true;
+
+                        foreach (var applicationUserRoom in applicationUsersRooms)
                         {
-                            if (applicationUserRoomConnection.HasPingBeenSent)
+                            var applicationUserRoomConnections = await context.ApplicationUsersRoomsConnections
+                                .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active)
+                                .ToListAsync();
+
+                            foreach (var applicationUserRoomConnection in applicationUserRoomConnections)
                             {
-                                // Ping was not responded to - remove connection
-                                // total connection per 1 song/ room without ping is 30 minutes
-                                if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 30)
+                                try
                                 {
-                                    _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                                    if (applicationUserRoomConnection.HasPingBeenSent)
+                                    {
+                                        // Ping was not responded to - remove connection
+                                        // total connection per 1 song/ room without ping is 30 minutes
+                                        if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 30)
+                                        {
+                                            context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                                        }
+                                        //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
+                                    }
+                                    else
+                                    {
+                                        // Send Ping
+                                        applicationUserRoomConnection.HasPingBeenSent = true;
+                                        context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
+                                        connectionsPinged.Add(applicationUserRoomConnection);
+                                    }
                                 }
-                                //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
+                                catch (Exception ex)
+                                { Console.WriteLine(ex.Message); }
                             }
-                            else
-                            {
-                                // Send Ping
-                                applicationUserRoomConnection.HasPingBeenSent = true;
-                                _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
-                                connectionsPinged.Add(applicationUserRoomConnection);
-                            }
+
+                            applicationUserRoom.IsOnline = await context.ApplicationUsersRoomsConnections
+                                .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
+                                    s.IsOnline && s.Active);
                         }
-                        catch
-                        { }
-                    }
 
-                    applicationUserRoom.IsOnline = await _context.ApplicationUsersRoomsConnections
-                        .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
-                            s.IsOnline && s.Active);
-                }
-
-                var ownerRooms = await _context.ApplicationUsersRooms
-                    .Where(s => s.RoomId == room.Id &&
-                        s.IsOwner &&
-                        s.Active)
-                    .ToListAsync();
-
-                if (ownerRooms.Count > 0)
-                {
-                    foreach (var ownerRoom in ownerRooms)
-                    {
-                        if (!await _context.ApplicationUsersRoomsConnections
-                            .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
-                                s.IsOnline &&
+                        var ownerRooms = await context.ApplicationUsersRooms
+                            .Where(s => s.RoomId == room.Id &&
+                                s.IsOwner &&
                                 s.Active)
-                            .AnyAsync())
+                            .ToListAsync();
+
+                        if (ownerRooms.Count > 0)
                         {
-                            isRoomOnline = false;
+                            foreach (var ownerRoom in ownerRooms)
+                            {
+                                if (!await context.ApplicationUsersRoomsConnections
+                                    .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
+                                        s.IsOnline &&
+                                        s.Active)
+                                    .AnyAsync())
+                                {
+                                    isRoomOnline = false;
+                                }
+                            }
                         }
+
+                        room.IsRoomOnline = isRoomOnline;
                     }
+
+                    //var applicationUsersRoomsConnections = await context.ApplicationUsersRoomsConnections
+                    //    .Where(s => s.Active)
+                    //    .ToListAsync();
+
+                    //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
+
+
+                    if (await context.SaveChangesAsync() > 0)
+                    {
+                        var vms = new List<ApplicationUserRoomConnectionVM>();
+                        connectionsPinged.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
+                        return vms;
+                        //return new PingPollVM
+                        //{
+                        //    ApplicationUserRoomConnectionsRemoved = connectionsRemoved,
+                        //    ApplicationUserRoomConnectionsToPing = connectionsToPing
+                        //};
+                    }
+
+                    return null;
                 }
-
-                room.IsRoomOnline = isRoomOnline;
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return null;
+                }
             }
-
-            //var applicationUsersRoomsConnections = await _context.ApplicationUsersRoomsConnections
-            //    .Where(s => s.Active)
-            //    .ToListAsync();
-
-            //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
-
-            
-            if (await _context.SaveChangesAsync() > 0 )
-            {
-                var vms = new List<ApplicationUserRoomConnectionVM>();
-                connectionsPinged.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
-                return vms;
-                //return new PingPollVM
-                //{
-                //    ApplicationUserRoomConnectionsRemoved = connectionsRemoved,
-                //    ApplicationUserRoomConnectionsToPing = connectionsToPing
-                //};
-            }
-
-            return null;
         }
 
         protected virtual async Task<V> CreateAsync<T, U, V>(T request)
