@@ -61,6 +61,13 @@ namespace Listify.Domain.Lib.Enums
         RoomHub
     }
 
+    public enum ValidatedTextType
+    {
+        Username,
+        RoomCode,
+        RoomTitle
+    }
+
     public enum EndpointType
     {
 

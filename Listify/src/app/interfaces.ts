@@ -20,6 +20,8 @@ export interface IApplicationUserRequest {
   allowRequests: boolean;
   isRoomPublic: boolean;
   isRoomLocked: boolean;
+  matureContent: boolean;
+  matureContentChat: boolean;
   chatColor: string;
 }
 
@@ -31,6 +33,8 @@ export interface IRoom {
   allowRequests: boolean;
   isRoomLocked: boolean;
   isRoomPublic: boolean;
+  matureContent: boolean;
+  matureContentChat: boolean;
   songsQueued: ISongQueued[];
   numberUsersOnline: number;
 }
@@ -208,4 +212,14 @@ export interface IRoomKeyModalData {
 export interface IAuthToLockedRoomResponse {
   authToLockedRoomResponseType: number;
   room: IRoom;
+}
+
+export interface IValidatedTextRequest {
+  content: string;
+  validatedTextType: number;
+}
+
+export interface IValidatedTextResponse {
+  isAvailable: boolean;
+  validatedTextType: number;
 }

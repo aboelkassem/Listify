@@ -9,7 +9,7 @@ namespace Listify.BLL.Polls
 {
     public class CurrencyPoll : BasePoll<CurrencyPollEventArgs>, ICurrencyPoll
     {
-        public CurrencyPoll(IListifyServices service) : base(service)
+        public CurrencyPoll(IListifyDAL dal) : base(dal)
         {
 
         }
@@ -18,21 +18,20 @@ namespace Listify.BLL.Polls
         {
             try
             {
-                var rooms = await _service.ReadRoomsAsync();
+                var rooms = await _dal.ReadRoomsAsync();
 
                 foreach (var room in rooms)
                 {
-                    var currenciesRoom = await _service.ReadCurrenciesRoomAsync(room.Id);
+                    var currenciesRoom = await _dal.ReadCurrenciesRoomAsync(room.Id);
                     
                     foreach (var currencyRoom in currenciesRoom)
                     {
 
-                        var roomVM = await _service.ReadRoomAsync(room.Id);
+                        var roomVM = await _dal.ReadRoomAsync(room.Id);
 
-                        //var currencyVM = await _service.ReadCurrencyAsync(currency.Id);
                         if (currencyRoom.TimestampLastUpdate + TimeSpan.FromSeconds(currencyRoom.Currency.TimeSecBetweenTick) < DateTime.UtcNow)
                         {
-                            var applicationUserRoomsCurrencies = await _service.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currencyRoom.Id, currencyRoom.Currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
+                            var applicationUserRoomsCurrencies = await _dal.AddCurrencyQuantityToAllUsersInRoomAsync(room.Id, currencyRoom.Id, currencyRoom.Currency.QuantityIncreasePerTick, TransactionType.PollingCurrency);
 
                             FirePollingEvent(this, new CurrencyPollEventArgs
                             {

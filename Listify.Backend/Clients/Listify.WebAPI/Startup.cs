@@ -14,6 +14,7 @@ using Listify.BLL.Polls;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System;
+using Listify.Services;
 
 namespace Listify.WebAPI
 {
@@ -31,6 +32,7 @@ namespace Listify.WebAPI
         {
             services.Configure<CookiePolicyOptions>(options =>
             {
+                // this lambda determines whether user consent for non-essential cookies is needed for a given request
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
@@ -65,19 +67,20 @@ namespace Listify.WebAPI
             services.AddControllers();
 
             //services.AddTransient<IPathsListify, PathsListify>();
-            services.AddScoped<IListifyServices, ListifyServices>();
+            services.AddScoped<IListifyDAL, ListifyDAL>();
+            services.AddTransient<IListifyService, ListifyService>();
 
             services.AddSingleton(AutoMap.CreateAutoMapper());
 
             var serviceProvider = services.BuildServiceProvider();
-            var listifyService = serviceProvider.GetService<IListifyServices>();
+            var listifyDAL = serviceProvider.GetService<IListifyDAL>();
 
-            IPingPoll pingPoll = new PingPoll(listifyService);
+            IPingPoll pingPoll = new PingPoll(listifyDAL);
             pingPoll.Start(10000);
             services.AddSingleton(pingPoll);
             //services.AddScoped<IPingPoll, PingPoll>();
 
-            ICurrencyPoll currencyPoll = new CurrencyPoll(listifyService);
+            ICurrencyPoll currencyPoll = new CurrencyPoll(listifyDAL);
             currencyPoll.Start(5000);
             services.AddSingleton(currencyPoll);
             //services.AddScoped<ICurrencyPoll, CurrencyPoll>();

@@ -10,7 +10,7 @@ namespace Listify.BLL
 {
     public class PingPoll : BasePoll<PingPollEventArgs>, IPingPoll
     {
-        public PingPoll(IListifyServices service): base(service)
+        public PingPoll(IListifyDAL dal): base(dal)
         {
 
         }
@@ -19,7 +19,7 @@ namespace Listify.BLL
         {
             try
             {
-                var clientsPinged = await _service.PingApplicationUsersRoomsConnections();
+                var clientsPinged = await _dal.PingApplicationUsersRoomsConnections();
                 if (clientsPinged != null && clientsPinged.Count > 0)
                 {
                     FirePollingEvent(this, new PingPollEventArgs

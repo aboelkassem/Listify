@@ -16,7 +16,9 @@ namespace Listify.Domain.Lib.Entities
         public bool IsRoomLocked { get; set; }
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
-        
+        public bool MatureContent { get; set; }
+        public bool MatureContentChat { get; set; }
+
         // This is the Room Owner
         public Guid ApplicationUserId { get; set; }
         [Required]

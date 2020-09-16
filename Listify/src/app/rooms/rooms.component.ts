@@ -14,7 +14,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./rooms.component.css']
 })
 export class RoomsComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['roomName', 'roomTitle', 'usersOnline', 'isLocked'];
+  displayedColumns: string[] = ['roomName', 'roomTitle', 'usersOnline', 'isLocked', 'matureContent'];
   dataSource = new MatTableDataSource<IRoom>();
 
   rooms: IRoom[] = [];

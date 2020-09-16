@@ -16,10 +16,9 @@ using Listify.Lib.DTOs;
 using Listify.BLL.Polls;
 using Listify.BLL.Events.Args;
 using System.Collections.Generic;
-using IdentityServer4.EntityFramework.Entities;
 using Listify.Lib.Responses;
 using Listify.Domain.Lib.Enums;
-using Listify.Domain.Lib.Entities;
+using Listify.Services;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -27,7 +26,8 @@ namespace Listify.WebAPI.Hubs
     {
         protected readonly ApplicationDbContext _context;
         protected readonly IHubContext<RoomHub> _roomHub;
-        protected readonly IListifyServices _services;
+        protected readonly IListifyDAL _dal;
+        protected readonly IListifyService _service;
         protected readonly IMapper _mapper;
 
         private static IPingPoll _pingPoll;
@@ -36,14 +36,16 @@ namespace Listify.WebAPI.Hubs
         public RoomHub(
             ApplicationDbContext context,
             IHubContext<RoomHub> roomHub,
-            IListifyServices services,
+            IListifyDAL dal,
+            IListifyService service,
             IPingPoll pingPoll,
             ICurrencyPoll currencyPoll,
             IMapper mapper)
         {
             _context = context;
             _roomHub = roomHub;
-            _services = services;
+            _dal = dal;
+            _service = service;
             _mapper = mapper;
 
             if (_pingPoll == null)
@@ -74,7 +76,7 @@ namespace Listify.WebAPI.Hubs
         protected virtual async Task OnCurrencyPollEvent(object sender, CurrencyPollEventArgs args)
         {
             // have a ping service, get the connections out of the database that match the room
-            var connections = await _services.ReadApplicationUsersRoomsConnectionsAsync(args.Room.Id);
+            var connections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(args.Room.Id);
 
             foreach (var connection in connections.Where(s => s.IsOnline))
             {
@@ -88,7 +90,7 @@ namespace Listify.WebAPI.Hubs
                 }
                 catch
                 {
-                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
                         Id = connection.Id,
                         HasPingBeenSent = connection.HasPingBeenSent,
@@ -111,8 +113,8 @@ namespace Listify.WebAPI.Hubs
 
         public async Task RequestServerState(Guid roomId)
         {
-            var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(roomId);
-            var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
+            var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(roomId);
+            var channelOwnerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
 
             if (channelOwnerConnections.Count() > 0)
             {
@@ -159,7 +161,7 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
                 //if (applicationUserRoomConnection == null)
                 //{
@@ -170,10 +172,10 @@ namespace Listify.WebAPI.Hubs
                 if (applicationUserRoomConnection.ApplicationUserRoom.IsOwner)
                 {
                     var userId = await GetUserIdAsync();
-                    var room = await _services.ReadRoomAsync(roomCode);
+                    var room = await _dal.ReadRoomAsync(roomCode);
                     if (room != null)
                     {
-                        var nextSong = await _services.DequeueSongQueuedAsync(room.Id, userId);
+                        var nextSong = await _dal.DequeueSongQueuedAsync(room.Id, userId);
 
                         if (nextSong != null)
                         {
@@ -195,11 +197,11 @@ namespace Listify.WebAPI.Hubs
         }
         public async Task RequestPlayFromServer(PlayFromServerResponse request)
         {
-            var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
             if (applicationUserRoomConnection != null && request.SongQueued != null)
             {
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
                 if (applicationUserRoom != null && applicationUserRoom.IsOwner)
                 {
                     await Clients.GroupExcept(applicationUserRoom.Room.RoomCode, new List<string>
@@ -212,10 +214,10 @@ namespace Listify.WebAPI.Hubs
         }
         public async Task RequestPause()
         {
-            var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
             if (applicationUserRoomConnection != null)
             {
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
                 if (applicationUserRoom != null && applicationUserRoom.IsOwner)
                 {
                     await Clients.GroupExcept(applicationUserRoom.Room.RoomCode, new List<string>
@@ -231,15 +233,15 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                if (await _services.WagerQuantitySongQueued(request))
+                if (await _dal.WagerQuantitySongQueued(request))
                 {
-                    var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+                    var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
 
-                    var songsQueued = await _services.ReadSongQueuedAsync(applicationUserRoom.Room.Id);
+                    var songsQueued = await _dal.ReadSongQueuedAsync(applicationUserRoom.Room.Id);
                     await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songsQueued);
 
-                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(request.ApplicationUserRoomCurrencyRoom.Id);
+                    var applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(request.ApplicationUserRoomCurrencyRoom.Id);
 
                     await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrencyRoom", applicationUserRoomCurrency);
                 }
@@ -253,23 +255,23 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var conection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(conection.ApplicationUserRoom.Id);
+                var conection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(conection.ApplicationUserRoom.Id);
 
-                var currenciesRoom = await _services.ReadCurrenciesRoomAsync(applicationUserRoom.Room.Id);
+                var currenciesRoom = await _dal.ReadCurrenciesRoomAsync(applicationUserRoom.Room.Id);
                 var applicationUserRoomCurrencies = new List<ApplicationUserRoomCurrencyRoomVM>();
 
                 foreach (var currencyRoom in currenciesRoom)
                 {
-                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, currencyRoom.Id);
+                    var applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, currencyRoom.Id);
 
                     if (applicationUserRoomCurrency == null)
                     {
-                        var roomCurrencies = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(conection.ApplicationUserRoom.Id);
+                        var roomCurrencies = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(conection.ApplicationUserRoom.Id);
 
                         foreach (var roomCurrency in roomCurrencies)
                         {
-                            applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, roomCurrency.Id);
+                            applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, roomCurrency.Id);
                             applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
                         }
                     }
@@ -286,7 +288,15 @@ namespace Listify.WebAPI.Hubs
 
         public async Task SendMessage(ChatMessageVM message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", message);
+            if (!message.ApplicationUserRoom.Room.MatureContentChat)
+            {
+                message.Message = await _service.CleanContent(message.Message);
+            }
+
+            if (!string.IsNullOrEmpty(message.Message))
+            {
+                await Clients.All.SendAsync("ReceiveMessage", message);
+            }
         }
         public async Task CreateSongQueued(SongQueuedCreateRequest request)
         {
@@ -295,12 +305,12 @@ namespace Listify.WebAPI.Hubs
                 var userId = await GetUserIdAsync();
                 if (userId != Guid.Empty)
                 {
-                    var songQueued = await _services.CreateSongQueuedAsync(request);
-                    var applicationUserRoomCurrency = await _services.ReadApplicationUserRoomCurrencyRoomAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
+                    var songQueued = await _dal.CreateSongQueuedAsync(request);
+                    var applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(request.SongSearchResult.ApplicationUserRoomCurrencyId);
 
                     if (songQueued != null && applicationUserRoomCurrency != null)
                     {
-                        var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomCurrency.ApplicationUserRoom.Id);
+                        var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomCurrency.ApplicationUserRoom.Id);
                         await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveSongQueued", songQueued);
 
                         await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrencyRoom", applicationUserRoomCurrency);
@@ -317,24 +327,24 @@ namespace Listify.WebAPI.Hubs
         public async Task RequestRoom(string roomCode)
         {
             var userId = await GetUserIdAsync();
-            var room = await _services.ReadRoomAsync(roomCode);
+            var room = await _dal.ReadRoomAsync(roomCode);
 
             if (room != null)
             {
-                var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(userId, room.Id);
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(userId, room.Id);
 
                 if (applicationUserRoom == null)
                 {
-                    applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                    applicationUserRoom = await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
                     {
                         IsOnline = true,
                         RoomId = room.Id
                     }, userId);
                 }
 
-                var currenciesRooms = await _services.ReadCurrenciesRoomAsync(room.Id);
+                var currenciesRooms = await _dal.ReadCurrenciesRoomAsync(room.Id);
 
-                var applicationUserRoomCurrenciesRoom = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
+                var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
 
                 var roomInformation = new RoomInformation
                 {
@@ -346,7 +356,7 @@ namespace Listify.WebAPI.Hubs
 
                 if (applicationUserRoom.IsOwner)
                 {
-                    var songNext = await _services.DequeueSongQueuedAsync(room.Id, userId);
+                    var songNext = await _dal.DequeueSongQueuedAsync(room.Id, userId);
                     await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
                     {
                         CurrentTime = 0,
@@ -357,8 +367,8 @@ namespace Listify.WebAPI.Hubs
                 }
                 else
                 {
-                    var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(room.Id);
-                    var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
+                    var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(room.Id);
+                    var channelOwnerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
 
                     if (channelOwnerConnections.Count() > 0)
                     {
@@ -382,7 +392,7 @@ namespace Listify.WebAPI.Hubs
             {
                 if (Guid.TryParse(roomId, out var guid))
                 {
-                    var songsQueued = await _services.ReadSongsQueuedAsync(guid);
+                    var songsQueued = await _dal.ReadSongsQueuedAsync(guid);
                     await Clients.Caller.SendAsync("ReceiveSongsQueued", songsQueued);
                 }
             }
@@ -395,7 +405,7 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-                var responses = await _services.SearchYoutubeLightAsync(searchSnippet);
+                var responses = await _dal.SearchYoutubeLightAsync(searchSnippet);
 
                 await Clients.Caller.SendAsync("ReceiveSearchYoutube", responses);
             }
@@ -406,13 +416,13 @@ namespace Listify.WebAPI.Hubs
         }
         public async Task PingResponse()
         {
-            var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
             if (connection != null)
             {
                 try
                 {
-                    await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
                         Id = connection.Id,
                         HasPingBeenSent = false,
@@ -448,7 +458,7 @@ namespace Listify.WebAPI.Hubs
 
                     var username = response.Claims.ToList().First(s => s.Type == "name").Value;
                     var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
-                    var applicationUser = await _services.ReadApplicationUserAsync(userId);
+                    var applicationUser = await _dal.ReadApplicationUserAsync(userId);
 
                     if (applicationUser == null)
                     {
@@ -461,7 +471,7 @@ namespace Listify.WebAPI.Hubs
                         }
 
                         // the room is attached here
-                        applicationUser = await _services.CreateApplicationUserAsync(new ApplicationUserCreateRequest
+                        applicationUser = await _dal.CreateApplicationUserAsync(new ApplicationUserCreateRequest
                         {
                             AspNetUserId = userId,
                             Username = username,
@@ -471,33 +481,33 @@ namespace Listify.WebAPI.Hubs
 
                     // if the room was not specified, then get the default
                     var room = roomCode == "undefined" || roomCode == ""
-                        ? await _services.ReadRoomAsync(applicationUser.Room.Id)
-                        : await _services.ReadRoomAsync(roomCode);
+                        ? await _dal.ReadRoomAsync(applicationUser.Room.Id)
+                        : await _dal.ReadRoomAsync(roomCode);
 
                     if (room != null)
                     {
-                        var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
+                        var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
                         if (applicationUserRoom == null)
                         {
-                            applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                            applicationUserRoom = await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
                             {
                                 IsOnline = true,
                                 RoomId = room.Id
                             }, applicationUser.Id);
                         }
 
-                        var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                        var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
                         connection = connection == null
-                            ? await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                            ? await _dal.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
                             {
                                 ApplicationUserRoomId = applicationUserRoom.Id,
                                 ConnectionId = Context.ConnectionId,
                                 IsOnline = true,
                                 ConnectionType = ConnectionType.RoomHub
                             })
-                            : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                            : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                             {
                                 HasPingBeenSent = connection.HasPingBeenSent,
                                 IsOnline = true,
@@ -507,17 +517,17 @@ namespace Listify.WebAPI.Hubs
 
                         if (applicationUserRoom.IsOwner)
                         {
-                            var applicationUserRoomConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
+                            var applicationUserRoomConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
 
                             foreach (var appConnection in applicationUserRoomConnections)
                             {
                                 await Clients.Client(appConnection.ConnectionId).SendAsync("ForceServerDisconnect");
 
-                                var applicationUserRoomTemp = await _services.ReadApplicationUserRoomAsync(appConnection.ApplicationUserRoom.Id);
+                                var applicationUserRoomTemp = await _dal.ReadApplicationUserRoomAsync(appConnection.ApplicationUserRoom.Id);
 
                                 await Clients.Group(applicationUserRoomTemp.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoomTemp);
 
-                                await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                                await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                                 {
                                     ApplicationUserRoomId = appConnection.ApplicationUserRoom.Id,
                                     HasPingBeenSent = appConnection.HasPingBeenSent,
@@ -527,14 +537,14 @@ namespace Listify.WebAPI.Hubs
                             }
                         }
 
-                        var applicationUserRoomCurrenciesRoom = await _services.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
+                        var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
 
                         await base.OnConnectedAsync();
 
                         await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomCode);
                         await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOnline", applicationUserRoom);
 
-                        var roomEntity = await _services.ReadRoomAsync(applicationUserRoom.Room.Id);
+                        var roomEntity = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
 
                         var roomInformation = new RoomInformation
                         {
@@ -548,7 +558,7 @@ namespace Listify.WebAPI.Hubs
 
                         if (applicationUserRoom.IsOwner)
                         {
-                            var songNext = await _services.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
+                            var songNext = await _dal.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
                             if (songNext != null)
                             {
                                 await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
@@ -562,8 +572,8 @@ namespace Listify.WebAPI.Hubs
                         }
                         else
                         {
-                            var applicationUserRoomOwnerVM = await _services.ReadApplicationUserRoomOwnerAsync(room.Id);
-                            var channelOwnerConnections = await _services.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
+                            var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(room.Id);
+                            var channelOwnerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
 
                             if (channelOwnerConnections.Count() > 0)
                             {
@@ -592,19 +602,19 @@ namespace Listify.WebAPI.Hubs
             try
             {
                 await base.OnDisconnectedAsync(exception);
-                var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
                 if (connection != null)
                 {
-                    connection = await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    connection = await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
                         Id = connection.Id,
                         HasPingBeenSent = connection.HasPingBeenSent,
                         IsOnline = false
                     });
 
-                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
 
-                    if (await _services.UpdateApplicationUserRoomAndRoomToOfflineAsync(applicationUserRoom.Id))
+                    if (await _dal.UpdateApplicationUserRoomAndRoomToOfflineAsync(applicationUserRoom.Id))
                     {
                         await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
                     }
@@ -618,7 +628,7 @@ namespace Listify.WebAPI.Hubs
 
         protected virtual async Task<Guid> GetUserIdAsync()
         {
-            var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+            var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
             if (applicationUserRoomConnection == null)
             {
@@ -631,7 +641,7 @@ namespace Listify.WebAPI.Hubs
                 }
             }
 
-            var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+            var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
             return applicationUserRoom.ApplicationUser.Id;
         }
         protected virtual async Task<ApplicationUserRoomConnectionVM> CheckConnectionAsync()
@@ -654,7 +664,7 @@ namespace Listify.WebAPI.Hubs
 
             if (!string.IsNullOrWhiteSpace(username) && string.IsNullOrWhiteSpace(userId))
             {
-                var applicationUser = await _services.ReadApplicationUserAsync(userId);
+                var applicationUser = await _dal.ReadApplicationUserAsync(userId);
 
                 if (applicationUser == null)
                 {
@@ -667,7 +677,7 @@ namespace Listify.WebAPI.Hubs
                     }
 
                     // the room is attached here
-                    applicationUser = await _services.CreateApplicationUserAsync(new ApplicationUserCreateRequest
+                    applicationUser = await _dal.CreateApplicationUserAsync(new ApplicationUserCreateRequest
                     {
                         AspNetUserId = userId,
                         Username = username,
@@ -676,31 +686,31 @@ namespace Listify.WebAPI.Hubs
                 }
 
                 // if the room was not specified, then get the default
-                var room = await _services.ReadRoomAsync(applicationUser.Room.Id);
+                var room = await _dal.ReadRoomAsync(applicationUser.Room.Id);
 
                 if (room != null)
                 {
-                    var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
                     if (applicationUserRoom == null)
                     {
-                        applicationUserRoom = await _services.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                        applicationUserRoom = await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
                         {
                             IsOnline = true,
                             RoomId = room.Id
                         }, applicationUser.Id);
                     }
 
-                    var connection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                    var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
                     connection = connection == null
-                    ? await _services.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                    ? await _dal.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
                     {
                         ApplicationUserRoomId = applicationUserRoom.Id,
                         ConnectionId = Context.ConnectionId,
                         IsOnline = true
                     })
-                    : await _services.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
                         HasPingBeenSent = connection.HasPingBeenSent,
                         IsOnline = true,

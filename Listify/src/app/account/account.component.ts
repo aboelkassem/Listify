@@ -1,6 +1,6 @@
 import { ConfirmationmodalService } from './../services/confirmationmodal.service';
 import { Router } from '@angular/router';
-import { IApplicationUserRequest, IPurchasableItem, IPurchasableLineItem } from './../interfaces';
+import { IApplicationUserRequest, IPurchasableItem, IPurchasableLineItem, IValidatedTextRequest } from './../interfaces';
 import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -27,6 +27,8 @@ export class AccountComponent implements OnInit, OnDestroy {
   allowRequests: boolean;
   isLocked: boolean;
   isPublic: boolean;
+  matureContent: boolean;
+  matureContentChat: boolean;
 
   disableAttr = false;
   private _nextRequestType: NextRequestType;
@@ -34,6 +36,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   $userInformationSubscription: Subscription;
   $purchasableItemsSubscription: Subscription;
   $purchasableItemSubscription: Subscription;
+  $validatedTextReceivedSubscription: Subscription;
 
   constructor(
     private router: Router,
@@ -43,6 +46,61 @@ export class AccountComponent implements OnInit, OnDestroy {
     private toastrService: ToastrService,
     private confirmationModal: MatDialog,
     private confirmationModalService: ConfirmationmodalService) {
+      this.$validatedTextReceivedSubscription = this.hubService.getValidatedTextReceived().subscribe(validatedTextResponse => {
+        switch (this.globalsService.getValidatedTextTypes()[validatedTextResponse.validatedTextType]) {
+          case 'Username':
+            if (validatedTextResponse.isAvailable) {
+              // Username available, validate the next thing and update the information
+              const validatedTextRequest: IValidatedTextRequest = {
+                content: this.roomCode,
+                validatedTextType: this.globalsService.getValidatedTextType('RoomCode')
+              };
+              this.hubService.requestValidatedText(validatedTextRequest);
+            }else {
+              this.toastrService.error('This username is not available, Please try another one', 'Username Unavailable');
+            }
+            break;
+          case 'RoomCode':
+            if (validatedTextResponse.isAvailable) {
+              // Username available, validate the next thing and update the information
+              const validatedTextRequest: IValidatedTextRequest = {
+                content: this.roomTitle,
+                validatedTextType: this.globalsService.getValidatedTextType('RoomTitle')
+              };
+              this.hubService.requestValidatedText(validatedTextRequest);
+            }else {
+              this.toastrService.error('This RoomCode is not available, Please try another one', 'RoomCode Unavailable');
+            }
+            break;
+          case 'RoomTitle':
+            if (validatedTextResponse.isAvailable) {
+              // Update the user information
+              const request: IApplicationUserRequest = {
+                id: this.id,
+                username: this.username,
+                roomCode: this.roomCode,
+                roomTitle: this.roomTitle,
+                roomKey: this.roomKey,
+                allowRequests: this.allowRequests,
+                isRoomLocked: this.isLocked,
+                isRoomPublic: this.isPublic,
+                matureContent: this.matureContent,
+                matureContentChat: this.matureContentChat,
+                chatColor: ''
+              };
+
+              this.hubService.updateApplicationUserInformation(request);
+
+              this.router.navigate(['/', 'account']);
+
+              this.toastrService.success('You have updated your account information successfully', 'Updated Successfully');
+            }else {
+              this.toastrService.error('This RoomTitle is not available, Please try another one', 'RoomTitle Unavailable');
+            }
+            break;
+        }
+      });
+
       this.$userInformationSubscription = this.hubService.getApplicationUser().subscribe(user => {
         this.id = user.id;
         this.username = user.username;
@@ -54,6 +112,8 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.roomKey = user.room.roomKey;
         this.roomTitle = user.room.roomTitle;
         this.allowRequests = user.room.allowRequests;
+        this.matureContent = user.room.matureContent;
+        this.matureContentChat = user.room.matureContentChat;
       });
 
       this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
@@ -81,7 +141,7 @@ export class AccountComponent implements OnInit, OnDestroy {
           purchasableItem: purchasableItem,
           orderQuantity: 1
         };
-        this.addPurchasableItemToCard(purchasableLineItem);
+        this.addPurchasableItemToCart(purchasableLineItem);
       });
     }
 
@@ -93,6 +153,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.$userInformationSubscription.unsubscribe();
     this.$purchasableItemsSubscription.unsubscribe();
     this.$purchasableItemSubscription.unsubscribe();
+    this.$validatedTextReceivedSubscription.unsubscribe();
   }
 
   changeUsername(): void {
@@ -112,7 +173,6 @@ export class AccountComponent implements OnInit, OnDestroy {
       this.toastrService.error('You have selected to lock the room but have not provided a room Key, please enter room key', 'Invalid Room Key');
 
     }else {
-
       this.confirmationModalService.setConfirmationModalMessage('update your account information');
 
       const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
@@ -122,23 +182,12 @@ export class AccountComponent implements OnInit, OnDestroy {
 
       confirmationModal.afterClosed().subscribe(result => {
         if (result !== undefined) {
-          const request: IApplicationUserRequest = {
-            id: this.id,
-            username: this.username,
-            roomCode: this.roomCode,
-            roomTitle: this.roomTitle,
-            roomKey: this.roomKey,
-            allowRequests: this.allowRequests,
-            isRoomLocked: this.isLocked,
-            isRoomPublic: this.isPublic,
-            chatColor: ''
+          const validatedTextRequest: IValidatedTextRequest = {
+            content: this.username,
+            validatedTextType: this.globalsService.getValidatedTextType('Username')
           };
 
-          this.hubService.updateApplicationUserInformation(request);
-
-          this.router.navigate(['/', 'account']);
-
-          this.toastrService.success('You have updated your account information successfully', 'Updated Successfully');
+          this.hubService.requestValidatedText(validatedTextRequest);
         }
       });
     }
@@ -154,7 +203,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.hubService.requestPurchasableItems();
   }
 
-  addPurchasableItemToCard(purchasableLineItem: IPurchasableLineItem): void {
+  addPurchasableItemToCart(purchasableLineItem: IPurchasableLineItem): void {
     this.cartService.addPurchasableItemToCart(purchasableLineItem);
 
     this.router.navigate(['/', 'cart']);

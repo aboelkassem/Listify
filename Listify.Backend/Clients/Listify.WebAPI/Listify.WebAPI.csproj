@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\Modules\Listify.BLL\Listify.BLL.csproj" />
     <ProjectReference Include="..\..\Modules\Listify.DAL\Listify.DAL.csproj" />
     <ProjectReference Include="..\..\Modules\Listify.Lib\Listify.Lib.csproj" />
+    <ProjectReference Include="..\..\Modules\Listify.Services\Listify.Services.csproj" />
     <ProjectReference Include="..\Listify.Identity\Listify.Identity.csproj" />
   </ItemGroup>
 

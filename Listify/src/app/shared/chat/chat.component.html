@@ -22,7 +22,7 @@
   <div class="messageInputBox">
     <form (ngSubmit)="sendMessage()" #messageForm="ngForm">
       <mat-form-field>
-        <input matInput id="message" name="message" placeholder="Enter your message" [(ngModel)]="message" required>
+        <input matInput id="message" name="message" placeholder="Enter your message" [(ngModel)]="message">
       </mat-form-field>
       <button mat-stroked-button color="primary" appearance="outline" type="submit" [disabled]="!messageForm.valid">Send Message</button>
     </form>

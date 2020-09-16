@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IPurchaseCreateRequest } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IPurchaseCreateRequest, IValidatedTextRequest, IValidatedTextResponse } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -30,6 +30,7 @@ export class HubService {
   $purchasableItemReceived = new Subject<IPurchasableItem>();
   $receivePurchase = new Subject<IPurchase>();
   $authToLockedRoomResponse = new Subject<IAuthToLockedRoomResponse>();
+  $validatedTextReceived = new Subject<IValidatedTextResponse>();
   $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
 
@@ -112,6 +113,10 @@ export class HubService {
 
       this._hubConnection.on('ResponseAuthToLockedRoom', (authToLockedRoomResponse: IAuthToLockedRoomResponse) => {
         this.$authToLockedRoomResponse.next(authToLockedRoomResponse);
+      });
+
+      this._hubConnection.on('ReceiveValidatedText', (response: IValidatedTextResponse) => {
+        this.$validatedTextReceived.next(response);
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -349,6 +354,12 @@ export class HubService {
     }
   }
 
+  requestValidatedText(request: IValidatedTextRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestValidatedText', request);
+    }
+  }
+
   getApplicationUser(): Observable<IApplicationUser> {
     return this.$applicationUserReceived.asObservable();
   }
@@ -403,6 +414,10 @@ export class HubService {
 
   getAuthToLockedRoom(): Observable<IAuthToLockedRoomResponse> {
     return this.$authToLockedRoomResponse.asObservable();
+  }
+
+  getValidatedTextReceived(): Observable<IValidatedTextResponse> {
+    return this.$validatedTextReceived.asObservable();
   }
 
   getPing(): Observable<string> {

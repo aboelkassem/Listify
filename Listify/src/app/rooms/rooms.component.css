@@ -1,21 +1,9 @@
-.mat-column-usersOnline {
+.mat-column-usersOnline,
+.mat-column-roomTitle,
+.mat-column-roomName,
+.mat-column-isRoomLocked,
+.mat-column-matureContent{
   justify-content: center;
   text-align: center;
-}
-
-.mat-column-roomTitle {
-  padding: 0px 50px 0px 0px;
-}
-
-.mat-column-roomName {
   padding: 0px 50px 0px 50px;
 }
-
-.mat-column-isRoomLocked {
-  padding: 0px 50px 0px 50px;
-}
-
-.mat-column-usersOnline {
-  padding: 0px 50px 0px 50px;
-}
-

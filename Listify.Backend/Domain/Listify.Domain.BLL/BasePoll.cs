@@ -11,14 +11,14 @@ namespace Listify.Domain.BLL
     {
         protected Timer _timer;
 
-        protected readonly IListifyServices _service;
+        protected readonly IListifyDAL _dal;
         protected volatile bool _isTimerEventsRunning;
 
         private event ListifyEventHandler<T> _pollingEvent;
 
-        public BasePoll(IListifyServices service)
+        public BasePoll(IListifyDAL dal)
         {
-            _service = service;
+            _dal = dal;
         }
 
         public virtual void Start(int pollingIntervalMS)

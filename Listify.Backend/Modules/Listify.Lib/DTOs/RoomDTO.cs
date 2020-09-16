@@ -11,6 +11,8 @@ namespace Listify.Lib.DTOs
         public bool IsRoomLocked { get; set; }
         public bool IsRoomPublic { get; set; }
         public bool IsRoomOnline { get; set; }
+        public bool MatureContent { get; set; }
+        public bool MatureContentChat { get; set; }
         public int NumberUsersOnline { get; set; }
     }
 }

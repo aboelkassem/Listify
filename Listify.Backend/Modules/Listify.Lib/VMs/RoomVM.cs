@@ -15,6 +15,8 @@ namespace Listify.Lib.VMs
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
         public int NumberUsersOnline { get; set; }
+        public bool MatureContent { get; set; }
+        public bool MatureContentChat { get; set; }
 
         // This is the Room Owner
         public ApplicationUserDTO ApplicationUser { get; set; }
