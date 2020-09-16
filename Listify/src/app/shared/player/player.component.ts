@@ -75,6 +75,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     document.body.appendChild(tag);
+
   }
 
   ngOnDestroy(): void {
@@ -89,6 +90,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     if (this.roomService.applicationUserRoom.isOwner) {
       this.youtubeService.loadVideo(this.songQueued.song.youtubeId);
       this.youtubeService.play();
+    }else {
+      this.roomService.requestServerState(this.roomService.room.id);
     }
 
   }
