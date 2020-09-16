@@ -263,19 +263,19 @@ namespace Listify.WebAPI.Hubs
 
                 foreach (var currencyRoom in currenciesRoom)
                 {
-                    var applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, currencyRoom.Id);
+                    var applicationUserRoomCurrencyRoom = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, currencyRoom.Id);
 
-                    if (applicationUserRoomCurrency == null)
+                    if (applicationUserRoomCurrencyRoom == null)
                     {
                         var roomCurrencies = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(conection.ApplicationUserRoom.Id);
 
                         foreach (var roomCurrency in roomCurrencies)
                         {
-                            applicationUserRoomCurrency = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, roomCurrency.Id);
-                            applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                            applicationUserRoomCurrencyRoom = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(applicationUserRoom.Id, roomCurrency.Id);
+                            applicationUserRoomCurrencies.Add(applicationUserRoomCurrencyRoom);
                         }
                     }
-                    applicationUserRoomCurrencies.Add(applicationUserRoomCurrency);
+                    applicationUserRoomCurrencies.Add(applicationUserRoomCurrencyRoom);
                 }
 
                 await Clients.Caller.SendAsync("ReceiveApplicationUserRoomCurrenciesRoom", applicationUserRoomCurrencies);

@@ -51,9 +51,8 @@ export class QueueComponent implements OnInit, OnDestroy {
         .filter(x => x.id === applicationUserRoomCurrency.id)[0];
 
       if (applicationUserRoomCurrencySelected) {
-        // tslint:disable-next-line:max-line-length
         this.applicationUserRoomCurrencies[this.applicationUserRoomCurrencies.indexOf(applicationUserRoomCurrency)]
-        = applicationUserRoomCurrency;
+          = applicationUserRoomCurrency;
       }
     });
   }

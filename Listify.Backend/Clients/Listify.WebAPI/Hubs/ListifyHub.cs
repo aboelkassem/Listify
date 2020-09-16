@@ -297,7 +297,6 @@ namespace Listify.WebAPI.Hubs
                 var userId = await GetUserIdAsync();
                 if (userId != Guid.Empty)
                 {
-                    // Create or update the SongPlaylist
                     var songPlaylist = await _dal.CreateSongPlaylistAsync(request, userId);
                     await Clients.Caller.SendAsync("ReceiveSongPlaylist", songPlaylist);
                 }

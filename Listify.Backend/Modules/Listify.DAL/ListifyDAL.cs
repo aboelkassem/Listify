@@ -857,18 +857,6 @@ namespace Listify.DAL
             {
                 if (song == null)
                 {
-                    var songVM = await CreateSongAsync(new SongCreateRequest
-                    {
-                        YoutubeId = request.SongSearchResult.VideoId,
-                        SongLengthSeconds = 0,
-                        SongName = request.SongSearchResult.SongName
-                    });
-
-                    song = _mapper.Map<Song>(songVM);
-                }
-
-                if (song != null)
-                {
                     // Create the Song
                     YoutubeSearchResponse response;
                     using (var httpClient = new HttpClient())
@@ -922,15 +910,22 @@ namespace Listify.DAL
                     song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songVM.Id);
                 }
 
-                if (!await _context.SongsPlaylists.AnyAsync(s => s.SongId == song.Id && s.Active))
+                // validation for checking is exist, not to add the same song to playlist
+                var songPlaylist = await _context.SongsPlaylists
+                    .FirstOrDefaultAsync(s => s.PlaylistId == request.PlaylistId &&
+                        s.SongId == song.Id && s.Active);
+
+                if (songPlaylist  == null)
                 {
-                    var songPlaylist = new SongPlaylist
+                    songPlaylist = new SongPlaylist
                     {
                         Playlist = playlist,
                         Song = song
                     };
 
                     _context.SongsPlaylists.Add(songPlaylist);
+
+
                     if (await _context.SaveChangesAsync() > 0)
                     {
                         return _mapper.Map<SongPlaylistVM>(songPlaylist);
@@ -1065,9 +1060,13 @@ namespace Listify.DAL
 
                     var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
 
-                    if (!songsQueued.Any(s => s.Song.Id == song.Id))
+                    var songQueued = await _context.SongsQueued
+                        .FirstOrDefaultAsync(s => s.SongId == song.Id && s.Active);
+
+                    // validation not to add the same song to the queue
+                    if (songQueued == null)
                     {
-                        var songQueued = new SongQueued
+                        songQueued = new SongQueued
                         {
                             ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
                             RoomId = applicationUserRoom.Room.Id,
@@ -1083,21 +1082,26 @@ namespace Listify.DAL
                                 }
                             }
                         };
-
                         _context.SongsQueued.Add(songQueued);
+                    }
+                    else
+                    {
+                        songQueued.WeightedValue += request.SongSearchResult.QuantityWagered * applicationUserRoomCurrency.CurrencyRoom.Currency.Weight;
+                        _context.Entry(songQueued).State = EntityState.Modified;
+                    }
+                    
+                    var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrenciesRooms
+                        .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
 
-                        var applicationUserRoomCurrencyEntity = await _context.ApplicationUsersRoomsCurrenciesRooms
-                            .FirstOrDefaultAsync(s => s.Id == applicationUserRoomCurrency.Id);
+                    if (applicationUserRoomCurrencyEntity != null)
+                    {
+                        applicationUserRoomCurrencyEntity.Quantity -= request.SongSearchResult.QuantityWagered;
+                        _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
 
-                        if (applicationUserRoomCurrencyEntity != null)
+                        if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
                         {
-                            applicationUserRoomCurrencyEntity.Quantity -= request.SongSearchResult.QuantityWagered;
-                            _context.Entry(applicationUserRoomCurrencyEntity).State = EntityState.Modified;
-
-                            if (applicationUserRoomCurrencyEntity.Quantity >= 0 && await _context.SaveChangesAsync() > 0)
-                            {
-                                return await ReadSongQueuedAsync(songQueued.Id);
-                            }
+                            await _context.SaveChangesAsync();
+                            return await ReadSongQueuedAsync(songQueued.Id);
                         }
                     }
                 }

@@ -15,7 +15,7 @@ namespace Listify.Services
         {
             try
             {
-                var response = await GetNeutrinoAsync(content);
+                var response = await GetFromNeutrinoAsync(content);
                 return !response.Isbad;
             }
             catch (Exception ex)
@@ -28,7 +28,7 @@ namespace Listify.Services
         {
             try
             {
-                var response = await GetPurgoMalumAsync(content);
+                var response = await GetFromPurgoMalumAsync(content);
 
                 return response.Result;
                 //var response = await GetToNeutrinoAsync(content);
@@ -43,7 +43,7 @@ namespace Listify.Services
             return string.Empty;
         }
         // Two Api bad word filter 
-        private async Task<NeutrinoBadWordResponse> GetNeutrinoAsync(string content)
+        private async Task<NeutrinoBadWordResponse> GetFromNeutrinoAsync(string content)
         {
             try
             {
@@ -69,16 +69,13 @@ namespace Listify.Services
             }
             return null;
         }
-        private async Task<PurgoMalumResponse> GetPurgoMalumAsync(string content)
+        private async Task<PurgoMalumResponse> GetFromPurgoMalumAsync(string content)
         {
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    var builder = new UriBuilder(Globals.PURGOMALUM_FILTER_URL);
-                    builder.Query= $"text={content}";
-
-                    var response = await httpClient.GetAsync(builder.Uri);
+                    var response = await httpClient.GetAsync($"{Globals.PURGOMALUM_FILTER_URL}?text={content}");
 
                     var serializedResponse = await response.Content.ReadAsStringAsync();
 
