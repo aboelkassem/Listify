@@ -15,9 +15,8 @@ namespace Listify.Services
         {
             try
             {
-                var response = await PostToNeutrinoAsync(content);
+                var response = await GetNeutrinoAsync(content);
                 return !response.Isbad;
-
             }
             catch (Exception ex)
             {
@@ -29,9 +28,12 @@ namespace Listify.Services
         {
             try
             {
-                var response = await PostToNeutrinoAsync(content);
+                var response = await GetPurgoMalumAsync(content);
 
-                return !response.Isbad ? content : response.Censoredcontent;
+                return response.Result;
+                //var response = await GetToNeutrinoAsync(content);
+
+                //return !response.Isbad ? content : response.Censoredcontent;
 
             }
             catch (Exception ex)
@@ -40,8 +42,8 @@ namespace Listify.Services
             }
             return string.Empty;
         }
-
-        private async Task<NeutrinoBadWordResponse> PostToNeutrinoAsync(string content)
+        // Two Api bad word filter 
+        private async Task<NeutrinoBadWordResponse> GetNeutrinoAsync(string content)
         {
             try
             {
@@ -59,6 +61,28 @@ namespace Listify.Services
                     var serializedResponse = await response.Content.ReadAsStringAsync();
 
                     return JsonConvert.DeserializeObject<NeutrinoBadWordResponse>(serializedResponse);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
+        }
+        private async Task<PurgoMalumResponse> GetPurgoMalumAsync(string content)
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var builder = new UriBuilder(Globals.PURGOMALUM_FILTER_URL);
+                    builder.Query= $"text={content}";
+
+                    var response = await httpClient.GetAsync(builder.Uri);
+
+                    var serializedResponse = await response.Content.ReadAsStringAsync();
+
+                    return JsonConvert.DeserializeObject<PurgoMalumResponse>(serializedResponse);
                 }
             }
             catch (Exception ex)
