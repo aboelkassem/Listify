@@ -37,7 +37,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.hubService.connectToHub('https://localhost:44315/chathub');
+    // this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'chathub');
     // this.dataSource.data = this.messages;
   }
 

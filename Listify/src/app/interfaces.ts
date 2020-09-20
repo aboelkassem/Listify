@@ -172,14 +172,19 @@ export interface IPurchase {
   subtotal: number;
   amountCharged: number;
   purchasableItems: IPurchasableItem[];
+  hasBeenCharged: boolean;
 }
 
-export interface IPurchaseCreateRequest {
-  id: string;
+export interface IPurchaseOrderRequest {
   purchaseMethod: number;
   subtotal: number;
   amountCharged: number;
   purchasableItemsJSON: string[];
+}
+
+export interface IPurchaseConfirmed {
+  purchase: IPurchase;
+  wasChargeAccepted: boolean;
 }
 
 export interface IPurchasableItem {

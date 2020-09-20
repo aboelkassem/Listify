@@ -11,6 +11,10 @@ namespace Listify.Domain.Lib.Entities
         public PurchaseMethod PurchaseMethod { get; set; }
         public float Subtotal { get; set; }
         public float AmountCharged { get; set; }
+        public string PayerId { get; set; }
+        public string OrderId { get; set; }
+        public bool HasBeenCharged { get; set; }
+        public bool WasChargeAccepted { get; set; }
 
         public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }

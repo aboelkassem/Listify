@@ -1,81 +1,154 @@
+import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
 import { GlobalsService } from './../services/globals.service';
-import { Router } from '@angular/router';
-import { IPurchasableLineItem, IPurchaseCreateRequest } from './../interfaces';
+import { IPurchasableLineItem } from './../interfaces';
 import { CartService } from './../services/cart.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterContentInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { IPayPalConfig, ICreateOrderRequest, IPurchaseUnit } from 'ngx-paypal';
 import { ToastrService } from 'ngx-toastr';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+declare let paypal: any;
 
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css']
 })
-export class CartComponent implements OnInit {
+export class CartComponent implements OnInit, OnDestroy, AfterContentInit {
   displayedColumns: string[] = ['image', 'itemName', 'orderQuantity', 'cost', 'removeFromCart'];
   dataSource = new MatTableDataSource<IPurchasableLineItem>();
 
   subTotal: number = this.cartService.getSubtotal();
   purchasableLineItems: IPurchasableLineItem[] = this.cartService.purchasableLineItems;
 
-  payPalConfig?: IPayPalConfig;
+  paypalLoad = false;
+  addScript = false;
+
+  $purchaseSubscription: Subscription;
 
   constructor(
     private cartService: CartService,
     private globalsService: GlobalsService,
+    private router: Router,
+    private oauthService: OAuthService,
     private hubService: HubService,
+    private http: HttpClient,
     private toastrService: ToastrService) {}
 
-  ngOnInit(): void {
-    this.dataSource.data = this.purchasableLineItems;
+  ngAfterContentInit(): void {
+    if (!this.addScript) {
+      this.addPaypalScript().then(() => {
+        paypal.Buttons({
+          createOrder: (data, actions) => {
+            const totalPrice = this.cartService.getSubtotal().toString();
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: totalPrice
+                }
+              }]
+            });
+          },
+          onApprove: (data, actions) => {
+            // This function captures the funds from the transaction.
+            // console.log('onApprove - transaction was approved, but not authorized', data, actions);
 
-    if (this.purchasableLineItems.length > 0) {
-      this.initPayPalConfig();
+            actions.order.authorize().then(authorization => {
+              this.cartService.createPurchase();
+              const payPalCreateRequest = this.cartService.createPaypalTransaction();
+
+              // console.log(data);
+              // Get the authorization id
+              // const authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
+
+              // Call your server to validate and capture the transaction
+              // return fetch(this.globalsService.developmentWebAPIUrl + 'Paypal/RequestPayment', {
+              //   method: 'post',
+              //   headers: {
+              //     'content-type': 'application/json',
+              //     'Authorization': 'Bearer ' + this.oauthService.getAccessToken()
+              //   },
+              //   body: JSON.stringify({
+              //     orderID: data.orderID,
+              //     payerID: data.payerID,
+              //     order: this.cartService.purchaseOrderRequest,
+              //     payment: payPalCreateRequest
+              //   })
+
+              const httpHeaders = new HttpHeaders({
+                'Content-Type' : 'application/json',
+                Authorization: 'Bearer ' + this.oauthService.getAccessToken()
+              });
+
+              const options = {
+                headers: httpHeaders,
+              };
+
+              this.http.post(this.globalsService.developmentWebAPIUrl + 'Paypal/CustomerApproval', {
+                  orderID: data.orderID,
+                  payerID: data.payerID,
+                  order: this.cartService.purchaseOrderRequest,
+                  payment: payPalCreateRequest
+              }, options).subscribe((links: any) => {
+                // console.log(links);
+                const approvalLink = links.filter(x => x.rel === 'approval_url')[0];
+                window.location.href = approvalLink.href;
+              }, error => {
+                console.log(error);
+              });
+            });
+          },
+          onCancel: (data, actions) => {
+            this.toastrService.warning('You have canceled the purchase.', 'Purchase Canceled');
+            this.cartService.purchase = undefined;
+            this.router.navigateByUrl('/cart');
+          },
+          onError: err => {
+            this.toastrService.error('There are an error with the purchase.', 'Error');
+            this.cartService.purchase = undefined;
+            this.router.navigateByUrl('/cart');
+          },
+          onClick: (data, actions) => {
+            console.log('onClick', data, actions);
+          },
+          style: {
+            layout:  'vertical',
+            color:   'gold',
+            shape:   'rect',
+            label:   'paypal'
+          }
+        }).render('#paypal-button-container');
+
+        this.paypalLoad = true;
+      });
     }
   }
 
-  private initPayPalConfig(): void {
-    this.payPalConfig = {
-      currency: 'EUR',
-      clientId: this.globalsService.payPalClientIdSandbox,
-      advanced: {
-        commit: 'true'
-      },
-      style: {
-        label: 'paypal',
-        layout: 'vertical',
-        shape: 'rect',
-        size: 'large'
-      },
-      onApprove: (data, actions) => {
-        console.log('onApprove - transaction was approved, but not authorized', data, actions);
-        actions.order.get().then(details => {
-          console.log('onApprove - you can get full order details inside onApprove: ', details);
-        });
-      },
-      onClientAuthorization: (data) => {
-        console.log('onClientAuthorization - you should probably inform your server about completed transaction at this point', data);
-        // this.showSuccess = true;
-      },
-      onCancel: (data, actions) => {
-        console.log('OnCancel', data, actions);
-      },
-      onError: err => {
-        console.log('OnError', err);
-      },
-      onClick: (data, actions) => {
-        console.log('onClick', data, actions);
-      },
-      // tslint:disable-next-line:no-angle-bracket-type-assertion
-      createOrderOnClient: (data) => <ICreateOrderRequest> {
-        intent: 'CAPTURE',
-        purchase_units: [
-          this.cartService.createPaypalTransaction()
-        ]
-      },
-    };
+  ngOnInit(): void {
+    this.$purchaseSubscription = this.hubService.getPurchase().subscribe(purchase => {
+
+    });
+
+    this.dataSource.data = this.purchasableLineItems;
+  }
+
+  ngOnDestroy(): void {
+    this.$purchaseSubscription.unsubscribe();
+  }
+
+  // tslint:disable-next-line:typedef
+  addPaypalScript(){
+    this.addScript = true;
+    return new Promise((resolve, reject) => {
+      const scripttagElement = document.createElement('script');
+      scripttagElement.src = 'https://www.paypal.com/sdk/js?client-id=' + this.globalsService.payPalClientIdSandbox + '&intent=authorize';
+      scripttagElement.type = 'text/javascript';
+      scripttagElement.onload = resolve;
+      document.body.appendChild(scripttagElement);
+    });
   }
 
   updateQuantity(): void {
@@ -85,33 +158,14 @@ export class CartComponent implements OnInit {
   }
 
   removeFromCart(id: string): void {
-    this.cartService.removePurchasableLineItemFromCart(id);
-    this.dataSource.data = this.purchasableLineItems;
-    this.subTotal = this.cartService.getSubtotal();
-
     const selectedItem = this.purchasableLineItems.filter(x => x.purchasableItem.id === id)[0];
-    this.toastrService.success('You have Removed ' + selectedItem.purchasableItem.purchasableItemName + ' From your cart', 'Removed From Cart');
-  }
 
-  checkOut(): void {
+    if (selectedItem) {
+      this.cartService.removePurchasableLineItemFromCart(id);
+      this.dataSource.data = this.purchasableLineItems;
+      this.subTotal = this.cartService.getSubtotal();
 
-  }
-
-  createPurchase(): void {
-    const json: string[] = [];
-
-    this.cartService.purchasableLineItems.forEach(element => {
-      json.push(JSON.stringify(element));
-    });
-
-    const purchase: IPurchaseCreateRequest = {
-      id: '',
-      purchaseMethod: this.globalsService.getPurchaseMethodType('Paypal'),
-      subtotal: this.cartService.getSubtotal(),
-      amountCharged: this.cartService.getSubtotal(),
-      purchasableItemsJSON: json
-    };
-
-    this.hubService.createPurchase(purchase);
+      this.toastrService.success('You have Removed ' + selectedItem.purchasableItem.purchasableItemName + ' From your cart', 'Removed From Cart');
+    }
   }
 }

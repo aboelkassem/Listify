@@ -1,6 +1,4 @@
 ﻿using Listify.Domain.Lib.Enums;
-using Listify.Domain.Lib.Requests;
-using System;
 
 namespace Listify.Lib.Requests
 {
@@ -9,8 +7,9 @@ namespace Listify.Lib.Requests
         public PurchaseMethod PurchaseMethod { get; set; }
         public float Subtotal { get; set; }
         public float AmountCharged { get; set; }
-        public float DiscountApplied { get; set; }
-
+        public string PayerId { get; set; }
+        public string OrderId { get; set; }
+        public string PaymentId { get; set; }
         public string[] PurchasableItemsJSON { get; set; }
     }
 }

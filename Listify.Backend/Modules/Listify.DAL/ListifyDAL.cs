@@ -1656,7 +1656,10 @@ namespace Listify.DAL
                     AmountCharged = request.AmountCharged,
                     ApplicationUserId = applicationUserId,
                     PurchaseMethod = request.PurchaseMethod,
-                    Subtotal = request.Subtotal
+                    Subtotal = request.Subtotal,
+                    HasBeenCharged = true,
+                    PayerId = request.PayerId,
+                    OrderId = request.OrderId,
                 };
 
                 _context.Purchases.Add(entity);

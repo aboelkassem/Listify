@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 using IdentityModel.Client;
 using Listify.Domain.Lib.Entities;
 using Listify.Paths;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Listify.WebAPI.Controllers
 {
-    public class AccountController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    //[Authorize]
+    public class AccountController : ControllerBase
     {
         public AccountController()
         {

@@ -227,8 +227,8 @@ namespace Listify.Domain.CodeFirst.Migrations
                             CurrencyName = "Tokens",
                             QuantityIncreasePerTick = 2,
                             TimeSecBetweenTick = 30f,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 971, DateTimeKind.Utc).AddTicks(4411),
-                            Weight = 2
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 770, DateTimeKind.Utc).AddTicks(7417),
+                            Weight = 1
                         });
                 });
 
@@ -396,7 +396,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "1 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 1,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(149),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(122),
                             UnitCost = 1f
                         },
                         new
@@ -408,7 +408,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 3 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 3,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1045),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1002),
                             UnitCost = 2f
                         },
                         new
@@ -420,7 +420,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 5 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 5,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1067),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1027),
                             UnitCost = 3f
                         },
                         new
@@ -432,7 +432,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 10 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 10,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1072),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1031),
                             UnitCost = 5f
                         },
                         new
@@ -444,7 +444,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "15 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 15,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1077),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1035),
                             UnitCost = 1f
                         },
                         new
@@ -456,7 +456,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "40 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 40,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1081),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1039),
                             UnitCost = 2f
                         },
                         new
@@ -468,7 +468,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "80 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 80,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1085),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1042),
                             UnitCost = 3f
                         },
                         new
@@ -480,7 +480,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "160 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 160,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1088),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1045),
                             UnitCost = 5f
                         },
                         new
@@ -492,7 +492,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "40 Currencies Per Room",
                             PurchasableItemType = 2,
                             Quantity = 40,
-                            TimeStamp = new DateTime(2020, 9, 15, 18, 50, 44, 973, DateTimeKind.Utc).AddTicks(1092),
+                            TimeStamp = new DateTime(2020, 9, 20, 14, 58, 25, 772, DateTimeKind.Utc).AddTicks(1049),
                             UnitCost = 1f
                         });
                 });
@@ -512,6 +512,15 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("HasBeenCharged")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OrderId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayerId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("PurchaseMethod")
                         .HasColumnType("int");
 
@@ -520,6 +529,9 @@ namespace Listify.Domain.CodeFirst.Migrations
 
                     b.Property<DateTime>("TimeStamp")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("WasChargeAccepted")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

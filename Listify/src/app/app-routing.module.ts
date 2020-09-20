@@ -1,3 +1,4 @@
+import { CheckoutComponent } from './checkout/checkout.component';
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
 import { CurrencyComponent } from './currency/currency.component';
 import { CurrenciesComponent } from './currencies/currencies.component';
@@ -24,6 +25,7 @@ const routes: Routes = [
   {path: 'purchasableItems', component: PurchasableitemsComponent},
   {path: 'account', component: AccountComponent},
   {path: 'cart', component: CartComponent},
+  {path: 'checkout', component: CheckoutComponent},
   {path: ':id', component: RoomComponent},
 ];
 

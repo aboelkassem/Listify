@@ -8,5 +8,9 @@ namespace Listify.Lib.DTOs
         public PurchaseMethod PurchaseMethod { get; set; }
         public float Subtotal { get; set; }
         public float AmountCharged { get; set; }
+        public string PayerId { get; set; }
+        public string OrderId { get; set; }
+        public bool HasBeenCharged { get; set; }
+        public bool WasChargeAccepted { get; set; }
     }
 }

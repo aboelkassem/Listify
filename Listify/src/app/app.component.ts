@@ -1,3 +1,4 @@
+import { GlobalsService } from './services/globals.service';
 import { HubService } from './services/hub.service';
 import { Subscription } from 'rxjs';
 import { authConfig } from './authConfig';
@@ -28,6 +29,7 @@ export class AppComponent implements OnDestroy, OnInit {
   constructor(
     private oauthService: OAuthService,
     private router: Router,
+    private globalsService: GlobalsService,
     private hubService: HubService) {
       this.$disconnectSubscription = this.hubService.getForceDisconnect().subscribe((data: string) => {
         // alert('Force disconnected');
@@ -60,17 +62,17 @@ export class AppComponent implements OnDestroy, OnInit {
         const accessToken = this.oauthService.getAccessToken();
         if (accessToken !== undefined && accessToken !== null && accessToken !== '' && this.isAuthenticated && !this._hasConnectedToHub) {
           this._hasConnectedToHub = true;
-          this.hubService.connectToHub('https://localhost:44315/listifyHub');
+          this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'listifyHub');
         }
 
         this.router.navigateByUrl('/home');
         // if (event.type === 'token_received') {
-        //   this.hubService.connectToHub('https://localhost:44315/listifyHub');
+        //   this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'listifyHub');
         // }
       });
 
       this.configureWithNewConfigApi();
-      this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
+      this.oauthService.postLogoutRedirectUri = this.globalsService.developmentClientSPAUrl;
   }
 
   ngOnInit(): void {
@@ -78,7 +80,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
     if (accessToken !== undefined && accessToken !== null && this.isAuthenticated && accessToken !== '' && !this._hasConnectedToHub) {
       this._hasConnectedToHub = true;
-      this.hubService.connectToHub('https://localhost:44315/listifyHub');
+      this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'listifyHub');
     }
     // if (this.claims !== null && this.claims !== undefined) {
     // }

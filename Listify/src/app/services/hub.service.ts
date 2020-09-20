@@ -2,7 +2,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IPurchaseCreateRequest, IValidatedTextRequest, IValidatedTextResponse } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IValidatedTextRequest, IValidatedTextResponse, IPurchaseOrderRequest } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -29,6 +29,7 @@ export class HubService {
   $purchasableItemsReceived = new Subject<IPurchasableItem[]>();
   $purchasableItemReceived = new Subject<IPurchasableItem>();
   $receivePurchase = new Subject<IPurchase>();
+  $receivePurchaseConfirmed = new Subject<IPurchase>();
   $authToLockedRoomResponse = new Subject<IAuthToLockedRoomResponse>();
   $validatedTextReceived = new Subject<IValidatedTextResponse>();
   $pingEvent = new Subject<string>();
@@ -107,8 +108,11 @@ export class HubService {
 
       this._hubConnection.on('ReceivePurchase', (purchase: IPurchase) => {
         this.$receivePurchase.next(purchase);
+        // this.requestPurchasableItems();
+      });
 
-        this.requestPurchasableItems();
+      this._hubConnection.on('ReceivePurchaseConfirmed', (purchase: IPurchase) => {
+        this.$receivePurchaseConfirmed.next(purchase);
       });
 
       this._hubConnection.on('ResponseAuthToLockedRoom', (authToLockedRoomResponse: IAuthToLockedRoomResponse) => {
@@ -342,7 +346,7 @@ export class HubService {
   //   }
   // }
 
-  createPurchase(purchase: IPurchaseCreateRequest): void {
+  createPurchase(purchase: IPurchaseOrderRequest): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('CreatePurchase', purchase);
     }
@@ -410,6 +414,10 @@ export class HubService {
 
   getPurchase(): Observable<IPurchase> {
     return this.$receivePurchase.asObservable();
+  }
+
+  getPurchaseConfirmed(): Observable<IPurchase> {
+    return this.$receivePurchaseConfirmed.asObservable();
   }
 
   getAuthToLockedRoom(): Observable<IAuthToLockedRoomResponse> {

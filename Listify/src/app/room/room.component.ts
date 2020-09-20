@@ -1,3 +1,4 @@
+import { GlobalsService } from './../services/globals.service';
 import { YoutubeService } from './../services/youtube.service';
 import { RoomHubService } from './../services/room-hub.service';
 import { ISongQueued } from 'src/app/interfaces';
@@ -31,6 +32,7 @@ export class RoomComponent implements OnInit, OnDestroy {
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
+    private globalsService: GlobalsService,
     private youtubeService: YoutubeService,
     private roomHubService: RoomHubService) {
       this.route.params.subscribe(params => {
@@ -51,7 +53,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       });
 
       this.$applicationUserReceivedSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
-        this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+        this.roomHubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
       });
 
       this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
@@ -80,7 +82,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.hubService.isConnected && this.hubService.applicationUser) {
-      this.roomHubService.connectToHub('https://localhost:44315/roomHub', this.roomCode);
+      this.roomHubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
     }
   }
 

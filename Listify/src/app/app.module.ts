@@ -7,7 +7,6 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
-import { NgxPayPalModule } from 'ngx-paypal';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -74,7 +73,6 @@ import { CheckoutComponent } from './checkout/checkout.component';
     BrowserAnimationsModule,
     MaterialModule,
     ToastrModule.forRoot(),
-    NgxPayPalModule
   ],
   providers: [],
   bootstrap: [AppComponent]

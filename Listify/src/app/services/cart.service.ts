@@ -1,6 +1,6 @@
-import { IPurchasableLineItem, IPurchase } from './../interfaces';
+import { GlobalsService } from './globals.service';
+import { IPurchasableLineItem, IPurchaseConfirmed, IPurchaseOrderRequest } from './../interfaces';
 import { Injectable } from '@angular/core';
-import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 
 @Injectable({
   providedIn: 'root'
@@ -8,13 +8,10 @@ import { IPurchaseUnit, ITransactionItem } from 'ngx-paypal';
 export class CartService {
 
   purchasableLineItems: IPurchasableLineItem[] = [];
-  purchase: IPurchase;
+  purchase: IPurchaseConfirmed;
+  purchaseOrderRequest: IPurchaseOrderRequest;
 
-  constructor() { }
-
-  setPurchase(): void {
-
-  }
+  constructor(private globalsService: GlobalsService) { }
 
   addPurchasableItemToCart(purchasableLineItem: IPurchasableLineItem): void {
     this.purchasableLineItems.push(purchasableLineItem);
@@ -45,9 +42,7 @@ export class CartService {
         }
         total += purchasableLineItem.orderQuantity * purchasableLineItem.purchasableItem.unitCost *  discountApplied;
       }
-
     });
-
     return total;
   }
 
@@ -61,67 +56,79 @@ export class CartService {
     this.getSubtotal();
   }
 
-  createPaypalTransaction(): IPurchaseUnit {
-    const subTotal = this.getSubtotal();
-    const itemList: ITransactionItem[] = [];
+  createPaypalTransaction(): any {
+    const itemList: any[] = [];
 
     this.purchasableLineItems.forEach(purchasableLineItem => {
-      const txItem: ITransactionItem = {
+      const txItem: any = {
         name: purchasableLineItem.purchasableItem.purchasableItemName,
         quantity: purchasableLineItem.orderQuantity.toString(),
-        category: 'DIGITAL_GOODS',
-        unit_amount: {
-          currency_code: 'USD',
-          value: purchasableLineItem.purchasableItem.unitCost.toString(),
-        },
-        tax: {
-          currency_code: 'USD',
-          value: '0'
-        },
-        sku: purchasableLineItem.purchasableItem.id
+        price: purchasableLineItem.purchasableItem.unitCost.toString(),
+        tax: '0',
+        sku: purchasableLineItem.purchasableItem.id,
+        currency: 'USD'
       };
 
       itemList.push(txItem);
     });
 
-    const payPalTransaction: IPurchaseUnit = {
-      amount: {
-        currency_code: 'USD',
-        value: subTotal.toString(),
-        breakdown: {
-          item_total: {
-            currency_code: 'USD',
-            value: subTotal.toString()
+    const paypalPaymentCreateRequest: any = {
+      intent: 'sale',
+      payer: {
+        payment_method: 'paypal'
+      },
+      transactions: [
+        {
+          amount: {
+            currency: 'USD',
+            total: this.getSubtotal().toString(),
+            details: {
+              subtotal: this.getSubtotal().toString(),
+              tax: '0',
+              shipping: '0',
+              handling_fee: '0',
+              shipping_discount: '0',
+              insurance: '0',
+            }
           },
-          tax_total: {
-            currency_code: 'USD',
-            value: '0.00'
-          },
-          shipping: {
-            currency_code: 'USD',
-            value: '0.00'
-          },
-          handling: {
-            currency_code: 'USD',
-            value: '0'
-          },
-          insurance: {
-            currency_code: 'USD',
-            value: '0'
-          },
-          shipping_discount: {
-            currency_code: 'USD',
-            value: '0'
+          item_list: {
+            items : itemList
           },
         }
-      },
-      items: itemList
+      ],
+      note_to_payer: 'Contact us for any questions on your order.',
+      redirect_urls: {
+        return_url: 'http://localhost:4200/home',
+        cancel_url: 'http://localhost:4200/cart'
+      }
     };
 
-    return payPalTransaction;
+    return paypalPaymentCreateRequest;
   }
 
   clearCart(): void {
+    this.purchasableLineItems = [];
+  }
 
+  createPurchase(): void {
+    const json: string[] = [];
+
+    this.purchasableLineItems.forEach(element => {
+      json.push(JSON.stringify(element));
+    });
+
+    const purchaseOrderRequest: IPurchaseOrderRequest = {
+      purchaseMethod: this.globalsService.getPurchaseMethodType('Paypal'),
+      subtotal: this.getSubtotal(),
+      amountCharged: this.getSubtotal(),
+      purchasableItemsJSON: json
+    };
+
+    this.purchaseOrderRequest = purchaseOrderRequest;
+  }
+
+  createPurchaseConfirmed(purchase: IPurchaseConfirmed): void {
+    this.clearCart();
+    this.purchase = purchase;
   }
 }

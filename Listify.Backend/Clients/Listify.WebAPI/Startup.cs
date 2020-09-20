@@ -11,9 +11,6 @@ using Listify.DAL;
 using Listify.Paths;
 using Listify.BLL;
 using Listify.BLL.Polls;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using System;
 using Listify.Services;
 
 namespace Listify.WebAPI
@@ -57,14 +54,15 @@ namespace Listify.WebAPI
             }));
 
             services.AddAuthentication("Bearer")
-                .AddIdentityServerAuthentication(options => 
+                .AddIdentityServerAuthentication(options =>
                 {
                     options.Authority = Globals.IDENTITY_SERVER_AUTHORITY_URL;
                     options.RequireHttpsMetadata = false;
-                    options.ApiName = "ListifyWebAPI";
+                    options.ApiName = "listifyWebAPI";
+                    options.SaveToken = true;
                 });
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson();
 
             //services.AddTransient<IPathsListify, PathsListify>();
             services.AddScoped<IListifyDAL, ListifyDAL>();
@@ -100,8 +98,6 @@ namespace Listify.WebAPI
 
             app.UseCookiePolicy();
 
-            app.UseAuthentication();
-
             app.UseCors("SignalRCorsPolicy");
 
             app.UseSignalR(routes =>
@@ -112,6 +108,10 @@ namespace Listify.WebAPI
             });
 
             app.UseRouting();
+
+            app.UseAuthentication();
+
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

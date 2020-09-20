@@ -651,7 +651,8 @@ namespace Listify.WebAPI.Hubs
                     });
 
                     var username = response.Claims.ToList().First(s => s.Type == "name").Value;
-                    var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
+                    //var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
+                    var userId = response.Claims.ToList().First(s => s.Type == "sub").Value;
 
                     var applicationUser = await _dal.ReadApplicationUserAsync(userId);
 

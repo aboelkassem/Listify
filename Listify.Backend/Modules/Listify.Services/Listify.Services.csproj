@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Domain\Listify.Paths\Listify.Paths.csproj" />
+    <ProjectReference Include="..\Listify.DAL\Listify.DAL.csproj" />
     <ProjectReference Include="..\Listify.Lib\Listify.Lib.csproj" />
   </ItemGroup>
 
