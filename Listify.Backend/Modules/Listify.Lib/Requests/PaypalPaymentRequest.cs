@@ -8,6 +8,5 @@ namespace Listify.Lib.Requests
         public string PayerID { get; set; }
         public string OrderID { get; set; }
         public PurchaseCreateRequest Order { get; set; }
-        public PaypalPaymentCreateRequest Payment { get; set; }
     }
 }

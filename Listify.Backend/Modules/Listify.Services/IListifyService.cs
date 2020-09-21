@@ -8,8 +8,5 @@ namespace Listify.Services
     {
         Task<string> CleanContent(string content);
         Task<bool> IsContentValid(string content);
-
-        Task<bool> ExcecutePaypalTransaction(PurchaseCreateRequest purchase);
-        Task<PaypalPaymentCreateResponse> CreatePaypalPayment(PaypalPaymentCreateRequest request);
     }
 }

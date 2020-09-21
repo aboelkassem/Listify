@@ -3,11 +3,6 @@
 </div>
 
 <table class="checkout-container" mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-  <ng-container matColumnDef="playlistName">
-    <th mat-header-cell *matHeaderCellDef>Playlist Name</th>
-    <td mat-cell *matCellDef="let element"><a [routerLink]="['/playlist', element.id]">{{element.playlistName}}</a></td>
-  </ng-container>
-
   <ng-container matColumnDef="itemName">
     <th mat-header-cell *matHeaderCellDef>Item Name</th>
     <td mat-cell *matCellDef="let element">
@@ -18,7 +13,7 @@
   <ng-container matColumnDef="orderQuantity">
     <th mat-header-cell *matHeaderCellDef>Quantity</th>
     <td mat-cell *matCellDef="let element">
-      <input matInput id="orderQuantity" name="orderQuantity" placeholder="Order Quantity" [(ngModel)]="element.orderQuantity">
+      <input matInput readonly id="orderQuantity" name="orderQuantity" placeholder="Order Quantity" [(ngModel)]="element.orderQuantity">
     </td>
   </ng-container>
 

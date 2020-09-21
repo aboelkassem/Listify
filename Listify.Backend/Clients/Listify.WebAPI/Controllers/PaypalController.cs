@@ -34,42 +34,17 @@ namespace Listify.WebAPI.Controllers
                 request.Order.OrderId = request.OrderID;
                 request.Order.PayerId = request.PayerID;
 
-                // Create The Payment
-                var payment = await _service.CreatePaypalPayment(request.Payment);
-                request.Order.PaymentId = payment.id;
-
                 var userId = await GetUserIdAsync();
 
-                if (await _service.ExcecutePaypalTransaction(request.Order))
+                var purchaseVM = await _dal.CreatePurchaseAsync(request.Order, userId);
+                if (purchaseVM != null)
                 {
-                    var purchaseVM = await _dal.CreatePurchaseAsync(request.Order, userId);
                     var purchaseConfirmed = new PurchaseConfirmedUpdateRequest
                     {
                         Purchase = purchaseVM,
                         WasChargeAccepted = true
                     };
                     return Ok(purchaseConfirmed);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            return BadRequest();
-        }
-
-        [Route("CustomerApproval")]
-        [HttpPost]
-        public async Task<IActionResult> GetCustomerApproval([FromBody] PaypalPaymentRequest request)
-        {
-            try
-            {
-                // Create The Payment
-                var payment = await _service.CreatePaypalPayment(request.Payment);
-
-                if (payment != null)
-                {
-                    return Ok(payment.links);
                 }
             }
             catch (Exception ex)

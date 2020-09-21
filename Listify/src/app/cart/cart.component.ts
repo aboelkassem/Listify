@@ -2,7 +2,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
 import { GlobalsService } from './../services/globals.service';
-import { IPurchasableLineItem } from './../interfaces';
+import { IPurchasableLineItem, IPurchaseConfirmed } from './../interfaces';
 import { CartService } from './../services/cart.service';
 import { Component, OnInit, OnDestroy, AfterContentInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
@@ -39,91 +39,70 @@ export class CartComponent implements OnInit, OnDestroy, AfterContentInit {
     private toastrService: ToastrService) {}
 
   ngAfterContentInit(): void {
-    if (!this.addScript) {
-      this.addPaypalScript().then(() => {
-        paypal.Buttons({
-          createOrder: (data, actions) => {
-            const totalPrice = this.cartService.getSubtotal().toString();
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  value: totalPrice
-                }
-              }]
-            });
-          },
-          onApprove: (data, actions) => {
-            // This function captures the funds from the transaction.
-            // console.log('onApprove - transaction was approved, but not authorized', data, actions);
-
-            actions.order.authorize().then(authorization => {
-              this.cartService.createPurchase();
-              const payPalCreateRequest = this.cartService.createPaypalTransaction();
-
-              // console.log(data);
-              // Get the authorization id
-              // const authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
-
-              // Call your server to validate and capture the transaction
-              // return fetch(this.globalsService.developmentWebAPIUrl + 'Paypal/RequestPayment', {
-              //   method: 'post',
-              //   headers: {
-              //     'content-type': 'application/json',
-              //     'Authorization': 'Bearer ' + this.oauthService.getAccessToken()
-              //   },
-              //   body: JSON.stringify({
-              //     orderID: data.orderID,
-              //     payerID: data.payerID,
-              //     order: this.cartService.purchaseOrderRequest,
-              //     payment: payPalCreateRequest
-              //   })
-
-              const httpHeaders = new HttpHeaders({
-                'Content-Type' : 'application/json',
-                Authorization: 'Bearer ' + this.oauthService.getAccessToken()
+    if (this.purchasableLineItems.length > 0) {
+      if (!this.addScript) {
+        this.addPaypalScript().then(() => {
+          paypal.Buttons({
+            createOrder: (data, actions) => {
+              const totalPrice = this.cartService.getSubtotal().toString();
+              return actions.order.create({
+                purchase_units: [{
+                  amount: {
+                    value: totalPrice
+                  }
+                }]
               });
+            },
+            onApprove: (data, actions) => {
 
-              const options = {
-                headers: httpHeaders,
-              };
+              actions.order.authorize().then(authorization => {
+                this.cartService.createPurchase();
 
-              this.http.post(this.globalsService.developmentWebAPIUrl + 'Paypal/CustomerApproval', {
-                  orderID: data.orderID,
-                  payerID: data.payerID,
-                  order: this.cartService.purchaseOrderRequest,
-                  payment: payPalCreateRequest
-              }, options).subscribe((links: any) => {
-                // console.log(links);
-                const approvalLink = links.filter(x => x.rel === 'approval_url')[0];
-                window.location.href = approvalLink.href;
-              }, error => {
-                console.log(error);
+                const httpHeaders = new HttpHeaders({
+                  'Content-Type' : 'application/json',
+                  Authorization: 'Bearer ' + this.oauthService.getAccessToken()
+                });
+
+                const options = {
+                  headers: httpHeaders,
+                };
+
+                this.http.post(this.globalsService.developmentWebAPIUrl + 'Paypal/RequestPayment', {
+                    orderID: data.orderID,
+                    payerID: data.payerID,
+                    order: this.cartService.purchaseOrderRequest,
+                }, options).subscribe((purchase: IPurchaseConfirmed) => {
+                  this.cartService.createPurchaseConfirmed(purchase);
+                  this.router.navigateByUrl('/checkout');
+                }, error => {
+                  console.log(error);
+                });
               });
-            });
-          },
-          onCancel: (data, actions) => {
-            this.toastrService.warning('You have canceled the purchase.', 'Purchase Canceled');
-            this.cartService.purchase = undefined;
-            this.router.navigateByUrl('/cart');
-          },
-          onError: err => {
-            this.toastrService.error('There are an error with the purchase.', 'Error');
-            this.cartService.purchase = undefined;
-            this.router.navigateByUrl('/cart');
-          },
-          onClick: (data, actions) => {
-            console.log('onClick', data, actions);
-          },
-          style: {
-            layout:  'vertical',
-            color:   'gold',
-            shape:   'rect',
-            label:   'paypal'
-          }
-        }).render('#paypal-button-container');
+            },
+            onCancel: (data, actions) => {
+              this.toastrService.warning('You have canceled the purchase.', 'Purchase Canceled');
+              this.cartService.purchase = undefined;
+              this.router.navigateByUrl('/cart');
+            },
+            onError: err => {
+              this.toastrService.error('There are an error with the purchase.', 'Error');
+              this.cartService.purchase = undefined;
+              this.router.navigateByUrl('/cart');
+            },
+            onClick: (data, actions) => {
+              // console.log('onClick', data, actions);
+            },
+            style: {
+              layout:  'vertical',
+              color:   'gold',
+              shape:   'rect',
+              label:   'paypal'
+            }
+          }).render('#paypal-button-container');
 
-        this.paypalLoad = true;
-      });
+          this.paypalLoad = true;
+        });
+      }
     }
   }
 

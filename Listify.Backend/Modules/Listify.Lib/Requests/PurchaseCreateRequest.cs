@@ -9,7 +9,6 @@ namespace Listify.Lib.Requests
         public float AmountCharged { get; set; }
         public string PayerId { get; set; }
         public string OrderId { get; set; }
-        public string PaymentId { get; set; }
         public string[] PurchasableItemsJSON { get; set; }
     }
 }

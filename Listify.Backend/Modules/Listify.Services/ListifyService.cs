@@ -52,64 +52,6 @@ namespace Listify.Services
             }
             return string.Empty;
         }
-        public virtual async Task<bool> ExcecutePaypalTransaction(PurchaseCreateRequest purchase)
-        {
-            try
-            {
-                using (var httpClient = new HttpClient())
-                {
-                    var request = new PaypalPurchaseRequest
-                    {
-                        payer_id = purchase.PayerId,
-                    };
-
-                    var accessToken = await GetPaypalAccessTokenAsync();
-
-                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-
-                    var response = await httpClient.PostAsync($"https://api.sandbox.paypal.com/v1/payments/payment/{purchase.PaymentId}/execute",
-                        new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
-
-                    var content = await response.Content.ReadAsStringAsync();
-                    var deserializedContent = JsonConvert.DeserializeObject<PaypalPurchaseResponse>(content);
-
-                    return deserializedContent.state.Trim().ToLower() == "approved" ? true : false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-        public virtual async Task<PaypalPaymentCreateResponse> CreatePaypalPayment(PaypalPaymentCreateRequest request)
-        {
-            try
-            {
-                using (var httpClient = new HttpClient())
-                {
-                    var accessToken = await GetPaypalAccessTokenAsync();
-
-                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                    httpClient.DefaultRequestHeaders
-                      .Accept
-                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));//ACCEPT header
-
-                    var response = await httpClient.PostAsync("https://api.sandbox.paypal.com/v1/payments/payment",
-                        new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json"));
-
-                    var content = await response.Content.ReadAsStringAsync();
-                    var deserializedContent = JsonConvert.DeserializeObject<PaypalPaymentCreateResponse>(content);
-
-                    return deserializedContent;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            return null;
-        }
 
         // Two Api bad word filter 
         private async Task<NeutrinoBadWordResponse> GetFromNeutrinoAsync(string content)
@@ -149,37 +91,6 @@ namespace Listify.Services
                     var serializedResponse = await response.Content.ReadAsStringAsync();
 
                     return JsonConvert.DeserializeObject<PurgoMalumResponse>(serializedResponse);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            return null;
-        }
-        private async Task<string> GetPaypalAccessTokenAsync()
-        {
-            try
-            {
-                using (var httpClient = new HttpClient())
-                {
-                    httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                    httpClient.DefaultRequestHeaders.Add("Accept-Language", "en_US");
-
-                    var authTokenBase64String = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Globals.PAYPAL_SANDBOX_CLIENT_ID}:{Globals.PAYPAL_SANDBOX_SECRET}"));
-
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authTokenBase64String);
-
-                    var req = new List<KeyValuePair<string, string>>();
-                    req.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
-
-                    var contentEncoded = new FormUrlEncodedContent(req);
-
-                    var response = await httpClient.PostAsync("https://api.sandbox.paypal.com/v1/oauth2/token", contentEncoded);
-
-                    var content = await response.Content.ReadAsStringAsync();
-                    var deserializedContent = JsonConvert.DeserializeObject<PaypalAccessTokenResponse>(content);
-                    return deserializedContent.access_token;
                 }
             }
             catch (Exception ex)

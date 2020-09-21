@@ -1660,6 +1660,7 @@ namespace Listify.DAL
                     HasBeenCharged = true,
                     PayerId = request.PayerId,
                     OrderId = request.OrderId,
+                    WasChargeAccepted = true
                 };
 
                 _context.Purchases.Add(entity);
