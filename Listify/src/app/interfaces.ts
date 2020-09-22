@@ -171,7 +171,7 @@ export interface IPurchase {
   purchaseMethod: number;
   subtotal: number;
   amountCharged: number;
-  purchasableItems: IPurchasableItem[];
+  purchaseLineItems: IPurchasableLineItem[];
   hasBeenCharged: boolean;
 }
 

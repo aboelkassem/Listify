@@ -19,7 +19,7 @@ namespace Listify.BLL
         {
             try
             {
-                var clientsPinged = await _dal.PingApplicationUsersRoomsConnections();
+                var clientsPinged = await _dal.PingApplicationUsersRoomsConnectionsAsync();
                 if (clientsPinged != null && clientsPinged.Count > 0)
                 {
                     FirePollingEvent(this, new PingPollEventArgs

@@ -41,9 +41,12 @@ namespace Listify.DAL
                 .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
-            if (entity.Room.RoomKey != null)
+            if (entity.Room.IsRoomLocked)
             {
-                entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+                if (entity.Room.RoomKey != null)
+                {
+                    entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+                }
             }
 
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
@@ -60,14 +63,14 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<ApplicationUser>(request);
 
-            _context.ApplicationUsers.Add(entity);
+            await _context.ApplicationUsers.AddAsync(entity);
 
             var room = new Room
             {
                 ApplicationUser = entity,
                 RoomCode = request.Username
             };
-            _context.Rooms.Add(room);
+            await _context.Rooms.AddAsync(room);
 
             var applicationUserRoom = new ApplicationUserRoom
             {
@@ -78,7 +81,7 @@ namespace Listify.DAL
             };
 
 
-            _context.ApplicationUsersRooms.Add(applicationUserRoom);
+            await _context.ApplicationUsersRooms.AddAsync(applicationUserRoom);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -173,7 +176,7 @@ namespace Listify.DAL
             var entity = _mapper.Map<ApplicationUserRoom>(request);
 
             entity.ApplicationUserId = applicationUserId;
-            _context.ApplicationUsersRooms.Add(entity);
+            await _context.ApplicationUsersRooms.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomAsync(entity.Id) : null;
         }
@@ -274,7 +277,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserRoomCurrencyRoomVM[]> CheckApplicationUserRoomCurrenciesRoomAsync(Guid applicationUserRoomId)
         {
             var applicationUserRoom = await _context.ApplicationUsersRooms
-                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == applicationUserRoomId && s.Active && s.IsOnline);
 
             if (applicationUserRoom != null)
             {
@@ -290,7 +293,7 @@ namespace Listify.DAL
 
                     if (applicationUserRoomCurrencyRoom == null)
                     {
-                        _context.ApplicationUsersRoomsCurrenciesRooms.Add(new ApplicationUserRoomCurrencyRoom
+                        await _context.ApplicationUsersRoomsCurrenciesRooms.AddAsync(new ApplicationUserRoomCurrencyRoom
                         {
                             ApplicationUserRoomId = applicationUserRoomId,
                             CurrencyRoomId = currencyRoom.Id,
@@ -306,7 +309,7 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<ApplicationUserRoomCurrencyRoom>(request);
 
-            _context.ApplicationUsersRoomsCurrenciesRooms.Add(entity);
+            await _context.ApplicationUsersRoomsCurrenciesRooms.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadApplicationUserRoomCurrencyRoomAsync(entity.Id) : null;
         }
@@ -339,7 +342,7 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<ChatMessage>(request);
 
-            _context.ChatMessages.Add(entity);
+            await _context.ChatMessages.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadChatMessageAsync(entity.Id) : null;
         }
@@ -419,7 +422,7 @@ namespace Listify.DAL
             if (entity == null)
             {
                 entity = _mapper.Map<ApplicationUserRoomConnection>(request);
-                _context.ApplicationUsersRoomsConnections.Add(entity);
+                await _context.ApplicationUsersRoomsConnections.AddAsync(entity);
             }
             else
             {
@@ -580,7 +583,7 @@ namespace Listify.DAL
                 }
 
                 entity.ApplicationUserId = applicationUserId;
-                _context.Playlists.Add(entity);
+                await _context.Playlists.AddAsync(entity);
 
                 if (await _context.SaveChangesAsync() > 0)
                 {
@@ -664,7 +667,7 @@ namespace Listify.DAL
 
             var entity = _mapper.Map<Song>(request);
 
-            _context.Songs.Add(entity);
+            await _context.Songs.AddAsync(entity);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -791,7 +794,7 @@ namespace Listify.DAL
                         WeightedValue = 0,
                     };
 
-                    _context.SongsQueued.Add(queuedSong);
+                    await _context.SongsQueued.AddAsync(queuedSong);
 
                     if (await _context.SaveChangesAsync() > 0)
                     {
@@ -923,8 +926,7 @@ namespace Listify.DAL
                         Song = song
                     };
 
-                    _context.SongsPlaylists.Add(songPlaylist);
-
+                    await _context.SongsPlaylists.AddAsync(songPlaylist);
 
                     if (await _context.SaveChangesAsync() > 0)
                     {
@@ -1082,7 +1084,7 @@ namespace Listify.DAL
                                 }
                             }
                         };
-                        _context.SongsQueued.Add(songQueued);
+                        await _context.SongsQueued.AddAsync(songQueued);
                     }
                     else
                     {
@@ -1184,7 +1186,7 @@ namespace Listify.DAL
 
             var entity = _mapper.Map<Transaction>(request);
 
-            _context.Transactions.Add(entity);
+            await _context.Transactions.AddAsync(entity);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -1266,7 +1268,7 @@ namespace Listify.DAL
 
             var entity = _mapper.Map<TransactionSongQueued>(request);
 
-            _context.TransactionsSongsQueued.Add(entity);
+            await _context.TransactionsSongsQueued.AddAsync(entity);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -1332,7 +1334,7 @@ namespace Listify.DAL
 
                     if (currencyRoom == null)
                     {
-                        _context.CurrenciesRooms.Add(new CurrencyRoom
+                        await _context.CurrenciesRooms.AddAsync(new CurrencyRoom
                         {
                             CurrencyId = currency.Id,
                             CurrencyName = currency.CurrencyName,
@@ -1356,7 +1358,7 @@ namespace Listify.DAL
         {
             var entity = _mapper.Map<CurrencyRoom>(request);
 
-            _context.CurrenciesRooms.Add(entity);
+            await _context.CurrenciesRooms.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadCurrencyRoomAsync(entity.Id) : null;
         }
@@ -1408,7 +1410,7 @@ namespace Listify.DAL
             var entity = _mapper.Map<LogAPI>(request);
 
             entity.ApplicationUserId = applicationUserId;
-            _context.LogsAPI.Add(entity);
+            await _context.LogsAPI.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadLogAPIAsync(entity.Id) : null;
         }
@@ -1425,7 +1427,7 @@ namespace Listify.DAL
             var entity = _mapper.Map<LogError>(request);
 
             entity.ApplicationUserId = applicationUserId;
-            _context.LogsErrors.Add(entity);
+            await _context.LogsErrors.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadLogErrorAsync(entity.Id) : null;
         }
@@ -1568,7 +1570,7 @@ namespace Listify.DAL
             //    }
             //}
 
-            _context.PurchasableItems.Add(entity);
+            await _context.PurchasableItems.AddAsync(entity);
 
             return await _context.SaveChangesAsync() > 0 ? await ReadPurchasableItemAsync(entity.Id) : null;
         }
@@ -1663,7 +1665,7 @@ namespace Listify.DAL
                     WasChargeAccepted = true
                 };
 
-                _context.Purchases.Add(entity);
+                await _context.Purchases.AddAsync(entity);
                 
                 foreach (var item in request.PurchasableItemsJSON)
                 {
@@ -1679,7 +1681,7 @@ namespace Listify.DAL
                             case PurchasableItemType.Playlist:
                                 applicationUser.PlaylistCountMax += purchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
                                 _context.Entry(applicationUser).State = EntityState.Modified;
-                                _context.PurchaseLineItems.Add(new PurchaseLineItem
+                                await _context.PurchaseLineItems.AddAsync(new PurchaseLineItem
                                 {
                                     PurchasableItem = purchasableItem,
                                     Purchase = entity,
@@ -1690,7 +1692,7 @@ namespace Listify.DAL
                             case PurchasableItemType.PlyalistSongs:
                                 applicationUser.PlaylistSongCount += purchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
                                 _context.Entry(applicationUser).State = EntityState.Modified;
-                                _context.PurchaseLineItems.Add(new PurchaseLineItemCurrency
+                                await _context.PurchaseLineItems.AddAsync(new PurchaseLineItem
                                 {
                                     PurchasableItem = purchasableItem,
                                     Purchase = entity,
@@ -1709,17 +1711,15 @@ namespace Listify.DAL
                                     applicationUserRoomCurrency.Quantity += deserializedPurchasableItem.PurchasableItem.Quantity * deserializedPurchasableItem.OrderQuantity;
                                     _context.Entry(applicationUserRoomCurrency).State = EntityState.Modified;
 
-                                    _context.PurchaseLineItems.Add(new PurchaseLineItemCurrency
+                                    await _context.PurchaseLineItems.AddAsync(new PurchaseLineItemCurrency
                                     {
                                         PurchasableItem = purchasableItem,
                                         Purchase = entity,
                                         ApplicationUserRoomCurrencyId = applicationUserRoomCurrency.Id,
                                         OrderQuantity = deserializedPurchasableItem.OrderQuantity
                                     });
-                                }
 
-                                break;
-                            default:
+                                }
                                 break;
                         }
                     }
@@ -1852,7 +1852,7 @@ namespace Listify.DAL
                     .FirstOrDefaultAsync(s => s.Id == currencyRoomId);
 
                 var applicationUserRooms = await _context.ApplicationUsersRooms
-                        .Where(s => s.RoomId == room.Id && s.Active)
+                        .Where(s => s.RoomId == room.Id && s.Active && s.IsOnline)
                         .ToListAsync();
 
                 if (room != null && currencyRoom != null)
@@ -1865,8 +1865,12 @@ namespace Listify.DAL
                         if (applicationUserRoom != null)
                         {
                             var applicationUserRoomCurrency = await _context.ApplicationUsersRoomsCurrenciesRooms
-                                .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active && s.CurrencyRoomId == currencyRoomId)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
+                                    s.Active && s.CurrencyRoomId == currencyRoomId);
+
+                            // ToDo: Delete this line for bad performance to read another value from different db context
+                            // that has been already modified
+                            await _context.Entry(applicationUserRoomCurrency).ReloadAsync();
 
                             if (applicationUserRoomCurrency == null)
                             {
@@ -1878,8 +1882,7 @@ namespace Listify.DAL
                                     TimeStamp = DateTime.UtcNow
                                 };
 
-                                _context.ApplicationUsersRoomsCurrenciesRooms.Add(applicationUserRoomCurrency);
-                                await _context.SaveChangesAsync();
+                                await _context.ApplicationUsersRoomsCurrenciesRooms.AddAsync(applicationUserRoomCurrency);
                             }
 
                             if (!applicationUserRoomCurrencies.Any(s => s.Id == applicationUserRoomCurrency.Id))
@@ -1906,7 +1909,7 @@ namespace Listify.DAL
                                 TimeStamp = DateTime.UtcNow
                             };
 
-                            _context.Add(transaction);
+                            await _context.Transactions.AddAsync(transaction);
                         }
                     }
 
@@ -1925,11 +1928,11 @@ namespace Listify.DAL
                 return null;
             }
         }
-        public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnections()
+        public virtual async Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnectionsAsync()
         {
-            using (var context = new ApplicationDbContext())
+            try
             {
-                try
+                using (var context = new ApplicationDbContext())
                 {
                     var connectionsPinged = new List<ApplicationUserRoomConnection>();
 
@@ -2012,7 +2015,6 @@ namespace Listify.DAL
 
                     //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
 
-
                     if (await context.SaveChangesAsync() > 0)
                     {
                         var vms = new List<ApplicationUserRoomConnectionVM>();
@@ -2027,11 +2029,11 @@ namespace Listify.DAL
 
                     return null;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return null;
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
             }
         }
 
@@ -2044,7 +2046,7 @@ namespace Listify.DAL
             var entity = _mapper.Map<U>(request);
 
             // Add Entity
-            _context.Add(entity);
+            await _context.AddAsync(entity);
 
 
             // Returning The ViewModel of the entity after saving on DB

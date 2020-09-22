@@ -1,5 +1,5 @@
 import { CartService } from './../services/cart.service';
-import { IPurchasableItem } from './../interfaces';
+import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 
@@ -11,15 +11,14 @@ import { MatTableDataSource } from '@angular/material/table';
 export class CheckoutComponent implements OnInit {
 
   displayedColumns: string[] = ['itemName', 'orderQuantity'];
-  dataSource = new MatTableDataSource<IPurchasableItem>();
+  dataSource = new MatTableDataSource<IPurchasableLineItem>();
 
-  purchasableLineItem: IPurchasableItem[] = [];
+  purchasableLineItem: IPurchasableLineItem[] = [];
 
   constructor(private cartService: CartService) { }
 
   ngOnInit(): void {
-    this.purchasableLineItem = this.cartService.purchase.purchase.purchasableItems;
+    this.purchasableLineItem = this.cartService.purchase.purchase.purchaseLineItems;
     this.dataSource.data = this.purchasableLineItem;
   }
-
 }

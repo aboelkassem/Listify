@@ -65,7 +65,7 @@ namespace Listify.WebAPI
             services.AddControllers().AddNewtonsoftJson();
 
             //services.AddTransient<IPathsListify, PathsListify>();
-            services.AddScoped<IListifyDAL, ListifyDAL>();
+            services.AddTransient<IListifyDAL, ListifyDAL>();
             services.AddTransient<IListifyService, ListifyService>();
 
             services.AddSingleton(AutoMap.CreateAutoMapper());

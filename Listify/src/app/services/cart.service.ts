@@ -14,7 +14,19 @@ export class CartService {
   constructor(private globalsService: GlobalsService) { }
 
   addPurchasableItemToCart(purchasableLineItem: IPurchasableLineItem): void {
-    this.purchasableLineItems.push(purchasableLineItem);
+    // tslint:disable-next-line:max-line-length
+    const existedPurchasableItem = this.purchasableLineItems.filter(x => x.purchasableItem.id === purchasableLineItem.purchasableItem.id)[0];
+
+    if (existedPurchasableItem) {
+      const IncreasedPurchaseableItemOrder: IPurchasableLineItem = {
+        orderQuantity: +existedPurchasableItem.orderQuantity + 1, // The id is cast to a number with the unary + operator
+        purchasableItem: existedPurchasableItem.purchasableItem
+      };
+      this.purchasableLineItems[this.purchasableLineItems.indexOf(existedPurchasableItem)] = IncreasedPurchaseableItemOrder;
+    }else {
+      this.purchasableLineItems.push(purchasableLineItem);
+    }
+
     this.getSubtotal();
   }
 

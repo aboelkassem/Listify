@@ -2,7 +2,7 @@ import { ToastrService } from 'ngx-toastr';
 import { GlobalsService } from './../../services/globals.service';
 import { HubService } from 'src/app/services/hub.service';
 import { Router } from '@angular/router';
-import { IPurchasableLineItem, IPurchasableItem } from './../../interfaces';
+import { IPurchasableLineItem, IPurchasableItem, IPurchasableCurrencyLineItem } from './../../interfaces';
 import { CartService } from './../../services/cart.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
@@ -70,7 +70,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
     .filter(x => x.purchasableItemType === this.globalsService.getPurchasableItemType('PurchaseCurrency') && x.quantity === 40)[0];
 
     if (selectedItem) {
-      const purchasableLineItem: IPurchasableLineItem = {
+      const purchasableCurrencyLineItem: IPurchasableCurrencyLineItem = {
         purchasableItem: {
           id: selectedItem.id,
           purchasableItemName: selectedItem.purchasableItemName + ' ' + applicationUserRoomCurrency.currencyRoom.room.roomCode,
@@ -80,14 +80,15 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
           quantity: selectedItem.quantity,
           imageUri: selectedItem.imageUri,
         },
-        orderQuantity: 1
+        orderQuantity: 1,
+        applicationUserRoomCurrencyId: applicationUserRoomCurrency.id
       };
-      this.cartService.addPurchasableItemToCart(purchasableLineItem);
+      this.cartService.addPurchasableItemToCart(purchasableCurrencyLineItem);
 
       this.router.navigate(['/', 'cart']);
 
       // tslint:disable-next-line:max-line-length
-      this.toastrService.success('You have added a ' + purchasableLineItem.purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
+      this.toastrService.success('You have added a ' + purchasableCurrencyLineItem.purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
     }
   }
 }

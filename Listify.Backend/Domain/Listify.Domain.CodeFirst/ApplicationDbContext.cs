@@ -97,7 +97,7 @@ namespace Listify.Domain.CodeFirst
                    CurrencyName = "Tokens",
                    Id = new System.Guid("7385DB66-C5D6-4F99-84DC-74CF9695A459"),
                    QuantityIncreasePerTick = 2,
-                   TimeSecBetweenTick = 30,
+                   TimeSecBetweenTick = 60,
                    Weight = 1,
                    TimeStamp = System.DateTime.UtcNow
                });

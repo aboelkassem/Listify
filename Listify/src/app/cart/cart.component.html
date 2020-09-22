@@ -35,7 +35,7 @@
     <ng-container matColumnDef="removeFromCart">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
-        <button mat-stroked-button color="accent" appearance="accent" (click)="removeFromCart(element.id)">Remove from cart</button>
+        <button mat-stroked-button color="accent" appearance="accent" (click)="removeFromCart(element.purchasableItem.id)">Remove from cart</button>
       </td>
     </ng-container>
 
