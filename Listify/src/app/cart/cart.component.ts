@@ -82,12 +82,12 @@ export class CartComponent implements OnInit, OnDestroy, AfterContentInit {
             onCancel: (data, actions) => {
               this.toastrService.warning('You have canceled the purchase.', 'Purchase Canceled');
               this.cartService.purchase = undefined;
-              this.router.navigateByUrl('/cart');
+              this.router.navigateByUrl('/checkoutfail');
             },
             onError: err => {
               this.toastrService.error('There are an error with the purchase.', 'Error');
               this.cartService.purchase = undefined;
-              this.router.navigateByUrl('/cart');
+              this.router.navigateByUrl('/checkoutfail');
             },
             onClick: (data, actions) => {
               // console.log('onClick', data, actions);

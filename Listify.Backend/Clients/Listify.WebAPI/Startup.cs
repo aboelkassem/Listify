@@ -74,14 +74,18 @@ namespace Listify.WebAPI
             var listifyDAL = serviceProvider.GetService<IListifyDAL>();
 
             IPingPoll pingPoll = new PingPoll(listifyDAL);
-            pingPoll.Start(10000);
+            pingPoll.Start(45000);
             services.AddSingleton(pingPoll);
             //services.AddScoped<IPingPoll, PingPoll>();
 
             ICurrencyPoll currencyPoll = new CurrencyPoll(listifyDAL);
-            currencyPoll.Start(5000);
+            currencyPoll.Start(30000);
             services.AddSingleton(currencyPoll);
             //services.AddScoped<ICurrencyPoll, CurrencyPoll>();
+
+            //IRoomsOnlinePool roomsOnline = new RoomsOnlinePool(listifyDAL);
+            //roomsOnline.Start(45000);
+            //services.AddSingleton(roomsOnline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

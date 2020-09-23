@@ -1,3 +1,4 @@
+import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
 import { CurrencyComponent } from './currency/currency.component';
@@ -26,6 +27,7 @@ const routes: Routes = [
   {path: 'account', component: AccountComponent},
   {path: 'cart', component: CartComponent},
   {path: 'checkout', component: CheckoutComponent},
+  {path: 'checkoutfail', component: CheckoutfailComponent},
   {path: ':id', component: RoomComponent},
 ];
 

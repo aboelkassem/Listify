@@ -764,16 +764,23 @@ namespace Listify.DAL
         public virtual async Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId)
         {
             var playlist = await _context.Playlists
+                .Include(s => s.SongsPlaylist)
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active && s.IsSelected)
                 .FirstOrDefaultAsync();
 
             if (playlist != null)
             {
+                //var songPlaylist = await _context.SongsPlaylists
+                //    .Include(s => s.Song)
+                //    .Include(s => s.Playlist)
+                //    .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                //    .OrderBy(s => s.PlayCount)
+                //    .FirstOrDefaultAsync();
                 var songPlaylist = await _context.SongsPlaylists
                     .Include(s => s.Song)
                     .Include(s => s.Playlist)
                     .Where(s => s.PlaylistId == playlist.Id && s.Active)
-                    .OrderBy(s => s.PlayCount)
+                    .OrderBy(s => Guid.NewGuid())
                     .FirstOrDefaultAsync();
 
                 if (songPlaylist != null)
@@ -794,7 +801,7 @@ namespace Listify.DAL
                         WeightedValue = 0,
                     };
 
-                    await _context.SongsQueued.AddAsync(queuedSong);
+                    //await _context.SongsQueued.AddAsync(queuedSong);
 
                     if (await _context.SaveChangesAsync() > 0)
                     {
@@ -849,7 +856,6 @@ namespace Listify.DAL
         }
         public virtual async Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request, Guid applicationUserId)
         {
-
             var song = await _context.Songs
                 .FirstOrDefaultAsync(s => s.YoutubeId == request.SongSearchResult.VideoId);
 

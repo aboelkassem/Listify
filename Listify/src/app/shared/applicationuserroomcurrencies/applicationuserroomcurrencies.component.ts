@@ -38,6 +38,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
     this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
       this.dataSource.data = this.applicationUserRoomCurrencies;
+      this.hubService.requestPurchasableItems();
     });
 
     // tslint:disable-next-line:max-line-length
@@ -62,7 +63,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
   }
 
   ngOnInit(): void {
-    this.hubService.requestPurchasableItems();
+    // this.hubService.requestPurchasableItems();
   }
 
   addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom): void {

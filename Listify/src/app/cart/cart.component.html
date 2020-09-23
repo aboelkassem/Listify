@@ -50,5 +50,6 @@
 </div>
 
 <!-- <ngx-paypal [config]="payPalConfig"></ngx-paypal> -->
-
-<div id="paypal-button-container"></div>
+<div *ngIf="subTotal > 0">
+  <div id="paypal-button-container"></div>
+</div>

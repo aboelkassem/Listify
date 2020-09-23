@@ -34,6 +34,7 @@ import { SearchsongrequestComponent } from './shared/searchsongrequest/searchson
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
 import { RoomkeymodalComponent } from './shared/roomkeymodal/roomkeymodal.component';
 import { CheckoutComponent } from './checkout/checkout.component';
+import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
 
 @NgModule({
   declarations: [
@@ -58,6 +59,7 @@ import { CheckoutComponent } from './checkout/checkout.component';
     PurchasableitemsComponent,
     RoomkeymodalComponent,
     CheckoutComponent,
+    CheckoutfailComponent,
   ],
   entryComponents: [
     ConfirmationmodalComponent,
