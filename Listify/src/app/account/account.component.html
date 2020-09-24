@@ -15,6 +15,10 @@
       <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomTitle" name="roomTitle" placeholder="Room Title" [(ngModel)]="roomTitle">
     </mat-form-field>
 
+    <mat-form-field>
+      <input matInput (click)="makeTheFormDirty()" style="pointer-events:auto; cursor: default;" [style.background]="chatColor" [cpCancelButton]="true" [cpOKButton]="true" [(colorPicker)]="chatColor" [(colorPicker)]="chatColor" (keyup.enter)="saveApplicationUserInfo()" id="chatColor" name="chatColor">
+    </mat-form-field>
+
     <mat-checkbox [(ngModel)]="isPublic" name="isPublic">Is Room Public?</mat-checkbox>
 
     <mat-checkbox [(ngModel)]="allowRequests" name="allowRequests">Room Is Allowing Requests?</mat-checkbox>

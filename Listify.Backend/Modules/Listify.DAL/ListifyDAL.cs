@@ -106,6 +106,7 @@ namespace Listify.DAL
                 }
 
                 entity.Username = request.Username;
+                entity.ChatColor = request.ChatColor;
                 entity.Room.RoomCode = request.RoomCode;
                 entity.Room.RoomTitle = request.RoomTitle;
                 entity.Room.RoomKey = encodedRoomKey;
@@ -1465,6 +1466,7 @@ namespace Listify.DAL
         {
             var entity = await _context.Rooms
                 .Include(s => s.CurrenciesRoom)
+                .Include(s=> s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             if (entity != null)
@@ -1488,6 +1490,8 @@ namespace Listify.DAL
         public virtual async Task<RoomVM> ReadRoomAsync(string roomCode)
         {
             var entity = await _context.Rooms
+                .Include(s => s.CurrenciesRoom)
+                .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.RoomCode.Trim().ToLower() == roomCode.Trim().ToLower() && s.Active);
             
             if (entity != null)

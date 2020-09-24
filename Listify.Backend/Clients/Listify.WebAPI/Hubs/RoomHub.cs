@@ -342,14 +342,15 @@ namespace Listify.WebAPI.Hubs
                     }, userId);
                 }
 
-                var currenciesRooms = await _dal.ReadCurrenciesRoomAsync(room.Id);
-
                 var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
+
+                var roomEntity = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
 
                 var roomInformation = new RoomInformation
                 {
                     ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
-                    ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray()
+                    ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray(),
+                    RoomOwner = roomEntity.ApplicationUser
                 };
 
                 await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);

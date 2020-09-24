@@ -17,5 +17,6 @@ namespace Listify.Lib.Requests
         public bool IsRoomOnline { get; set; }
         public bool MatureContent { get; set; }
         public bool MatureContentChat { get; set; }
+        public string ChatColor { get; set; }
     }
 }

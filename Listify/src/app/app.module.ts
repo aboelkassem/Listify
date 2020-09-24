@@ -7,6 +7,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
+import { ColorPickerModule } from 'ngx-color-picker';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -73,6 +74,7 @@ import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
     OAuthModule.forRoot(),
     YoutubeModule,
     BrowserAnimationsModule,
+    ColorPickerModule,
     MaterialModule,
     ToastrModule.forRoot(),
   ],

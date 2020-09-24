@@ -14,8 +14,14 @@
   <label>Song Name:</label> <b>{{songName}}</b>
 </div>
 <div>
-  <label>Requested By:</label> <b>{{requestedBy}}</b>
+  <label>Requested By:</label> <b [ngStyle]="{color: requestedByColor}">{{requestedBy}}</b>
 </div>
 <div>
   <label>Value :</label> <b>{{playValue}}</b>
+</div>
+<div>
+  <label>Room Title:</label> <b>{{roomTitle}}</b>
+</div>
+<div>
+  <label>Room Owner:</label> <b>{{roomOwner}}</b>
 </div>

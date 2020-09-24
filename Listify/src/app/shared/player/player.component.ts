@@ -13,7 +13,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   songName: string;
   requestedBy: string;
+  requestedByColor: string;
   playValue: string;
+  roomTitle: string;
+  roomOwner: string;
 
   songQueued: ISongQueued;
 
@@ -26,19 +29,21 @@ export class PlayerComponent implements OnInit, OnDestroy {
     private youtubeService: YoutubeService) {
       // this sets the properties for a server ordered play
       this.$playFromServerSubscription = this.roomService.getPlayFromServerResponse().subscribe(response => {
-
         if(response.songQueued) {
           this.songQueued = response.songQueued;
           this.songName = this.songQueued.song.songName;
           this.requestedBy = this.songQueued.applicationUser.username;
-          // this.requestedByColor = this.songQueued.applicationUser.chatColor;
+          this.requestedByColor = this.songQueued.applicationUser.chatColor;
           // this.requestedById = this.songQueued.applicationUser.id;
           this.playValue = this.songQueued.weightedValue.toString();
+
+          this.roomTitle = this.roomService.applicationUserRoom.room.roomTitle;
+          this.roomOwner = this.roomService.roomOwner.username;
         }else {
           this.songQueued = undefined;
           this.songName = '';
           this.requestedBy = '';
-          // this.requestedByColor = '';
+          this.requestedByColor = '';
           // this.requestedById = '';
           this.playValue = '';
         }
@@ -75,7 +80,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     const tag = document.createElement('script');
     tag.src = 'https://www.youtube.com/iframe_api';
     document.body.appendChild(tag);
-
   }
 
   ngOnDestroy(): void {

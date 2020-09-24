@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { IApplicationUserRequest, IPurchasableItem, IPurchasableLineItem, IValidatedTextRequest } from './../interfaces';
 import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CartService } from '../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,6 +17,8 @@ import { GlobalsService } from '../services/globals.service';
 })
 export class AccountComponent implements OnInit, OnDestroy {
 
+  @ViewChild('accountForm') accountForm: any;
+
   id: string;
   username: string;
   roomCode: string;
@@ -29,6 +31,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   isPublic: boolean;
   matureContent: boolean;
   matureContentChat: boolean;
+  chatColor: string;
 
   disableAttr = false;
   private _nextRequestType: NextRequestType;
@@ -86,7 +89,7 @@ export class AccountComponent implements OnInit, OnDestroy {
                 isRoomPublic: this.isPublic,
                 matureContent: this.matureContent,
                 matureContentChat: this.matureContentChat,
-                chatColor: ''
+                chatColor: this.chatColor
               };
 
               this.hubService.updateApplicationUserInformation(request);
@@ -114,6 +117,7 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.allowRequests = user.room.allowRequests;
         this.matureContent = user.room.matureContent;
         this.matureContentChat = user.room.matureContentChat;
+        this.chatColor = user.chatColor;
       });
 
       this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
@@ -210,6 +214,11 @@ export class AccountComponent implements OnInit, OnDestroy {
 
     // tslint:disable-next-line:max-line-length
     this.toastrService.success('You have added a ' + purchasableLineItem.purchasableItem.purchasableItemName + ' to your cat', 'Add Success');
+  }
+
+  makeTheFormDirty(): void {
+    this.accountForm.control.markAsTouched();
+    this.accountForm.control.markAsDirty();
   }
 }
 

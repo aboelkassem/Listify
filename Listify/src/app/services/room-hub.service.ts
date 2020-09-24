@@ -1,6 +1,6 @@
 import { Subject, Observable } from 'rxjs';
 // tslint:disable-next-line:max-line-length
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IPlayFromServerResponse } from './../interfaces';
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IPlayFromServerResponse, IApplicationUser } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
@@ -14,6 +14,7 @@ export class RoomHubService {
   applicationUserRoomCurrenciesRoom: IApplicationUserRoomCurrencyRoom[] = [];
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
+  roomOwner: IApplicationUser;
 
   private _roomCode: string;
   private _hubConnection: singalR.HubConnection;
@@ -55,6 +56,7 @@ export class RoomHubService {
       this.applicationUserRoomCurrenciesRoom = roomInformation.applicationUserRoomCurrenciesRoom;
       this.applicationUserRoom = roomInformation.applicationUserRoom;
       this.room = roomInformation.room;
+      this.roomOwner = roomInformation.roomOwner;
       this.$roomInformationReceived.next(roomInformation);
     });
 
