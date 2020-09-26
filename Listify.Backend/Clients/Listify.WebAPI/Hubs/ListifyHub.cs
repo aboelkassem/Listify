@@ -205,7 +205,6 @@ namespace Listify.WebAPI.Hubs
                     if (userId != Guid.Empty)
                     {
                         var playlist = await _dal.ReadPlaylistAsync(guid, userId);
-                        playlist.SongsPlaylist = await _dal.ReadSongsPlaylistAsync(playlist.Id);
 
                         await Clients.Caller.SendAsync("ReceivePlaylist", playlist);
                     }
@@ -251,6 +250,30 @@ namespace Listify.WebAPI.Hubs
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestPlaylistsCommunity()
+        {
+            try
+            {
+                var playlistsCommunity = await _dal.ReadPlaylistsCommunityAsync();
+                await Clients.Caller.SendAsync("ReceivePlaylistsCommunity", playlistsCommunity);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestGenres()
+        {
+            try
+            {
+                var genres = await _dal.ReadGenresAsync();
+                await Clients.Caller.SendAsync("ReceiveGenres", genres);
             }
             catch (Exception ex)
             {
@@ -533,19 +556,19 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
-        public async Task CreatePurchase(PurchaseCreateRequest request)
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                var purchase = await _dal.CreatePurchaseAsync(request, userId);
-                await Clients.Caller.SendAsync("ReceivePurchase", purchase);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
+        //public async Task CreatePurchase(PurchaseCreateRequest request)
+        //{
+        //    try
+        //    {
+        //        var userId = await GetUserIdAsync();
+        //        var purchase = await _dal.CreatePurchaseAsync(request, userId);
+        //        await Clients.Caller.SendAsync("ReceivePurchase", purchase);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
         public async Task RequestAuthToLockedRoom(string roomKey, Guid roomId)
         {
             try
@@ -585,6 +608,47 @@ namespace Listify.WebAPI.Hubs
                 {
                     Console.WriteLine(ex.Message);
                 }
+            }
+        }
+        
+        public async Task QueuePlaylistInRoomHome(Guid playlistId)
+        {
+            try
+            {
+                var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                if (applicationUserRoomConnection == null)
+                {
+                    applicationUserRoomConnection = await CheckConnectionAsync();
+
+                    if (applicationUserRoomConnection == null)
+                    {
+                        await _listifyHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
+                    }
+                }
+
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+                var applicationUser = await _dal.ReadApplicationUserAsync(applicationUserRoom.ApplicationUser.Id);
+                var roomHome = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+
+                var songsQueued = await _dal.QueuePlaylistInRoomHomeAsync(playlistId, applicationUser.Id);
+
+                await Clients.Caller.SendAsync("ReceiveQueuePlaylistInRoomHome", songsQueued);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestPurchases()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 

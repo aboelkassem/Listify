@@ -1,13 +1,12 @@
-import { ConfirmationmodalService } from './../services/confirmationmodal.service';
 import { Router } from '@angular/router';
-import { IApplicationUserRequest, IPurchasableItem, IPurchasableLineItem, IValidatedTextRequest } from './../interfaces';
+import { IApplicationUserRequest, IConfirmationModalData, IPurchasableItem, IPurchasableLineItem, IValidatedTextRequest } from './../interfaces';
 import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CartService } from '../services/cart.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmationmodalComponent } from '../shared/confirmationmodal/confirmationmodal.component';
+import { ConfirmationmodalComponent } from '../shared/modals/confirmationmodal/confirmationmodal.component';
 import { GlobalsService } from '../services/globals.service';
 
 @Component({
@@ -47,8 +46,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private globalsService: GlobalsService,
     private toastrService: ToastrService,
-    private confirmationModal: MatDialog,
-    private confirmationModalService: ConfirmationmodalService) {
+    private confirmationModal: MatDialog) {
       this.$validatedTextReceivedSubscription = this.hubService.getValidatedTextReceived().subscribe(validatedTextResponse => {
         switch (this.globalsService.getValidatedTextTypes()[validatedTextResponse.validatedTextType]) {
           case 'Username':
@@ -177,11 +175,15 @@ export class AccountComponent implements OnInit, OnDestroy {
       this.toastrService.error('You have selected to lock the room but have not provided a room Key, please enter room key', 'Invalid Room Key');
 
     }else {
-      this.confirmationModalService.setConfirmationModalMessage('update your account information');
+      const confirmationModalData: IConfirmationModalData = {
+        title: 'Are your sure ?',
+        message: 'Are your sure you want to save the new Settings?',
+        isConfirmed: false
+      };
 
       const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
         width: '250px',
-        data: {isConfirmed: false}
+        data: confirmationModalData
       });
 
       confirmationModal.afterClosed().subscribe(result => {

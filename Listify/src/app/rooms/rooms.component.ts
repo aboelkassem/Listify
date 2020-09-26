@@ -1,6 +1,6 @@
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { RoomkeymodalComponent } from './../shared/roomkeymodal/roomkeymodal.component';
+import { InputmodalComponent } from './../shared/modals/inputmodal/inputmodal.component';
 import { HubService } from './../services/hub.service';
 import { IRoom } from './../interfaces';
 import { Component, OnInit, OnDestroy } from '@angular/core';
@@ -57,7 +57,7 @@ export class RoomsComponent implements OnInit, OnDestroy {
   navigateToRoom(room: IRoom): void {
     if (room.isRoomLocked) {
 
-      const confirmationModal = this.roomKeyConfirmationModal.open(RoomkeymodalComponent, {
+      const confirmationModal = this.roomKeyConfirmationModal.open(InputmodalComponent, {
         width: '250px',
         data: {roomKey : ''}
       });

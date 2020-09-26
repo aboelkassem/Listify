@@ -226,8 +226,8 @@ namespace Listify.Domain.CodeFirst.Migrations
                             Active = true,
                             CurrencyName = "Tokens",
                             QuantityIncreasePerTick = 2,
-                            TimeSecBetweenTick = 30f,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 16, DateTimeKind.Utc).AddTicks(8284),
+                            TimeSecBetweenTick = 60f,
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 712, DateTimeKind.Utc).AddTicks(3375),
                             Weight = 1
                         });
                 });
@@ -263,6 +263,168 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("CurrenciesRoom","Listify");
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.Genre", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Genres","Listify");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("daf33262-443f-46e5-b12b-9bf8f4e4210d"),
+                            Active = true,
+                            Name = "Ambient",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(162)
+                        },
+                        new
+                        {
+                            Id = new Guid("3d709920-731a-4b67-bce2-fb7373a6cd91"),
+                            Active = true,
+                            Name = "Blues and Jazz",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(584)
+                        },
+                        new
+                        {
+                            Id = new Guid("d3c3cfba-d1f6-49b2-82ff-3d96b3f4ef5f"),
+                            Active = true,
+                            Name = "Chill",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(599)
+                        },
+                        new
+                        {
+                            Id = new Guid("a3d7343b-1afa-4b82-bad5-6f8e4ec55fc7"),
+                            Active = true,
+                            Name = "Classical",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(602)
+                        },
+                        new
+                        {
+                            Id = new Guid("7933c396-2c1f-4f29-82d2-d5c73d95f377"),
+                            Active = true,
+                            Name = "Country",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(604)
+                        },
+                        new
+                        {
+                            Id = new Guid("70992c6e-b333-4cca-af11-370c639eb890"),
+                            Active = true,
+                            Name = "Dubstep",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(606)
+                        },
+                        new
+                        {
+                            Id = new Guid("d314f793-703a-4387-90ba-d8c420a8176f"),
+                            Active = true,
+                            Name = "Electronica",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(609)
+                        },
+                        new
+                        {
+                            Id = new Guid("bc00378e-60da-46f5-ae42-bcd1abebc5eb"),
+                            Active = true,
+                            Name = "Folk",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(612)
+                        },
+                        new
+                        {
+                            Id = new Guid("adc9b474-5336-45e5-9e95-37487939d2c5"),
+                            Active = true,
+                            Name = "Funk",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(614)
+                        },
+                        new
+                        {
+                            Id = new Guid("411b13d9-76be-495d-bf8a-41d85133c1f7"),
+                            Active = true,
+                            Name = "Hip Hop",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(616)
+                        },
+                        new
+                        {
+                            Id = new Guid("8593f261-6b15-40ff-8dcc-9047bda6ff1e"),
+                            Active = true,
+                            Name = "Indie",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(620)
+                        },
+                        new
+                        {
+                            Id = new Guid("53da2fec-6ed2-4c00-bddf-37ef056a266d"),
+                            Active = true,
+                            Name = "Latin",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(622)
+                        },
+                        new
+                        {
+                            Id = new Guid("42cebf92-a889-49b1-818f-c3a833f398b5"),
+                            Active = true,
+                            Name = "Metal",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(633)
+                        },
+                        new
+                        {
+                            Id = new Guid("80f2c6b5-8be7-444c-b8ad-290af496d6cc"),
+                            Active = true,
+                            Name = "Pop",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(635)
+                        },
+                        new
+                        {
+                            Id = new Guid("7d1e9639-ae88-4033-9076-9ed9491e8d7f"),
+                            Active = true,
+                            Name = "Reggae",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(638)
+                        },
+                        new
+                        {
+                            Id = new Guid("67c40a68-9510-43d0-8c3a-bd24bab7fe74"),
+                            Active = true,
+                            Name = "Rock",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(640)
+                        },
+                        new
+                        {
+                            Id = new Guid("d51cca64-3ad4-4026-9bde-9821fa525e95"),
+                            Active = true,
+                            Name = "R&B",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(643)
+                        },
+                        new
+                        {
+                            Id = new Guid("b35340b7-e99c-47c1-bd7e-44113428045b"),
+                            Active = true,
+                            Name = "Techno",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(645)
+                        },
+                        new
+                        {
+                            Id = new Guid("39d97940-4b5c-49e9-8335-0dcf74d683cd"),
+                            Active = true,
+                            Name = "Trance",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(648)
+                        },
+                        new
+                        {
+                            Id = new Guid("68653360-b756-4115-ab67-a19003319a1a"),
+                            Active = true,
+                            Name = "Trap",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 714, DateTimeKind.Utc).AddTicks(651)
+                        });
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.LogAPI", b =>
@@ -336,6 +498,9 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.Property<Guid>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsSelected")
                         .HasColumnType("bit");
 
@@ -350,6 +515,33 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Playlists","Listify");
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.PlaylistGenre", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("GenreId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PlaylistId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("TimeStamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GenreId");
+
+                    b.HasIndex("PlaylistId");
+
+                    b.ToTable("PlaylistGenres","Listify");
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.PurchasableItem", b =>
@@ -396,7 +588,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "1 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 1,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(397),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(8417),
                             UnitCost = 1f
                         },
                         new
@@ -408,7 +600,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 3 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 3,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1217),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9209),
                             UnitCost = 2f
                         },
                         new
@@ -420,7 +612,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 5 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 5,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1237),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9230),
                             UnitCost = 3f
                         },
                         new
@@ -432,7 +624,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "Pack of 10 Playlist",
                             PurchasableItemType = 0,
                             Quantity = 10,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1240),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9234),
                             UnitCost = 5f
                         },
                         new
@@ -444,7 +636,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "15 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 15,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1243),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9238),
                             UnitCost = 1f
                         },
                         new
@@ -456,7 +648,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "40 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 40,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1247),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9241),
                             UnitCost = 2f
                         },
                         new
@@ -468,7 +660,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "80 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 80,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1250),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9245),
                             UnitCost = 3f
                         },
                         new
@@ -480,7 +672,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "160 Additional Songs Per Playlist",
                             PurchasableItemType = 1,
                             Quantity = 160,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1255),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9249),
                             UnitCost = 5f
                         },
                         new
@@ -492,7 +684,7 @@ namespace Listify.Domain.CodeFirst.Migrations
                             PurchasableItemName = "40 Currencies Per Room",
                             PurchasableItemType = 2,
                             Quantity = 40,
-                            TimeStamp = new DateTime(2020, 9, 21, 16, 11, 23, 18, DateTimeKind.Utc).AddTicks(1259),
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(9253),
                             UnitCost = 1f
                         });
                 });
@@ -654,6 +846,17 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Songs","Listify");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("24c294bf-2bef-404c-b007-076deea68401"),
+                            Active = true,
+                            SongLengthSeconds = 94,
+                            SongName = "Spotify Ad Studio",
+                            TimeStamp = new DateTime(2020, 9, 26, 13, 43, 30, 713, DateTimeKind.Utc).AddTicks(6134),
+                            YoutubeId = "owQ5YZrleGU"
+                        });
                 });
 
             modelBuilder.Entity("Listify.Domain.Lib.Entities.SongRequest", b =>
@@ -876,6 +1079,21 @@ namespace Listify.Domain.CodeFirst.Migrations
                     b.HasOne("Listify.Domain.Lib.Entities.ApplicationUser", "ApplicationUser")
                         .WithMany("Playlists")
                         .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Listify.Domain.Lib.Entities.PlaylistGenre", b =>
+                {
+                    b.HasOne("Listify.Domain.Lib.Entities.Genre", "Genre")
+                        .WithMany("PlaylistGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Listify.Domain.Lib.Entities.Playlist", "Playlist")
+                        .WithMany("PlaylistGenres")
+                        .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

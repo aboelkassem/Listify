@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# My-Ignoring-Files
+# My-Custom-Ignoring-Files
 Listify.Backend/Domain/Listify.Paths/Globals.cs
 Listify/src/app/services/globals.service.ts
 
@@ -342,3 +342,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+Listify.Backend/.vs/Listify.Backend/v16/.suo
+Listify.Backend/Clients/Listify.Identity/identityserver4_log.txt
+Listify.Backend/Clients/Listify.Identity/identityserver4_log.txt

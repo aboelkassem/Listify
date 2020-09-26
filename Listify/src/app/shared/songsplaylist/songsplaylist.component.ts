@@ -1,11 +1,11 @@
-import { ConfirmationmodalService } from './../../services/confirmationmodal.service';
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { ISongPlaylist } from 'src/app/interfaces';
+import { MatSort } from '@angular/material/sort';
+import { Component, OnInit, OnDestroy, ViewChild, Input } from '@angular/core';
+import { IConfirmationModalData, ISongPlaylist } from 'src/app/interfaces';
 import { HubService } from 'src/app/services/hub.service';
 import { Subscription } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
-import { ConfirmationmodalComponent } from '../confirmationmodal/confirmationmodal.component';
+import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirmationmodal.component';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -15,40 +15,54 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class SongsplaylistComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
   displayedColumns: string[] = ['songName', 'songLengthSec', 'removeSongPlaylist'];
   dataSource = new MatTableDataSource<ISongPlaylist>();
 
+  @Input() isOwner: boolean;
 
+  maxNumberOfSongs: string = this.hubService.applicationUser.playlistSongCount.toString();
   songsPlaylist: ISongPlaylist[] = [];
 
   $playlistSubscription: Subscription;
+  $applicationUserSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
-    private confirmationModalService: ConfirmationmodalService,
     private confirmationModal: MatDialog) {
-    this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
-      if (playlist.songsPlaylist) {
-        this.songsPlaylist = playlist.songsPlaylist;
-        this.dataSource.data = this.songsPlaylist;
-      }
-    });
+      this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
+        this.maxNumberOfSongs = applicationUser.playlistSongCount.toString();
+      });
+
+      this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
+        if (playlist.songsPlaylist) {
+          this.songsPlaylist = playlist.songsPlaylist;
+          this.dataSource.data = this.songsPlaylist;
+          this.dataSource.sort = this.sort;
+        }
+      });
   }
 
   ngOnInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {
     this.$playlistSubscription.unsubscribe();
+    this.$applicationUserSubscription.unsubscribe();
   }
 
   removeSongFromPlaylist(songPlaylist: ISongPlaylist): void {
-    this.confirmationModalService.setConfirmationModalMessage('remove ' + songPlaylist.song.songName + ' from playlist');
+    const confirmationModalData: IConfirmationModalData = {
+      title: 'Are your sure ?',
+      message: 'Are your sure you want to remove ' + songPlaylist.song.songName + ' from your playlist?',
+      isConfirmed: false
+    };
 
     const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
       width: '250px',
-      data: {isConfirmed: false}
+      data: confirmationModalData
     });
 
     confirmationModal.afterClosed().subscribe(result => {

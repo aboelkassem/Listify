@@ -55,12 +55,6 @@ namespace Listify.Domain.Lib.Enums
         Fail
     }
 
-    public enum ConnectionType
-    {
-        ListifyHub,
-        RoomHub
-    }
-
     public enum ValidatedTextType
     {
         Username,
@@ -68,9 +62,14 @@ namespace Listify.Domain.Lib.Enums
         RoomTitle
     }
 
+    public enum ConnectionType
+    {
+        ListifyHub,
+        RoomHub
+    }
+
     public enum EndpointType
     {
 
     }
-
 }

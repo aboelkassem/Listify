@@ -1,6 +1,7 @@
-import { ConfirmationmodalService } from './../services/confirmationmodal.service';
-import { ConfirmationmodalComponent } from './../shared/confirmationmodal/confirmationmodal.component';
-import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
+import { MatPaginator } from '@angular/material/paginator';
+import { IConfirmationModalData, IInputModalData } from 'src/app/interfaces';
+import { ConfirmationmodalComponent } from './../shared/modals/confirmationmodal/confirmationmodal.component';
+import { IPurchasableLineItem, IPlaylistCreateRequest } from './../interfaces';
 import { CartService } from './../services/cart.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -11,6 +12,8 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { GlobalsService } from '../services/globals.service';
+import { MatSort } from '@angular/material/sort';
+import { InputmodalComponent } from '../shared/modals/inputmodal/inputmodal.component';
 
 @Component({
   selector: 'app-playlists',
@@ -18,13 +21,17 @@ import { GlobalsService } from '../services/globals.service';
   styleUrls: ['./playlists.component.css']
 })
 export class PlaylistsComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['playlistName', 'isSelected', 'deletePlaylist'];
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
+  displayedColumns: string[] = ['playlistName', 'isSelected', 'isPublic', 'genreName', 'deletePlaylist', 'queuePlaylist'];
   dataSource = new MatTableDataSource<IPlaylist>();
 
   playlists: IPlaylist[] = [];
   numberOfPlaylist = this.hubService.applicationUser.playlistCountMax;
 
   $playlistsSubscription: Subscription;
+  $playlistSubscription: Subscription;
   $purchasableItemsSubscription: Subscription;
 
   constructor(
@@ -33,8 +40,11 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
     private globalsService: GlobalsService,
     private toastrService: ToastrService,
     private router: Router,
-    private confirmationModalService: ConfirmationmodalService,
-    private confirmationModal: MatDialog) {
+    private modalDialog: MatDialog) {
+    this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
+      this.router.navigateByUrl('/playlist/' + playlist.id);
+    });
+
     this.$playlistsSubscription = this.hubService.getPlaylists().subscribe(playlists => {
       this.playlists = playlists;
       this.dataSource.data = this.playlists;
@@ -56,20 +66,50 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.dataSource.sort = this.sort;
+    this.dataSource.paginator = this.paginator;
+
     this.hubService.requestPlaylists();
   }
   ngOnDestroy(): void {
     this.$playlistsSubscription.unsubscribe();
+    this.$playlistSubscription.unsubscribe();
     this.$purchasableItemsSubscription.unsubscribe();
   }
 
   createPlaylist(): void {
     // we need logic to test if can create a new playlist - if not, navigate to the cart
     // ToDo: this data need to come from the back end
-    if (this.hubService.applicationUser.playlistCountMax < this.playlists.length) {
+    if (this.hubService.applicationUser.playlistCountMax <= this.playlists.length) {
       this.hubService.requestPurchasableItems();
     }else {
-      this.router.navigateByUrl('/playlist');
+      const inputData: IInputModalData = {
+        title: 'Playlist Name',
+        message: 'Please enter the new Playlist Name',
+        placeholder: 'Enter Playlist Name ....',
+        data: ''
+      };
+
+      const inputModal = this.modalDialog.open(InputmodalComponent, {
+        width: '350px',
+        data: inputData
+      });
+
+      inputModal.afterClosed().subscribe(result => {
+        if (result !== undefined) {
+          const request: IPlaylistCreateRequest = {
+            id: undefined,
+            playlistName: result.data,
+            isSelected: false,
+            isPublic: false,
+            playlistGenres: []
+          };
+          this.hubService.savePlaylist(request);
+
+          this.toastrService.success('You have successfully Created playlist',
+            'Creating ' + request.playlistName);
+        }
+      });
     }
   }
 
@@ -77,11 +117,14 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
     if (this.playlists.length <= 1) {
       this.toastrService.error('You Must have at least 1 playlist, so you can not delete this playlist', 'Cannot Deleted');
     }else {
-      this.confirmationModalService.setConfirmationModalMessage('delete This Playlist');
-
-      const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+      const confirmationModalData: IConfirmationModalData = {
+        title: 'Are your sure ?',
+        message: 'Are your sure you want to delete this playlist?',
+        isConfirmed: false
+      };
+      const confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
         width: '250px',
-        data: {isConfirmed: false}
+        data: confirmationModalData
       });
 
       confirmationModal.afterClosed().subscribe(result => {
@@ -94,5 +137,24 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  queuePlaylist(id: string): void {
+    const confirmationModalData: IConfirmationModalData = {
+      title: 'Are your sure ?',
+      message: 'Are your sure you want to add the entire playlist to your queue?',
+      isConfirmed: false
+    };
+
+    const confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
+      width: '250px',
+      data: confirmationModalData
+    });
+
+    confirmationModal.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        this.hubService.requestQueuePlaylistInRoomHome(id);
+      }
+    });
   }
 }

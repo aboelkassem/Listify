@@ -1,3 +1,4 @@
+import { IGenre, IPlaylistCommunity, ISongQueued } from 'src/app/interfaces';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
@@ -11,20 +12,19 @@ import { Subject, Observable } from 'rxjs';
 export class HubService {
 
   applicationUser: IApplicationUser;
-  // rooms: IRoom[] = [];
-  // roomCurrent: IRoom;
-  // applicationUser: IApplicationUser;
 
   // events for asynchronous room for using in other places (observable)
   $roomReceived = new Subject<IRoom>();
   $roomsReceived = new Subject<IRoom[]>();
   $playlistReceived = new Subject<IPlaylist>();
   $playlistsReceived = new Subject<IPlaylist[]>();
+  $playlistsCommunityReceived = new Subject<IPlaylistCommunity[]>();
   $currencyRoomReceived = new Subject<ICurrencyRoom>();
   $currenciesRoomReceived = new Subject<ICurrencyRoom[]>();
   $songPlaylistReceived = new Subject<ISongPlaylist>();
   $songsPlaylistReceived = new Subject<ISongPlaylist[]>();
   $searchYoutubeReceived = new Subject<ISongSearchResults>();
+  $searchYoutubePlaylistReceived = new Subject<ISongSearchResults>();
   $applicationUserReceived = new Subject<IApplicationUser>();
   $purchasableItemsReceived = new Subject<IPurchasableItem[]>();
   $purchasableItemReceived = new Subject<IPurchasableItem>();
@@ -34,15 +34,16 @@ export class HubService {
   $validatedTextReceived = new Subject<IValidatedTextResponse>();
   $pingEvent = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
+  $clearAllEvent = new Subject<string>();
+  $addYoutubePlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
+  $addSpotifyPlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
+  $genresReceived = new Subject<IGenre[]>();
+  $purchasesReceived = new Subject<IPurchase[]>();
+  $receiveQueuePlaylistInRoomHome = new Subject<ISongQueued[]>();
 
-  // private _applicationUserRoomCurrent: IApplicationUserRoom;
   private _hubConnection: singalR.HubConnection;
-  // private _applicationUser: IApplicationUser;
-  // private _rooms: IRoom[] = [];
 
-
-  constructor(private oauthService: OAuthService) {
-  }
+  constructor(private oauthService: OAuthService) { }
 
   connectToHub(hubUrl: string): void {
     if (!this._hubConnection) {
@@ -70,6 +71,10 @@ export class HubService {
 
       this._hubConnection.on('ReceivePlaylists', (playlists: IPlaylist[]) => {
         this.$playlistsReceived.next(playlists);
+      });
+
+      this._hubConnection.on('ReceivePlaylistsCommunity', (playlists: IPlaylistCommunity[]) => {
+        this.$playlistsCommunityReceived.next(playlists);
       });
 
       this._hubConnection.on('ReceivePlaylist', (playlist: IPlaylist) => {
@@ -123,6 +128,26 @@ export class HubService {
         this.$validatedTextReceived.next(response);
       });
 
+      this._hubConnection.on('ReceiveQueuePlaylistInRoomHome', (songsQueued: ISongQueued[]) => {
+        this.$receiveQueuePlaylistInRoomHome.next(songsQueued);
+      });
+
+      this._hubConnection.on('ReceivePurchases', (Purchases: IPurchase[]) => {
+        this.$purchasesReceived.next(Purchases);
+      });
+
+      this._hubConnection.on('ReceiveAddYoutubePlaylistToPlaylist', (songsPlaylist: ISongPlaylist[]) => {
+        this.$addYoutubePlaylistToPlaylistReceived.next(songsPlaylist);
+      });
+
+      this._hubConnection.on('ReceiveAddSpotifyPlaylistToPlaylist', (songsPlaylist: ISongPlaylist[]) => {
+        this.$addSpotifyPlaylistToPlaylistReceived.next(songsPlaylist);
+      });
+
+      this._hubConnection.on('ReceiveGenres', (genres: IGenre[]) => {
+        this.$genresReceived.next(genres);
+      });
+
       this._hubConnection.on('PingRequest', (ping: string) => {
         // if (ping === 'Ping') {
         //   this._hubConnection.invoke('PingResponse');
@@ -139,22 +164,6 @@ export class HubService {
     }
   }
 
-  // // this is invoked from Server
-  // receiveMessage(message: IChatMessage): void {
-  // }
-
-  // receiveUser(applicationUser: IApplicationUser): void {
-  //   this._applicationUser = applicationUser;
-
-  //   // set the default room for this user
-  //   if (this._roomCode === undefined || this._roomCode === '') {
-  //     this._roomCode = applicationUser.room.roomCode;
-  //   }
-
-  //   if (this._hubConnection) {
-  //     this._hubConnection.invoke('JoinRoom', this._roomCode);
-  //   }
-  // }
 
   requestApplicationUserInformation(): void {
     if (this._hubConnection) {
@@ -195,6 +204,12 @@ export class HubService {
   requestPlaylists(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestPlaylists');
+    }
+  }
+
+  requestPlaylistsCommunity(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestPlaylistsCommunity');
     }
   }
 
@@ -256,6 +271,12 @@ export class HubService {
     }
   }
 
+  requestSearchYoutubePlaylist(searchSnippet: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestSearchYoutubePlaylist', searchSnippet);
+    }
+  }
+
   saveSongPlaylist(request: ISongPlaylistCreateRequest): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('CreateSongPlaylist', request);
@@ -314,6 +335,40 @@ export class HubService {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestPurchasableItem', id);
     }
+  }
+
+  requestQueuePlaylistInRoomHome(id: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('QueuePlaylistInRoomHome', id);
+    }
+  }
+
+  requestAddYoutubePlaylistToPlaylist(youtubePlaylistUrl: string, playlistId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestAddYoutubePlaylistToPlaylist', youtubePlaylistUrl, playlistId);
+    }
+  }
+
+  requestAddSpotifyPlaylistToPlaylist(spotifyPlaylistUrl: string, playlistId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestAddSpotifyPlaylistToPlaylist', spotifyPlaylistUrl, playlistId);
+    }
+  }
+
+  requestPurchases(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestPurchases');
+    }
+  }
+
+  requestGenres(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestGenres');
+    }
+  }
+
+  requestClearAll(): void {
+    this.$clearAllEvent.next('ClearAll');
   }
 
   // savePurchasableItem(purchasableItem: IPurchasableItem): void {
@@ -380,6 +435,10 @@ export class HubService {
     return this.$playlistsReceived.asObservable();
   }
 
+  getPlaylistsCommunity(): Observable<IPlaylistCommunity[]> {
+    return this.$playlistsCommunityReceived.asObservable();
+  }
+
   getPlaylist(): Observable<IPlaylist> {
     return this.$playlistReceived.asObservable();
   }
@@ -404,6 +463,10 @@ export class HubService {
     return this.$searchYoutubeReceived.asObservable();
   }
 
+  getSearchYoutubePlaylist(): Observable<ISongSearchResults> {
+    return this.$searchYoutubePlaylistReceived.asObservable();
+  }
+
   getPurchasableItems(): Observable<IPurchasableItem[]> {
     return this.$purchasableItemsReceived.asObservable();
   }
@@ -426,6 +489,30 @@ export class HubService {
 
   getValidatedTextReceived(): Observable<IValidatedTextResponse> {
     return this.$validatedTextReceived.asObservable();
+  }
+
+  getQueuePlaylistInRoomHome(): Observable<ISongQueued[]> {
+    return this.$receiveQueuePlaylistInRoomHome.asObservable();
+  }
+
+  getPurchases(): Observable<IPurchase[]> {
+    return this.$purchasesReceived.asObservable();
+  }
+
+  getGenres(): Observable<IGenre[]> {
+    return this.$genresReceived.asObservable();
+  }
+
+  getClearAll(): Observable<string> {
+    return this.$clearAllEvent.asObservable();
+  }
+
+  getAddYoutubePlaylistToPlaylist(): Observable<ISongPlaylist[]> {
+    return this.$addYoutubePlaylistToPlaylistReceived.asObservable();
+  }
+
+  getAddSpotifyPlaylistToPlaylist(): Observable<ISongPlaylist[]> {
+    return this.$addSpotifyPlaylistToPlaylistReceived.asObservable();
   }
 
   getPing(): Observable<string> {

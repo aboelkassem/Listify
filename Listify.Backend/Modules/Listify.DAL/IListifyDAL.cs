@@ -31,7 +31,6 @@ namespace Listify.DAL
         Task<bool> DeleteApplicationUserRoomConnectionAsync(Guid id);
         Task<bool> DeleteApplicationUserRoomCurrencyRoomAsync(Guid id);
         Task<bool> DeleteChatMessageAsync(Guid id);
-        //Task<bool> DeleteCurrencyAsync(Guid id);
         Task<bool> DeletePlaylistAsync(Guid id, Guid applicationUserId);
         Task<bool> DeleteRoomAsync(Guid id);
         Task<bool> DeleteSongAsync(Guid id);
@@ -55,8 +54,10 @@ namespace Listify.DAL
         Task<LogAPIVM> ReadLogAPIAsync(Guid id);
         Task<LogErrorVM> ReadLogErrorAsync(Guid id);
         Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId);
-        Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId);
-        //Task<CurrencyDTO[]> ReadCurrenciesAsync();
+        Task<PlaylistVM[]> ReadPlaylistsAsync(Guid applicationUserId);
+        Task<PlaylistVM> ReadPlaylistSelectedAsync(Guid applicationUserId); // 1 references
+        Task<SongPlaylistVM[]> AddSongsToPlaylistAsync(SongVM[] songs, Guid playlistId, Guid applicationUserId); // 1 references
+        Task<PlaylistCommunityVM[]> ReadPlaylistsCommunityAsync();
         Task<RoomVM> ReadRoomAsync(string roomCode);
         Task<RoomDTO[]> ReadRoomsAsync();
         Task<RoomVM> ReadRoomAsync(Guid id);
@@ -65,9 +66,8 @@ namespace Listify.DAL
         Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
-        //Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId);
         Task<SongQueuedVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
-        //Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
+        Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
         Task<SongQueuedVM[]> ReadSongsQueuedAsync(Guid roomId);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
         Task<TransactionSongQueuedVM> ReadTransactionSongQueuedAsync(Guid id);
@@ -106,5 +106,15 @@ namespace Listify.DAL
         Task<bool> CheckAuthToLockedRoomAsync(string roomCode, Guid roomId);
         Task<bool> IsUsernameAvailableAsync(string applicationUsername, Guid applicationUserId);
         Task<bool> IsRoomCodeAvailableAsync(string roomCode, Guid applicationUserId);
+
+        Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId);
+        Task<SongPlaylistVM[]> AddYoutubePlaylistToPlaylistAsync(string youtubePlaylistUrl, Guid playlistId, Guid applicationUserId);
+
+        Task<bool> ClearSongsQueuedAsync(Guid roomId);
+
+        Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId);
+        Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId);
+
+        Task<GenreDTO[]> ReadGenresAsync();
     }
 }

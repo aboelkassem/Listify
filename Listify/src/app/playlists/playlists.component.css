@@ -5,3 +5,11 @@
 .mat-column-isSelected {
   padding: 0px 20px 0px 20px;
 }
+
+.mat-column-genreName {
+  padding: 0px 40px 0px 40px;
+}
+
+.playlists-container {
+  padding: 10px 10px 10px 10px;
+}

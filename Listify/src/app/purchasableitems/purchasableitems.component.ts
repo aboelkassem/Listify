@@ -6,9 +6,6 @@ import { HubService } from 'src/app/services/hub.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
-import { ConfirmationmodalComponent } from '../shared/confirmationmodal/confirmationmodal.component';
-import { ConfirmationmodalService } from '../services/confirmationmodal.service';
-import { MatDialog } from '@angular/material/dialog';
 import { GlobalsService } from '../services/globals.service';
 
 @Component({

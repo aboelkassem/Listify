@@ -1,21 +1,35 @@
-<div class="mat-h1">{{title}}</div>
 
-<div *ngIf="!isAuthenticated" class="button-login" >
-  <button mat-raised-button color="primary" (click)="login()">Login</button>
+<div *ngIf="!isAuthenticated">
+  <div class="bg-dark">
+    <div class="mat-display-4 title-text">{{title}}</div>
+    <div class="mat-display-4 lsfyContainer">A Music Sharing And Streaming Experience ...</div>
+    <!-- <slideshow [imageUrls]="imageUrlArray"
+      [showArrows] = "false"
+      [autoPlay]= "true"
+      [autoPlayInterval] = 6000
+      [lazyLoad] = "imageUrlArray?.length > 1"
+      [autoPlayWaitForLazyLoad] = "false"
+    ></slideshow> -->
+    <div class="button-login-container">
+      <button mat-raised-button class="button-login" color="accent" (click)="login()">Login</button>
+    </div>
+    <div class="lsfyFooter mat-h4"> 2020 Listify </div>
+  </div>
 </div>
 
 <div *ngIf="isAuthenticated && claims !== null">
   <mat-sidenav-container class="sidenav-full">
     <mat-sidenav #sidenav mode="side" opened>
       <mat-list>
-        <mat-list-item routerLink="/home"><mat-icon mat-list-icon>radio</mat-icon>Home</mat-list-item>
-        <mat-list-item routerLink="/rooms"><mat-icon mat-list-icon>room</mat-icon>Rooms</mat-list-item>
-        <mat-list-item routerLink="/playlists"><mat-icon mat-list-icon>playlist_play</mat-icon>Playlist</mat-list-item>
-        <mat-list-item routerLink="/currencies"><mat-icon mat-list-icon>library_music</mat-icon>Currencies</mat-list-item>
-        <mat-list-item routerLink="/purchasableItems"><mat-icon mat-list-icon>attach_money</mat-icon>Purchasable Items</mat-list-item>
-        <mat-list-item routerLink="/account"><mat-icon mat-list-icon>account_box</mat-icon>Account</mat-list-item>
-        <mat-list-item routerLink="/cart"><mat-icon mat-list-icon>shopping_cart</mat-icon>Cart</mat-list-item>
-        <mat-list-item routerLink="/" (click)="logout()"><mat-icon mat-list-icon>exit_to_app</mat-icon>Logout</mat-list-item>
+        <mat-list-item routerLink="/home" style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>radio</mat-icon>Home</mat-list-item>
+        <mat-list-item routerLink="/rooms" style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>room</mat-icon>Rooms</mat-list-item>
+        <mat-list-item routerLink="/playlists"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>playlist_play</mat-icon>Playlists</mat-list-item>
+        <mat-list-item routerLink="/playlistsCommunity"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>library_music</mat-icon>Community Playlists</mat-list-item>
+        <mat-list-item routerLink="/currencies"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>library_music</mat-icon>Currencies</mat-list-item>
+        <mat-list-item routerLink="/purchasableItems"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>attach_money</mat-icon>Purchasable Items</mat-list-item>
+        <mat-list-item routerLink="/account"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>account_box</mat-icon>Account</mat-list-item>
+        <mat-list-item routerLink="/cart"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>shopping_cart</mat-icon>Cart</mat-list-item>
+        <mat-list-item routerLink="/" (click)="logout()"style="pointer-events:auto; cursor: pointer;"><mat-icon mat-list-icon>exit_to_app</mat-icon>Logout</mat-list-item>
       </mat-list>
     </mat-sidenav>
     <mat-sidenav-content>

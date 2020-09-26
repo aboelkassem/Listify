@@ -66,12 +66,27 @@ export interface IChatMessage {
   message: string;
 }
 
+export interface IGenre {
+  id: string;
+  name: string;
+}
+
 export interface IPlaylist {
   id: string;
   playlistName: string;
   isSelected: boolean;
+  isPublic: boolean;
   applicationUser: IApplicationUser;
   songsPlaylist: ISongPlaylist[];
+  playlistGenres: IPlaylistGenre[];
+}
+
+export interface IPlaylistCommunity extends IPlaylist {
+  numberOfSongs: number;
+}
+
+export interface IPlaylistGenre {
+  genre: IGenre;
 }
 
 export interface ISongRequest {
@@ -110,6 +125,8 @@ export interface IPlaylistCreateRequest{
   id: string;
   playlistName: string;
   isSelected: boolean;
+  isPublic: boolean;
+  playlistGenres: IPlaylistGenre[];
 }
 
 export interface ICurrency {
@@ -207,11 +224,21 @@ export interface IPurchasableCurrencyLineItem extends IPurchasableLineItem{
 }
 
 export interface IConfirmationModalData {
+  title: string;
+  message: string;
   isConfirmed: boolean;
 }
 
-export interface IRoomKeyModalData {
-  roomKey: string;
+export interface IInputModalData {
+  title: string;
+  message: string;
+  placeholder: string;
+  data: string;
+}
+
+export interface IInformationModalData {
+  title: string;
+  message: string;
 }
 
 export interface IAuthToLockedRoomResponse {

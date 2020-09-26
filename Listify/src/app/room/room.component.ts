@@ -1,8 +1,10 @@
+import { InformationmodalComponent } from './../shared/modals/informationmodal/informationmodal.component';
+import { MatDialog } from '@angular/material/dialog';
 import { GlobalsService } from './../services/globals.service';
 import { YoutubeService } from './../services/youtube.service';
 import { RoomHubService } from './../services/room-hub.service';
 import { ISongQueued } from 'src/app/interfaces';
-import { IRoom, IRoomInformation } from './../interfaces';
+import { IRoom, IRoomInformation, IInformationModalData } from './../interfaces';
 import { Subscription } from 'rxjs';
 import { HubService } from './../services/hub.service';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
@@ -20,7 +22,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   allowRequests: boolean;
   isRoomOwner: boolean;
-  room: IRoom = this.roomHubService.room;
+  room: IRoom = this.roomService.room;
 
   $songsQueuedSubscription: Subscription;
   $songQueuedSubscription: Subscription;
@@ -28,53 +30,70 @@ export class RoomComponent implements OnInit, OnDestroy {
   $roomReceivedSubscription: Subscription;
   $pingSubscription: Subscription;
   $applicationUserReceivedSubscription: Subscription;
+  $forceDisconnectSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
     private globalsService: GlobalsService,
     private youtubeService: YoutubeService,
-    private roomHubService: RoomHubService) {
+    private matDialog: MatDialog,
+    private roomService: RoomHubService) {
       this.route.params.subscribe(params => {
         this.roomCode = params['id'];
         // this.roomHubService.requestRoom(this.roomCode);
       });
 
-      this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
+      this.$forceDisconnectSubscription = this.roomService.getForceDisconnect().subscribe(data => {
+        const informationModalData: IInformationModalData = {
+          title: 'Disconnected',
+          message: 'You have been disconnected from the server.'
+        };
+
+        this.matDialog.open(InformationmodalComponent, {
+          width: '250px',
+          data: informationModalData
+        });
+
+        this.youtubeService.stop();
+        this.roomService.disconnectFromHub();
+      });
+
+      this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
         this.room = roomInformation.room;
         this.roomCode = roomInformation.room.roomCode;
         this.allowRequests = roomInformation.room.allowRequests;
-        this.isRoomOwner = this.roomHubService.applicationUserRoom.isOwner;
+        this.isRoomOwner = this.roomService.applicationUserRoom.isOwner;
 
         // deleted
-        if (!this.roomHubService.applicationUserRoom.isOwner) {
-          this.roomHubService.requestServerState(this.roomHubService.room.id);
+        if (!this.roomService.applicationUserRoom.isOwner) {
+          this.roomService.requestServerState(this.roomService.room.id);
         }
       });
 
       this.$applicationUserReceivedSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
-        this.roomHubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
+        this.roomService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
       });
 
-      this.$songsQueuedSubscription = this.roomHubService.getSongsQueued().subscribe(songsQueued => {
+      this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe(songsQueued => {
         this.songsQueued = songsQueued;
       });
 
-      this.$songQueuedSubscription = this.roomHubService.getSongQueued().subscribe(songQueued => {
-        this.roomHubService.requestApplicationUserRoomCurrencies();
+      this.$songQueuedSubscription = this.roomService.getSongQueued().subscribe(songQueued => {
+        this.roomService.requestApplicationUserRoomCurrencies();
       });
 
-      this.$playFromServerSubscription = this.roomHubService.getPlayFromServerResponse().subscribe(response => {
-        this.roomHubService.requestSongsQueued(this.roomHubService.room.id);
+      this.$playFromServerSubscription = this.roomService.getPlayFromServerResponse().subscribe(response => {
+        this.roomService.requestSongsQueued(this.roomService.room.id);
 
         // deleted
         this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
         this.youtubeService.play();
       });
 
-      this.$pingSubscription = this.roomHubService.getPing().subscribe(ping => {
+      this.$pingSubscription = this.roomService.getPing().subscribe(ping => {
         if (ping === 'Ping') {
-          this.roomHubService.requestPing();
+          this.roomService.requestPing();
         }
       });
 
@@ -82,7 +101,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.hubService.isConnected && this.hubService.applicationUser) {
-      this.roomHubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
+      this.roomService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
     }
   }
 

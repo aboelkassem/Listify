@@ -31,6 +31,7 @@ export class RoomHubService {
   $applicationUserRoomCurrenciesRoomReceived = new Subject<IApplicationUserRoomCurrencyRoom[]>();
   $messageReceived = new Subject<IChatMessage>();
   $pauseRequestReceived = new Subject<string>();
+  $forceDisconnectReceived = new Subject<string>();
 
   constructor(private oauthService: OAuthService) { }
 
@@ -112,6 +113,11 @@ export class RoomHubService {
 
     this._hubConnection.on('PingRequest', (ping: string) => {
       this.$pingReceived.next(ping);
+    });
+
+    this._hubConnection.on('ForceServerDisconnect', () => {
+      this._hubConnection.stop();
+      this.$forceDisconnectReceived.next('Disconnect');
     });
 
     this._hubConnection.start();
@@ -252,6 +258,16 @@ export class RoomHubService {
 
   getApplicationUserRoomCurrenciesRoom(): Observable<IApplicationUserRoomCurrencyRoom[]> {
     return this.$applicationUserRoomCurrenciesRoomReceived.asObservable();
+  }
+
+  getForceDisconnect(): Observable<string> {
+    return this.$forceDisconnectReceived.asObservable();
+  }
+
+  disconnectFromHub(): void {
+    if (this._hubConnection) {
+      this._hubConnection.stop();
+    }
   }
 
   isConnected(): boolean {

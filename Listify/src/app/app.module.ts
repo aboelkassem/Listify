@@ -8,6 +8,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { ColorPickerModule } from 'ngx-color-picker';
+import { NgxLoadingXModule } from 'ngx-loading-x';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -30,12 +31,16 @@ import { CartComponent } from './cart/cart.component';
 import { ApplicationuserroomcurrenciesComponent } from './shared/applicationuserroomcurrencies/applicationuserroomcurrencies.component';
 import { SearchsongplaylistComponent } from './shared/searchsongplaylist/searchsongplaylist.component';
 import { SongsplaylistComponent } from './shared/songsplaylist/songsplaylist.component';
-import { ConfirmationmodalComponent } from './shared/confirmationmodal/confirmationmodal.component';
+import { ConfirmationmodalComponent } from './shared/modals/confirmationmodal/confirmationmodal.component';
 import { SearchsongrequestComponent } from './shared/searchsongrequest/searchsongrequest.component';
 import { PurchasableitemsComponent } from './purchasableitems/purchasableitems.component';
-import { RoomkeymodalComponent } from './shared/roomkeymodal/roomkeymodal.component';
+import { InputmodalComponent } from './shared/modals/inputmodal/inputmodal.component';
 import { CheckoutComponent } from './checkout/checkout.component';
 import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
+import { PurchasesComponent } from './purchases/purchases.component';
+import { PlaylistscommunityComponent } from './playlistscommunity/playlistscommunity.component';
+import { ApplicationusersroommodalComponent } from './shared/modals/applicationusersroommodal/applicationusersroommodal.component';
+import { InformationmodalComponent } from './shared/modals/informationmodal/informationmodal.component';
 
 @NgModule({
   declarations: [
@@ -58,13 +63,19 @@ import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
     SongsplaylistComponent,
     ConfirmationmodalComponent,
     PurchasableitemsComponent,
-    RoomkeymodalComponent,
+    InputmodalComponent,
     CheckoutComponent,
     CheckoutfailComponent,
+    PurchasesComponent,
+    PlaylistscommunityComponent,
+    ApplicationusersroommodalComponent,
+    InformationmodalComponent,
   ],
   entryComponents: [
     ConfirmationmodalComponent,
-    RoomkeymodalComponent,
+    InputmodalComponent,
+    ApplicationusersroommodalComponent,
+    InformationmodalComponent
   ],
   imports: [
     BrowserModule,
@@ -76,6 +87,7 @@ import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
     BrowserAnimationsModule,
     ColorPickerModule,
     MaterialModule,
+    NgxLoadingXModule,
     ToastrModule.forRoot(),
   ],
   providers: [],

@@ -13,4 +13,8 @@
     <ProjectReference Include="..\..\Modules\Listify.Lib\Listify.Lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>

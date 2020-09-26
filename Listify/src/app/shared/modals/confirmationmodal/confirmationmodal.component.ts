@@ -1,4 +1,3 @@
-import { ConfirmationmodalService } from './../../services/confirmationmodal.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Component, OnInit, Inject } from '@angular/core';
 import { IConfirmationModalData } from 'src/app/interfaces';
@@ -6,9 +5,9 @@ import { IConfirmationModalData } from 'src/app/interfaces';
 @Component({
   selector: 'app-dialog-modal',
   template: `
-  <h1 mat-dialog-title>Confirm</h1>
+  <h1 mat-dialog-title>{{data.title}}</h1>
   <div mat-dialog-content>
-    <p>Are you sure you would like to {{confirmationString}}?</p>
+    <p>{{data.message}}</p>
   </div>
   <div mat-dialog-actions>
     <button mat-stroked-button color="primary" appearance="outline" (click)="onNoClick()">Cancel</button>
@@ -20,11 +19,9 @@ import { IConfirmationModalData } from 'src/app/interfaces';
 export class ConfirmationmodalComponent implements OnInit {
 
   data = this.dataInstance;
-  confirmationString = this.confirmationModalService.confirmationModalMessage;
 
   constructor(
     private dialogRef: MatDialogRef<ConfirmationmodalComponent>,
-    private confirmationModalService: ConfirmationmodalService,
     @Inject(MAT_DIALOG_DATA) private dataInstance: IConfirmationModalData) {}
 
   ngOnInit(): void {

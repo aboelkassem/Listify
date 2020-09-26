@@ -534,41 +534,106 @@ namespace Listify.DAL
         //}
         
         // return all playlists for current user
-        public virtual async Task<PlaylistDTO[]> ReadPlaylistsAsync(Guid applicationUserId)
+        public virtual async Task<PlaylistVM[]> ReadPlaylistsAsync(Guid applicationUserId)
         {
             var entities = await _context.Playlists
                 .Include(s => s.SongsPlaylist)
+                .Include(s => s.PlaylistGenres)
+                .Include(s => s.ApplicationUser)
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
                 .ToListAsync();
 
-            var dtos = new List<PlaylistDTO>();
+            foreach (var entity in entities)
+            {
+                var songsPlaylsit = _context.SongsPlaylists
+                    .Include(s => s.Song)
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
 
-            entities.ForEach(s => dtos.Add(_mapper.Map<PlaylistDTO>(s)));
+                var playlistGenres = _context.PlaylistsGenres
+                    .Include(s => s.Genre)
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
+            }
 
-            return dtos.ToArray();
+            var vms = new List<PlaylistVM>();
+            entities.ForEach(s => vms.Add(_mapper.Map<PlaylistVM>(s)));
+            return vms.ToArray();
+        }
+        public virtual async Task<PlaylistVM> ReadPlaylistSelectedAsync(Guid applicationUserId)
+        {
+            var entity = await _context.Playlists
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.SongsPlaylist)
+                .Include(s => s.PlaylistGenres)
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.IsSelected && s.Active);
+
+            if (entity != null)
+            {
+                var songsPlaylists = await _context.SongsPlaylists
+                    .Include(s => s.Song)
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
+
+                return _mapper.Map<PlaylistVM>(entity);
+            }
+            return null;
         }
         public virtual async Task<PlaylistVM> ReadPlaylistAsync(Guid id, Guid applicationUserId)
         {
             var entity = await _context.Playlists
+                .Include(s => s.PlaylistGenres)
                 .Include(s => s.SongsPlaylist)
+                .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
-            return entity != null ? _mapper.Map<PlaylistVM>(entity) : null;
+            if (entity != null)
+            {
+                var songsPlaylsit = _context.SongsPlaylists
+                    .Include(s => s.Song)
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
+
+                var playlistGenres = _context.PlaylistsGenres
+                    .Include(s => s.Genre)
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
+
+                return _mapper.Map<PlaylistVM>(entity);
+            }
+
+            return null;
         }
         public virtual async Task<PlaylistVM> CreatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId)
         {
             var user = await _context.ApplicationUsers
                 .Include(s => s.Playlists)
-                .FirstOrDefaultAsync(s => s.Id == applicationUserId);
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
 
-            if (user.Playlists.Where(s => s.Active).ToList().Count < user.PlaylistCountMax)
+            if (user.Playlists.Count == 0 || user.Playlists.Where(s => s.Active).ToList().Count < user.PlaylistCountMax)
             {
                 var entity = _mapper.Map<Playlist>(request);
+
+                foreach (var playlistGenre in request.PlaylistGenres)
+                {
+                    var genre = await _context.Genres
+                        .FirstOrDefaultAsync(s => s.Id == playlistGenre.Genre.Id && s.Active);
+
+                    if (genre != null)
+                    {
+                        entity.PlaylistGenres.Add(new PlaylistGenre
+                        {
+                            Playlist = entity,
+                            Genre = genre
+                        });
+                    }
+                }
 
                 // this validation so only 1 playlist is listed as default
                 var otherPlaylists = await _context.Playlists
                     .Where(s => s.ApplicationUserId == applicationUserId)
                     .ToListAsync();
+
                 // if this playlist is default
                 if (entity.IsSelected)
                 {
@@ -597,12 +662,32 @@ namespace Listify.DAL
         public virtual async Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId)
         {
             var entity = await _context.Playlists
+                .Include(s => s.PlaylistGenres)
                 .FirstOrDefaultAsync(s => s.Id == request.Id && s.ApplicationUserId == applicationUserId && s.Active);
 
             if (entity != null)
             {
+                entity.PlaylistGenres.Clear();
+
+                foreach (var playlistGenre in request.PlaylistGenres)
+                {
+                    var genre = await _context.Genres
+                        .FirstOrDefaultAsync(s => s.Id == playlistGenre.Genre.Id && s.Active);
+
+                    if (genre != null)
+                    {
+                        entity.PlaylistGenres.Add(new PlaylistGenre
+                        {
+                            Playlist = entity,
+                            Genre = genre
+                        });
+                    }
+                }
+
                 entity.PlaylistName = request.PlaylistName;
                 entity.IsSelected = request.IsSelected;
+                entity.IsPublic = request.IsPublic;
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 // this validation so only 1 playlist is listed as default
@@ -715,53 +800,57 @@ namespace Listify.DAL
             return false;
         }
 
-        //public virtual async Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId)
-        //{
-        //    var applicationUser = await _context.ApplicationUsers
-        //        .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+        public virtual async Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId)
+        {
+            var applicationUser = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
 
-        //    var room = await _context.Rooms
-        //        .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
+            var room = await _context.Rooms
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
 
-        //    var playlist = await _context.Playlists
-        //        .FirstOrDefaultAsync(s => s.Id == playlistId && s.Active);
+            var playlist = await _context.Playlists
+                .FirstOrDefaultAsync(s => s.Id == playlistId && s.Active);
 
-        //    if (room != null && playlist != null)
-        //    {
-        //        var songsQueued = await _context.SongsQueued
-        //            .Where(s => s.RoomId == room.Id && !s.HasBeenPlayed && s.Active)
-        //            .ToListAsync();
+            if (room != null && playlist != null)
+            {
+                var songsQueued = await _context.SongsQueued
+                    .Where(s => s.RoomId == room.Id && !s.HasBeenPlayed && s.Active)
+                    .ToListAsync();
 
-        //        var songsPlaylsit = await _context.SongsPlaylists
-        //            .Where(s => s.PlaylistId == playlist.Id && s.Active)
-        //            .ToListAsync();
+                var songsPlaylsit = await _context.SongsPlaylists
+                    .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                    .ToListAsync();
 
-        //        var counter = songsQueued.Count();
+                var counter = songsQueued.Count();
 
-        //        foreach (var songPlaylist in songsPlaylsit)
-        //        {
-        //            if (counter < applicationUser.QueueCount && !songsQueued.Any(s=> s.SongId == songPlaylist.SongId))
-        //            {
-        //                counter++;
+                foreach (var songPlaylist in songsPlaylsit)
+                {
+                    if (counter < applicationUser.QueueCount && !songsQueued.Any(s => s.SongId == songPlaylist.SongId))
+                    {
+                        counter++;
 
-        //                _context.SongsQueued.Add(new SongQueued
-        //                {
-        //                    ApplicationUserId = applicationUserId,
-        //                    RoomId = room.Id,
-        //                    SongId = songPlaylist.SongId,
-        //                    WeightedValue = 0,
-        //                    TransactionsSongQueued = new List<TransactionSongQueued>
-        //                    {
-        //                        new TransactionSongQueued
-        //                        {
-        //                            TransactionType = TransactionType.Request
-        //                        }
-        //                    }
-        //                });
-        //            }
-        //        }
-        //    }
-        //}
+                        _context.SongsQueued.Add(new SongQueued
+                        {
+                            ApplicationUserId = applicationUserId,
+                            RoomId = room.Id,
+                            SongId = songPlaylist.SongId,
+                            WeightedValue = 0,
+                            TransactionsSongQueued = new List<TransactionSongQueued>
+                            {
+                                new TransactionSongQueued
+                                {
+                                    TransactionType = TransactionType.Request
+                                }
+                            }
+                        });
+                    }
+
+                    // ToDo: Continue Implementation of this method
+                }
+            }
+
+            return null;
+        }
         public virtual async Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId)
         {
             var playlist = await _context.Playlists
@@ -1848,7 +1937,7 @@ namespace Listify.DAL
                 s.Active));
         }
 
-        public async Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType)
+        public virtual async Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType)
         {
             try
             {
@@ -2045,6 +2134,95 @@ namespace Listify.DAL
                 Console.WriteLine(ex.Message);
                 return null;
             }
+        }
+
+        public virtual async Task<PlaylistCommunityVM[]> ReadPlaylistsCommunityAsync()
+        {
+            var playlistsPublic = await _context.Playlists
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.PlaylistGenres)
+                .Include(s => s.SongsPlaylist)
+                .Where(s => s.IsPublic && s.Active)
+                .ToListAsync();
+
+            var vms = new List<PlaylistCommunityVM>();
+
+            foreach (var playlistPublic in playlistsPublic)
+            {
+                var playlistsGenres = await _context.PlaylistsGenres
+                    .Include(s => s.Genre)
+                    .Where(s => s.PlaylistId == playlistPublic.Id && s.Active)
+                    .ToListAsync();
+
+                var songsPlaylistCount = await _context.SongsPlaylists
+                    .Include(s => s.Song)
+                    .Where(s => s.PlaylistId == playlistPublic.Id && s.Active)
+                    .CountAsync();
+
+                var vm = _mapper.Map<PlaylistCommunityVM>(playlistPublic);
+                vm.NumberOfSongs = songsPlaylistCount;
+                vms.Add(vm);
+            }
+
+            return vms.ToArray();
+        }
+        public virtual async Task<GenreDTO[]> ReadGenresAsync()
+        {
+            var entities = await _context.Genres
+                .OrderBy(s => s.Name)
+                .Where(s => s.Active)
+                .ToListAsync();
+
+            var dtos = new List<GenreDTO>();
+
+            entities.ForEach(s => dtos.Add(_mapper.Map<GenreDTO>(s)));
+
+            return dtos.ToArray();
+        }
+
+        public virtual async Task<SongPlaylistVM[]> AddSongsToPlaylistAsync(SongVM[] songs, Guid playlistId, Guid applicationUserId)
+        {
+            var applicationUser = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+
+            var playlist = await _context.Playlists
+                .FirstOrDefaultAsync(s => s.Id == playlistId && s.ApplicationUserId == applicationUserId && s.Active);
+
+            if (playlist != null)
+            {
+                var songsPlaylist = await _context.SongsPlaylists
+                    .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                    .ToListAsync();
+
+                var counter = songsPlaylist.Count();
+
+                foreach (var song in songs)
+                {
+                    if (applicationUser.PlaylistSongCount > counter && !songsPlaylist.Any(s => s.SongId == song.Id))
+                    {
+                        // Add the song
+                        // ToDo: Continue Implementation of this method
+                    }
+                }
+            }
+
+            return null;
+        }
+        public virtual async Task<SongPlaylistVM[]> AddYoutubePlaylistToPlaylistAsync(string youtubePlaylistUrl, Guid playlistId, Guid applicationUserId)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual async Task<bool> ClearSongsQueuedAsync(Guid roomId)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual async Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual async Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId)
+        {
+            throw new NotImplementedException();
         }
 
         protected virtual async Task<V> CreateAsync<T, U, V>(T request)

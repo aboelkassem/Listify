@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Listify.Domain.Lib.Entities;
 using Listify.Paths;
+using System;
 
 namespace Listify.Domain.CodeFirst
 {
@@ -23,6 +24,8 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<CurrencyRoom> CurrenciesRooms { get; set; }
         public virtual DbSet<Currency> Currencies { get; set; }
         public virtual DbSet<ChatMessage> ChatMessages { get; set; }
+        public virtual DbSet<Genre> Genres { get; set; }
+        public virtual DbSet<PlaylistGenre> PlaylistsGenres { get; set; }
         public virtual DbSet<LogError> LogsErrors { get; set; }
         public virtual DbSet<LogAPI> LogsAPI { get; set; }
         public virtual DbSet<Playlist> Playlists { get; set; }
@@ -46,12 +49,12 @@ namespace Listify.Domain.CodeFirst
                 .HasIndex(s => s.AspNetUserId)
                 .IsUnique(true);
 
-            builder.Entity<Room>()
-                .HasIndex(s => s.RoomCode)
-                .IsUnique(true);
-
             builder.Entity<ApplicationUser>()
                 .HasIndex(s => s.Username)
+                .IsUnique(true);
+
+            builder.Entity<Room>()
+                .HasIndex(s => s.RoomCode)
                 .IsUnique(true);
 
             builder.Entity<ApplicationUserRoomConnection>()
@@ -99,6 +102,17 @@ namespace Listify.Domain.CodeFirst
                    QuantityIncreasePerTick = 2,
                    TimeSecBetweenTick = 60,
                    Weight = 1,
+                   TimeStamp = System.DateTime.UtcNow
+               });
+
+            builder.Entity<Song>()
+               .HasData(new Song
+               {
+                   Id = Guid.Parse("24C294BF-2BEF-404C-B007-076DEEA68401"),
+                   SongLengthSeconds = 94,
+                   SongName = "Spotify Ad Studio",
+                   YoutubeId = "owQ5YZrleGU",
+                   Active = true,
                    TimeStamp = System.DateTime.UtcNow
                });
 
@@ -210,6 +224,107 @@ namespace Listify.Domain.CodeFirst
                    TimeStamp = System.DateTime.UtcNow,
                    UnitCost = 1,
                    ImageUri = "https://res.cloudinary.com/dvdcninhs/image/upload/v1600001885/Listify%20Photos/40-tokens_ppx2qi.jpg"
+               });
+
+            builder.Entity<Genre>()
+               .HasData(new Genre
+               {
+                   Id = Guid.Parse("DAF33262-443F-46E5-B12B-9BF8F4E4210D"),
+                   Name = "Ambient"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("3D709920-731A-4B67-BCE2-FB7373A6CD91"),
+                   Name = "Blues and Jazz"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("D3C3CFBA-D1F6-49B2-82FF-3D96B3F4EF5F"),
+                   Name = "Chill"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("A3D7343B-1AFA-4B82-BAD5-6F8E4EC55FC7"),
+                   Name = "Classical"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("7933C396-2C1F-4F29-82D2-D5C73D95F377"),
+                   Name = "Country"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("70992C6E-B333-4CCA-AF11-370C639EB890"),
+                   Name = "Dubstep"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("D314F793-703A-4387-90BA-D8C420A8176F"),
+                   Name = "Electronica"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("BC00378E-60DA-46F5-AE42-BCD1ABEBC5EB"),
+                   Name = "Folk"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("ADC9B474-5336-45E5-9E95-37487939D2C5"),
+                   Name = "Funk"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("411B13D9-76BE-495D-BF8A-41D85133C1F7"),
+                   Name = "Hip Hop"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("8593F261-6B15-40FF-8DCC-9047BDA6FF1E"),
+                   Name = "Indie"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("53DA2FEC-6ED2-4C00-BDDF-37EF056A266D"),
+                   Name = "Latin"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("42CEBF92-A889-49B1-818F-C3A833F398B5"),
+                   Name = "Metal"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("80F2C6B5-8BE7-444C-B8AD-290AF496D6CC"),
+                   Name = "Pop"
+               }, new Genre
+               {
+                   Id = Guid.Parse("7D1E9639-AE88-4033-9076-9ED9491E8D7F"),
+                   Name = "Reggae"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("67C40A68-9510-43D0-8C3A-BD24BAB7FE74"),
+                   Name = "Rock"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("D51CCA64-3AD4-4026-9BDE-9821FA525E95"),
+                   Name = "R&B"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("B35340B7-E99C-47C1-BD7E-44113428045B"),
+                   Name = "Techno"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("39D97940-4B5C-49E9-8335-0DCF74D683CD"),
+                   Name = "Trance"
+               },
+               new Genre
+               {
+                   Id = Guid.Parse("68653360-B756-4115-AB67-A19003319A1A"),
+                   Name = "Trap"
                });
         }
 

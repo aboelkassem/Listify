@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RoomkeymodalComponent } from './roomkeymodal.component';
+import { InformationmodalComponent } from './informationmodal.component';
 
-describe('RoomkeymodalComponent', () => {
-  let component: RoomkeymodalComponent;
-  let fixture: ComponentFixture<RoomkeymodalComponent>;
+describe('InformationmodalComponent', () => {
+  let component: InformationmodalComponent;
+  let fixture: ComponentFixture<InformationmodalComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ RoomkeymodalComponent ]
+      declarations: [ InformationmodalComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(RoomkeymodalComponent);
+    fixture = TestBed.createComponent(InformationmodalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

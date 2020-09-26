@@ -31,23 +31,4 @@ export class CurrenciesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.currencySubscription.unsubscribe();
   }
-
-  // deleteCurrency(id: string): void {
-  //   this.confirmationModalService.setConfirmationModalMessage('delete this currency');
-
-  //   const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
-  //     width: '250px',
-  //     data: {isConfirmed: false}
-  //   });
-
-  //   confirmationModal.afterClosed().subscribe(result => {
-  //     if (result !== undefined) {
-  //       this.hubService.deleteCurrency(id);
-  //       this.hubService.requestCurrencies();
-
-  //       this.toastrService.success('You have Deleted ' + this.currencies.filter(x => x.id === id)[0].currencyName + ' successfully',
-  //         'Deleted Successfully');
-  //     }
-  //   });
-  // }
 }

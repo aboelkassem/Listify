@@ -8,5 +8,6 @@ namespace Listify.Lib.DTOs
 
         // if the playlist is currently selected - there can only be 1 selected playlist at a time
         public bool IsSelected { get; set; }
+        public bool IsPublic { get; set; }
     }
 }

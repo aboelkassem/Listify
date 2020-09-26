@@ -17,6 +17,7 @@ namespace Listify.Domain.Lib.Entities
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 30 songs
         public int PlaylistSongCount { get; set; } = 30;
+        //public int QueueSongsCount { get; set; } = 50;
         public int QueueCount { get; set; } = 30;
         public string ChatColor { get; set; } = "#000000";
         public DateTime DateJoined { get; set; } = DateTime.UtcNow;

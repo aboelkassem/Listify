@@ -1,5 +1,9 @@
-.mat-column-itemName {
-  padding: 0px 100px 0px 0px;
+.mat-column-image {
+  padding: 0px 40px 0x 0p;
+}
+
+.mat-column-orderQuantity {
+  padding: 0px 60px 0px 30px;
 }
 
 .mat-column-orderQuantity {

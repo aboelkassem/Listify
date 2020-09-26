@@ -89,6 +89,19 @@ namespace Listify.Domain.BLL
                 c.CreateMap<SongPlaylistVM, SongPlaylistDTO>().ReverseMap();
                 c.CreateMap<SongPlaylistCreateRequest, SongPlaylist>();
 
+                c.CreateMap<Genre, GenreDTO>().ReverseMap();
+                c.CreateMap<Genre, GenreVM>().ReverseMap();
+                c.CreateMap<GenreVM, GenreDTO>().ReverseMap();
+
+                c.CreateMap<PlaylistGenre, PlaylistGenreDTO>().ReverseMap();
+                c.CreateMap<PlaylistGenre, PlaylistGenreVM>().ReverseMap();
+                c.CreateMap<PlaylistGenreVM, PlaylistGenreDTO>().ReverseMap();
+                c.CreateMap<PlaylistGenreCreateRequest, PlaylistGenre>();
+
+                c.CreateMap<Playlist, PlaylistCommunityDTO>().ReverseMap();
+                c.CreateMap<Playlist, PlaylistCommunityVM>().ReverseMap();
+                c.CreateMap<PlaylistCommunityVM, PlaylistCommunityDTO>().ReverseMap();
+
                 c.CreateMap<SongQueued, SongQueuedDTO>().ReverseMap();
                 c.CreateMap<SongQueued, SongQueuedVM>().ReverseMap();
                 c.CreateMap<SongQueuedVM, SongQueuedDTO>().ReverseMap();
