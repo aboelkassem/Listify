@@ -18,6 +18,7 @@ namespace Listify.Domain.CodeFirst
         }
 
         public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public virtual DbSet<Profile> Profiles { get; set; }
         public virtual DbSet<ApplicationUserRoom> ApplicationUsersRooms { get; set; }
         public virtual DbSet<ApplicationUserRoomConnection> ApplicationUsersRoomsConnections { get; set; }
         public virtual DbSet<ApplicationUserRoomCurrencyRoom> ApplicationUsersRoomsCurrenciesRooms { get; set; }

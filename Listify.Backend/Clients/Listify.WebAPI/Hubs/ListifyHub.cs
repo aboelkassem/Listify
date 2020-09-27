@@ -522,6 +522,17 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        //public async Task RequestPurchasableItemsCurrencies(Guid currencyRoomId)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
         public async Task CreatePurchasableItem(PurchasableItemCreateRequest request)
         {
             try
@@ -582,6 +593,32 @@ namespace Listify.WebAPI.Hubs
                         : AuthToLockedRoomResponseType.Fail,
                     Room = room
                 });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestProfile(string username)
+        {
+            try
+            {
+                var profile = await _dal.ReadProfileAsync(username);
+                await Clients.Caller.SendAsync("ReceiveProfile", profile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestProfileUpdate(ProfileUpdateRequest request)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var profile = await _dal.UpdateProfileAsync(request, userId);
+
+                await Clients.Caller.SendAsync("ReceiveProfile", profile);
             }
             catch (Exception ex)
             {
@@ -651,49 +688,6 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
-
-        //public async Task CreateComment(CommentCreateRequest request)
-        //{
-
-        //}
-        //public async Task RequestReleaseNotes()
-        //{
-
-        //}
-
-        //public async Task QueuePlaylistInRoomHome(Guid playlistId)
-        //{
-        //    try
-        //    {
-        //        var applicationUserRoomConnection = await _services.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-        //        if (applicationUserRoomConnection == null)
-        //        {
-        //            applicationUserRoomConnection = await CheckConnectionAsync();
-
-        //            if (applicationUserRoomConnection == null)
-        //            {
-        //                await _listifyHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
-        //            }
-        //        }
-
-        //        var applicationUserRoom = await _services.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
-        //        var applicationUser = await _services.ReadApplicationUserAsync(applicationUserRoom.ApplicationUser.Id);
-        //        var roomHub = await _services.ReadRoomAsync(applicationUser.Room.Id);
-
-        //        var songsQueued = await _services.QueuePlaylistInRoomHomeAsync(playlistId, applicationUser.Id);
-
-        //        await Clients.Caller.SendAsync("RecieveQueuePlaylistInRoomHome", songsQueued);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.Message);
-        //    }
-        //}
-
-        //public async Task RequestPurchases()
-        //{
-
-        //}
 
         public override async Task OnConnectedAsync()
         {

@@ -39,7 +39,15 @@ namespace Listify.DAL
         {
             var entity = await _context.ApplicationUsers
                 .Include(s => s.Room)
+                .Include(s => s.Profile)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
+
+            if (entity.DateJoined == DateTime.MinValue)
+            {
+                entity.DateJoined = DateTime.UtcNow;
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
 
             if (entity.Room.IsRoomLocked)
             {
@@ -49,13 +57,51 @@ namespace Listify.DAL
                 }
             }
 
+            if (entity.Profile == null)
+            {
+                entity.Profile = new Domain.Lib.Entities.Profile
+                {
+                    ApplicationUser = entity
+                };
+
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
         }
         public virtual async Task<ApplicationUserVM> ReadApplicationUserAsync(string aspNetUserId)
         {
             var entity = await _context.ApplicationUsers
                 .Include(s => s.Room)
+                .Include(s => s.Profile)
                 .FirstOrDefaultAsync(s => s.AspNetUserId == aspNetUserId && s.Active);
+
+            if (entity.DateJoined == DateTime.MinValue)
+            {
+                entity.DateJoined = DateTime.UtcNow;
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+
+            if (entity.Room.IsRoomLocked)
+            {
+                if (entity.Room.RoomKey != null)
+                {
+                    entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+                }
+            }
+
+            if (entity.Profile == null)
+            {
+                entity.Profile = new Domain.Lib.Entities.Profile
+                {
+                    ApplicationUser = entity
+                };
+
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
 
             return entity != null ? _mapper.Map<ApplicationUserVM>(entity) : null;
         }
@@ -65,12 +111,26 @@ namespace Listify.DAL
 
             await _context.ApplicationUsers.AddAsync(entity);
 
+            if (entity.DateJoined == DateTime.MinValue)
+            {
+                entity.DateJoined = DateTime.UtcNow;
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+
             var room = new Room
             {
                 ApplicationUser = entity,
-                RoomCode = request.Username
+                RoomCode = request.Username,
+                RoomTitle = request.Username
             };
             await _context.Rooms.AddAsync(room);
+
+            var profile = new Domain.Lib.Entities.Profile
+            {
+                ApplicationUser = entity
+            };
+            await _context.Profiles.AddAsync(profile);
 
             var applicationUserRoom = new ApplicationUserRoom
             {
@@ -79,9 +139,28 @@ namespace Listify.DAL
                 IsOwner = true,
                 Room = room
             };
-
-
             await _context.ApplicationUsersRooms.AddAsync(applicationUserRoom);
+
+            var playlist = new Playlist
+            {
+                ApplicationUser = entity,
+                IsSelected = true,
+                IsPublic = false,
+                PlaylistName = "Default Playlist"
+            };
+            await _context.Playlists.AddAsync(playlist);
+
+            var introSong = await _context.Songs
+                .FirstOrDefaultAsync(s => s.YoutubeId == "owQ5YZrleGU");
+
+            var songPlaylist = new SongPlaylist
+            {
+                PlayCount = 0,
+                Playlist = playlist,
+                SongRequestType = SongRequestType.Playlist,
+                Song = introSong
+            };
+            await _context.SongsPlaylists.AddAsync(songPlaylist);
 
             if (await _context.SaveChangesAsync() > 0)
             {
@@ -95,14 +174,30 @@ namespace Listify.DAL
         {
             var entity = await _context.ApplicationUsers
                 .Include(s => s.Room)
+                .Include(s => s.Profile)
                 .FirstOrDefaultAsync(s => s.Id == request.Id && s.Id == applicationUserId && s.Active);
+
+            if (entity.DateJoined == DateTime.MinValue)
+            {
+                entity.DateJoined = DateTime.UtcNow;
+                _context.Entry(entity).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
 
             if (entity != null)
             {
-                string encodedRoomKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(request.RoomKey));
-                if (encodedRoomKey == null)
+                string encodedRoomKey = string.Empty;
+                if (!string.IsNullOrWhiteSpace(request.RoomKey))
                 {
-                    encodedRoomKey = "";
+                    encodedRoomKey = Convert.ToBase64String(Encoding.UTF8.GetBytes(request.RoomKey));
+                }
+
+                if (entity.Profile == null)
+                {
+                    entity.Profile = new Domain.Lib.Entities.Profile
+                    {
+                        ApplicationUser = entity
+                    };
                 }
 
                 entity.Username = request.Username;
@@ -142,6 +237,63 @@ namespace Listify.DAL
                 }
             }
             return false;
+        }
+
+        public virtual async Task<ProfileVM> ReadProfileAsync(string username)
+        {
+            var entity = await _context.Profiles
+                .Include(s => s.ApplicationUser)
+                .Include(s => s.ApplicationUser.Room)
+                .FirstOrDefaultAsync(s => s.ApplicationUser.Username == username && s.Active);
+
+            if (entity != null)
+            {
+                var userProfile = new ProfileVM
+                {
+                    Id = entity.Id,
+                    ProfileTitle = entity.ProfileTitle,
+                    ProfileDescription = entity.ProfileDescription,
+                    AvatarUrl = entity.AvatarUrl,
+                    DateJoined = entity.ApplicationUser.DateJoined.ToLocalTime(),
+                    RoomName = entity.ApplicationUser.Room.RoomCode,
+                    Timestamp = entity.TimeStamp,
+                    Username = entity.ApplicationUser.Username,
+                    RoomUrl = $"{Globals.ANGULAR_WEBAPP_URL}/{entity.ApplicationUser.Room.RoomCode}"
+                };
+
+                var dtos = new List<PlaylistCommunityDTO>();
+
+                var communityPlaylist = await _context.Playlists
+                    .Where(s => s.ApplicationUserId == entity.ApplicationUserId && s.IsPublic && s.Active)
+                    .ToListAsync();
+
+                communityPlaylist.ForEach(s => dtos.Add(_mapper.Map<PlaylistCommunityDTO>(s)));
+
+                userProfile.PlaylistsCommunity = dtos;
+                return userProfile;
+            }
+            return null;
+        }
+        public virtual async Task<ProfileVM> UpdateProfileAsync(ProfileUpdateRequest request, Guid applicationUserId)
+        {
+            var entity = await _context.Profiles
+                .FirstOrDefaultAsync(s => s.Id == request.Id &&
+                    s.ApplicationUserId == applicationUserId && s.Active);
+
+            if (entity != null)
+            {
+                entity.AvatarUrl = request.AvatarUrl;
+                entity.ProfileDescription = request.ProfileDescription;
+                entity.ProfileTitle = request.ProfileTitle;
+                entity.TimeStamp = DateTime.UtcNow;
+                _context.Entry(entity).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadProfileAsync(entity.ApplicationUser.Username);
+                }
+            }
+            return null;
         }
 
         public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id)
@@ -189,6 +341,7 @@ namespace Listify.DAL
             if (entity != null)
             {
                 entity.IsOnline = request.IsOnline;
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -443,6 +596,7 @@ namespace Listify.DAL
             if (entity != null)
             {
                 entity.HasPingBeenSent = request.HasPingBeenSent;
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -537,7 +691,6 @@ namespace Listify.DAL
         public virtual async Task<PlaylistVM[]> ReadPlaylistsAsync(Guid applicationUserId)
         {
             var entities = await _context.Playlists
-                .Include(s => s.SongsPlaylist)
                 .Include(s => s.PlaylistGenres)
                 .Include(s => s.ApplicationUser)
                 .Where(s => s.ApplicationUserId == applicationUserId && s.Active)
@@ -545,11 +698,6 @@ namespace Listify.DAL
 
             foreach (var entity in entities)
             {
-                var songsPlaylsit = _context.SongsPlaylists
-                    .Include(s => s.Song)
-                    .Where(s => s.PlaylistId == entity.Id && s.Active)
-                    .ToListAsync();
-
                 var playlistGenres = _context.PlaylistsGenres
                     .Include(s => s.Genre)
                     .Where(s => s.PlaylistId == entity.Id && s.Active)
@@ -772,7 +920,7 @@ namespace Listify.DAL
                 entity.SongName = request.SongName;
                 entity.SongLengthSeconds = request.SongLengthSeconds;
                 entity.YoutubeId = request.YoutubeId;
-
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -1468,6 +1616,7 @@ namespace Listify.DAL
                 entity.CurrencyName = request.CurrencyName;
                 entity.CurrencyId = request.CurrencyId;
                 entity.RoomId = request.RoomId;
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -1610,7 +1759,8 @@ namespace Listify.DAL
             {
                 entity.RoomCode = request.RoomCode;
                 entity.IsRoomPublic = request.IsRoomPublic;
-                entity.IsRoomOnline = request.IsRoomOnline;
+                entity.IsRoomOnline = request.IsRoomOnline; 
+                entity.TimeStamp = DateTime.UtcNow;
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -1679,7 +1829,7 @@ namespace Listify.DAL
                 .FirstOrDefaultAsync(s => s.Id == request.Id);
 
             _mapper.Map(request, entity);
-
+            entity.TimeStamp = DateTime.UtcNow;
             _context.Entry(entity).State = EntityState.Modified;
 
             return await _context.SaveChangesAsync() > 0 ? await ReadPurchasableItemAsync(entity.Id) : null;
@@ -2140,6 +2290,7 @@ namespace Listify.DAL
         {
             var playlistsPublic = await _context.Playlists
                 .Include(s => s.ApplicationUser)
+                .Include(s => s.ApplicationUser.Profile)
                 .Include(s => s.PlaylistGenres)
                 .Include(s => s.SongsPlaylist)
                 .Where(s => s.IsPublic && s.Active)
@@ -2159,9 +2310,12 @@ namespace Listify.DAL
                     .Where(s => s.PlaylistId == playlistPublic.Id && s.Active)
                     .CountAsync();
 
-                var vm = _mapper.Map<PlaylistCommunityVM>(playlistPublic);
-                vm.NumberOfSongs = songsPlaylistCount;
-                vms.Add(vm);
+                if (songsPlaylistCount > 0)
+                {
+                    var vm = _mapper.Map<PlaylistCommunityVM>(playlistPublic);
+                    vm.NumberOfSongs = songsPlaylistCount;
+                    vms.Add(vm);
+                }
             }
 
             return vms.ToArray();

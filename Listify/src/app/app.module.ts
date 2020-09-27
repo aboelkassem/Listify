@@ -41,6 +41,7 @@ import { PurchasesComponent } from './purchases/purchases.component';
 import { PlaylistscommunityComponent } from './playlistscommunity/playlistscommunity.component';
 import { ApplicationusersroommodalComponent } from './shared/modals/applicationusersroommodal/applicationusersroommodal.component';
 import { InformationmodalComponent } from './shared/modals/informationmodal/informationmodal.component';
+import { ProfileComponent } from './profile/profile.component';
 
 @NgModule({
   declarations: [
@@ -70,6 +71,7 @@ import { InformationmodalComponent } from './shared/modals/informationmodal/info
     PlaylistscommunityComponent,
     ApplicationusersroommodalComponent,
     InformationmodalComponent,
+    ProfileComponent,
   ],
   entryComponents: [
     ConfirmationmodalComponent,

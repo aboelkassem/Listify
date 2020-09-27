@@ -23,6 +23,7 @@ namespace Listify.Domain.Lib.Entities
         public DateTime DateJoined { get; set; } = DateTime.UtcNow;
 
         public Room Room { get; set; }
+        public Profile Profile { get; set; }
 
         public ICollection<ApplicationUserRoom> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoom>();

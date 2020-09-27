@@ -77,6 +77,11 @@ namespace Listify.Domain.BLL
                 c.CreateMap<RoomVM, RoomDTO>().ReverseMap();
                 c.CreateMap<RoomUpdateRequest, Room>();
 
+                c.CreateMap<Lib.Entities.Profile, ProfileDTO>().ReverseMap();
+                c.CreateMap<Lib.Entities.Profile, ProfileVM>().ReverseMap();
+                c.CreateMap<ProfileVM, ProfileDTO>().ReverseMap();
+                c.CreateMap<ProfileUpdateRequest, Lib.Entities.Profile>();
+
                 c.CreateMap<Song, SongDTO>().ReverseMap();
                 c.CreateMap<Song, SongVM>().ReverseMap();
                 //c.CreateMap<Song, SongVM>().PreserveReferences().ReverseMap();

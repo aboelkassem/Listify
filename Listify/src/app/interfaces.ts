@@ -190,6 +190,8 @@ export interface IPurchase {
   amountCharged: number;
   purchaseLineItems: IPurchasableLineItem[];
   hasBeenCharged: boolean;
+  wasChargeAccepted: boolean;
+  timestampCharged: string;
 }
 
 export interface IPurchaseOrderRequest {
@@ -254,4 +256,15 @@ export interface IValidatedTextRequest {
 export interface IValidatedTextResponse {
   isAvailable: boolean;
   validatedTextType: number;
+}
+
+export interface IProfile {
+  username: string;
+  roomName: string;
+  roomUrl: string;
+  profileTitle: string;
+  profileDescription: string;
+  avatarUrl: string;
+  dateJoined: Date;
+  playlistsCommunity: IPlaylistCommunity[];
 }

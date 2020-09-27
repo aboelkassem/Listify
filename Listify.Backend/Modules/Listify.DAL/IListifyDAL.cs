@@ -116,5 +116,8 @@ namespace Listify.DAL
         Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId);
 
         Task<GenreDTO[]> ReadGenresAsync();
+
+        Task<ProfileVM> ReadProfileAsync(string username);
+        Task<ProfileVM> UpdateProfileAsync(ProfileUpdateRequest request, Guid applicationUserId);
     }
 }

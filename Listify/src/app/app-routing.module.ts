@@ -1,3 +1,4 @@
+import { ProfileComponent } from './profile/profile.component';
 import { PlaylistscommunityComponent } from './playlistscommunity/playlistscommunity.component';
 import { PurchasesComponent } from './purchases/purchases.component';
 import { CheckoutfailComponent } from './checkoutfail/checkoutfail.component';
@@ -32,6 +33,7 @@ const routes: Routes = [
   {path: 'cart', component: CartComponent},
   {path: 'checkout', component: CheckoutComponent},
   {path: 'checkoutfail', component: CheckoutfailComponent},
+  {path: 'profile/:id', component: ProfileComponent},
   // {path: ':id', component: HomeComponent},
   {path: ':id', component: RoomComponent},
 ];

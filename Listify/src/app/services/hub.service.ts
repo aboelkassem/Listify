@@ -3,7 +3,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
 // tslint:disable-next-line:max-line-length
-import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IApplicationUserRoom, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IValidatedTextRequest, IValidatedTextResponse, IPurchaseOrderRequest } from './../interfaces';
+import { IRoom, ISongQueuedCreateRequest, IApplicationUser, IPlaylist, IPlaylistCreateRequest, ICurrency, ISongPlaylist, ISongSearchResults, ISongPlaylistCreateRequest, IApplicationUserRequest, IServerStateResponse, IPurchasableItem, ICurrencyRoom, IPurchase, IAuthToLockedRoomResponse, IValidatedTextRequest, IValidatedTextResponse, IPurchaseOrderRequest, IProfile } from './../interfaces';
 import { Subject, Observable } from 'rxjs';
 
 @Injectable({
@@ -38,6 +38,7 @@ export class HubService {
   $addYoutubePlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
   $addSpotifyPlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
   $genresReceived = new Subject<IGenre[]>();
+  $profileReceived = new Subject<IProfile>();
   $purchasesReceived = new Subject<IPurchase[]>();
   $receiveQueuePlaylistInRoomHome = new Subject<ISongQueued[]>();
 
@@ -146,6 +147,10 @@ export class HubService {
 
       this._hubConnection.on('ReceiveGenres', (genres: IGenre[]) => {
         this.$genresReceived.next(genres);
+      });
+
+      this._hubConnection.on('ReceiveProfile', (profile: IProfile) => {
+        this.$profileReceived.next(profile);
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -361,11 +366,24 @@ export class HubService {
     }
   }
 
+  requestProfile(username: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestProfile', username);
+    }
+  }
+
+  requestProfileUpdate(profile: IProfile): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestProfileUpdate', profile);
+    }
+  }
+
   requestGenres(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestGenres');
     }
   }
+
 
   requestClearAll(): void {
     this.$clearAllEvent.next('ClearAll');
@@ -513,6 +531,10 @@ export class HubService {
 
   getAddSpotifyPlaylistToPlaylist(): Observable<ISongPlaylist[]> {
     return this.$addSpotifyPlaylistToPlaylistReceived.asObservable();
+  }
+
+  getProfile(): Observable<IProfile> {
+    return this.$profileReceived.asObservable();
   }
 
   getPing(): Observable<string> {

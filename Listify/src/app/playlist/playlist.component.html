@@ -13,10 +13,10 @@
   <div *ngIf="tPlayList.touched && !tPlayList.valid" style="color: red">Place Name is Required</div>
 </div>
 <div *ngIf="isOwner">
-  <mat-checkbox type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected">Is Default</mat-checkbox>
+  <mat-checkbox type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected">Is default and will play randomly when queue is empty in room home ?</mat-checkbox>
 </div>
 <div *ngIf="isOwner">
-  <mat-checkbox type="checkbox" [(ngModel)]="isPublic" name="isPublic" id="isPublic">Is Public</mat-checkbox>
+  <mat-checkbox type="checkbox" [(ngModel)]="isPublic" name="isPublic" id="isPublic">Is playlist publicly available to the community</mat-checkbox>
 </div>
 <div *ngIf="isOwner" class="genres-container">
   <mat-form-field>
