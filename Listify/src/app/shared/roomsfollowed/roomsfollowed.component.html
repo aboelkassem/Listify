@@ -1,0 +1,117 @@
+<mat-card *ngIf="rooms.length > 0">
+
+  <mat-form-field>
+    <div class="mat-h4">Filter by Genre</div>
+    <mat-select [(ngModel)]="genreSelectedId" (selectionChange)="genreChanged($event.value)">
+      <mat-option [value]="">Select a genre</mat-option>
+      <mat-option *ngFor="let genre of genres; let p = index" [value]="genre.id">
+        {{genre.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <button mat-stroked-button color="primary" (click)="clearFilter()">Clear Filter</button>
+  <br>
+  <div class="mat-h3">Followed Rooms</div>
+  <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
+    <ng-container matColumnDef="roomImageUrl">
+      <th mat-header-cell *matHeaderCellDef>Room Image</th>
+      <td mat-cell *matCellDef="let element">
+        <div *ngIf="element.roomImageUrl !== undefined || element.roomImageUrl !== null || element.roomImageUrl !== ''">
+          <a mat-icon-button [routerLink]="" (click)="navigateToRoom(element)">
+            <img width="85px" height="85px" [src]="element.roomImageUrl" [alt]="element.roomCode" />
+          </a>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="roomName">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Room Name</th>
+      <td mat-cell *matCellDef="let element">
+        <a [routerLink]="" (click)="navigateToRoom(element)">{{element.roomCode}}</a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="roomTitle">
+      <th mat-header-cell *matHeaderCellDef>Title</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.roomTitle}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="username">
+      <th mat-header-cell *matHeaderCellDef>Room Owner</th>
+      <td mat-cell *matCellDef="let element">
+       <a [routerLink]="['/profile', element.applicationUser.username]">{{element.applicationUser.username}}</a>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="profileImageUrl">
+      <th mat-header-cell *matHeaderCellDef>Owner image</th>
+      <td mat-cell *matCellDef="let element">
+        <div *ngIf="element.applicationUser.profileImageUrl !== undefined || element.applicationUser.profileImageUrl !== null || element.applicationUser.profileImageUrl !== ''">
+          <a mat-icon-button [routerLink]="['/profile', element.applicationUser.username]">
+            <img width="85px" height="85px" [src]="element.applicationUser.profileImageUrl" [alt]="element.username" />
+          </a>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="isLocked">
+      <th mat-header-cell *matHeaderCellDef>Locked</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.isRoomLocked}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="matureContent">
+      <th mat-header-cell *matHeaderCellDef>Mature Content</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.matureContent}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="genres">
+      <th mat-header-cell *matHeaderCellDef>Genres</th>
+      <td mat-cell *matCellDef="let element">
+        <table>
+          <tr>
+            <th></th>
+          </tr>
+          <tr>
+            <td *ngFor="let roomGenre of element.roomGenres; let p = index">
+              <div *ngIf="p === element.roomGenres.length - 1">
+                {{roomGenre.genre.name}}
+              </div>
+              <div *ngIf="p !== element.roomGenres.length - 1">
+                {{roomGenre.genre.name}}
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="usersOnline">
+      <th mat-header-cell *matHeaderCellDef>Users Online</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.numberUsersOnline}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="numberFollows">
+      <th mat-header-cell *matHeaderCellDef>Follow Count</th>
+      <td mat-cell *matCellDef="let element">
+        {{element.follows.length}}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <mat-paginator
+    [pageSizeOptions]="[5, 10, 20]"
+    showFirstLastButtons
+    class="table-paginator"
+  ></mat-paginator>
+</mat-card>

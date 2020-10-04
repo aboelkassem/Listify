@@ -14,9 +14,11 @@ namespace Listify.Lib.VMs
         public bool IsRoomLocked { get; set; }
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
+        public bool IsRoomPlaying { get; set; }
         public int NumberUsersOnline { get; set; }
         public bool MatureContent { get; set; }
         public bool MatureContentChat { get; set; }
+        public string RoomImageUrl { get; set; }
 
         // This is the Room Owner
         public ApplicationUserDTO ApplicationUser { get; set; }
@@ -24,13 +26,16 @@ namespace Listify.Lib.VMs
         public ICollection<ApplicationUserRoomDTO> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoomDTO>();
 
-        //public ICollection<CurrencyRoomDTO> CurrenciesRoom { get; set; } =
-        //    new List<CurrencyRoomDTO>();
-
         // this is SongQueued instead of song Request because if isn't
         // a song in the queue, a record will be created for one for the
         // SongRequest in the playlist.
         public ICollection<SongQueuedDTO> SongsQueued { get; set; } =
             new List<SongQueuedDTO>();
+
+        public ICollection<FollowVM> Follows { get; set; } =
+            new List<FollowVM>();
+
+        public ICollection<RoomGenreVM> RoomGenres { get; set; } =
+            new List<RoomGenreVM>();
     }
 }

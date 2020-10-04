@@ -37,6 +37,12 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
       this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
         if (playlist.songsPlaylist) {
           this.songsPlaylist = playlist.songsPlaylist;
+
+          playlist.songsPlaylist.forEach(s => {
+            const minimumValue = Math.min(...s.song.sogThumbnails.map(t => t.sizeY));
+            s.song.songThumbnailSelected = s.song.songThumbnails.filter(x => x.sizeY === minimumValue)[0];
+          });
+
           this.dataSource.data = this.songsPlaylist;
           this.dataSource.sort = this.sort;
         }
@@ -57,7 +63,9 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
     const confirmationModalData: IConfirmationModalData = {
       title: 'Are your sure ?',
       message: 'Are your sure you want to remove ' + songPlaylist.song.songName + ' from your playlist?',
-      isConfirmed: false
+      isConfirmed: false,
+      confirmMessage: 'Confirm',
+      cancelMessage: 'Cancel'
     };
 
     const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {

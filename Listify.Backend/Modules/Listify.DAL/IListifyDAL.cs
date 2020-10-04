@@ -22,6 +22,10 @@ namespace Listify.DAL
         Task<LogErrorVM> CreateLogErrorAsync(LogErrorCreateRequest request, Guid applicationUserId);
         Task<PlaylistVM> CreatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<SongVM> CreateSongAsync(SongCreateRequest request);
+        Task<SongVM> CreateSongAsync(string youtubeId);
+        Task<SongVM> CreateSongAsync(YoutubeResults.YoutubeResult songSearchResult);
+        Task<SongVM> CreateSongAsync(Google.Apis.YouTube.v3.Data.PlaylistItem playlistItem);
+        Task<SongVM> CreateSongAsync(Google.Apis.YouTube.v3.Data.SearchResult songSearchResult);
         Task<SongPlaylistVM> CreateSongPlaylistAsync(SongPlaylistCreateRequest request, Guid applicationUserId);
         Task<SongQueuedVM> CreateSongQueuedAsync(SongQueuedCreateRequest request);
         Task<TransactionVM> CreateTransactionAsync(TransactionCreateRequest request);
@@ -57,16 +61,18 @@ namespace Listify.DAL
         Task<PlaylistVM[]> ReadPlaylistsAsync(Guid applicationUserId);
         Task<PlaylistVM> ReadPlaylistSelectedAsync(Guid applicationUserId); // 1 references
         Task<SongPlaylistVM[]> AddSongsToPlaylistAsync(SongVM[] songs, Guid playlistId, Guid applicationUserId); // 1 references
-        Task<PlaylistCommunityVM[]> ReadPlaylistsCommunityAsync();
+        Task<PlaylistVM[]> ReadPlaylistsCommunityAsync();
         Task<RoomVM> ReadRoomAsync(string roomCode);
-        Task<RoomDTO[]> ReadRoomsAsync();
+        Task<RoomVM[]> ReadRoomsAsync();
+        Task<RoomVM[]> ReadRoomsFollowsAsync(Guid applicationUserId);
         Task<RoomVM> ReadRoomAsync(Guid id);
         Task<SongVM> ReadSongAsync(Guid id);
-        Task<SongVM> ReadSongAsync(string videoId);
+        Task<SongVM> ReadSongAsync(string youtubeId);
         Task<SongPlaylistVM[]> ReadSongsPlaylistAsync(Guid playlistId);
         Task<SongPlaylistVM> ReadSongPlaylistAsync(Guid id);
         Task<SongQueuedVM> ReadSongQueuedAsync(Guid id);
         Task<SongQueuedVM> DequeueSongQueuedAsync(Guid roomId, Guid applicationUserId);
+        Task<ApplicationUserRoomCurrencyRoomVM[]> SkipSongAsync(Guid songQueuedId);
         Task<SongQueuedVM> QueueSongPlaylistNext(Guid applicationUserId);
         Task<SongQueuedVM[]> ReadSongsQueuedAsync(Guid roomId);
         Task<TransactionVM> ReadTransactionAsync(Guid id);
@@ -77,8 +83,10 @@ namespace Listify.DAL
         Task<PlaylistVM> UpdatePlaylistAsync(PlaylistCreateRequest request, Guid applicationUserId);
         Task<RoomVM> UpdateRoomAsync(RoomUpdateRequest request);
         Task<SongVM> UpdateSongAsync(SongUpdateRequest request);
+        Task<SongVM> UpdateSongAsync(string youtubeId);
 
         Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet);
+        Task<SongVM> SearchYoutubeAndReturnFirstResultAsync(string searchSnippet);
         Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
         Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType);
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnectionsAsync();
@@ -107,7 +115,7 @@ namespace Listify.DAL
         Task<bool> IsUsernameAvailableAsync(string applicationUsername, Guid applicationUserId);
         Task<bool> IsRoomCodeAvailableAsync(string roomCode, Guid applicationUserId);
 
-        Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, Guid applicationUserId);
+        Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, bool isRandomized, Guid applicationUserId);
         Task<SongPlaylistVM[]> AddYoutubePlaylistToPlaylistAsync(string youtubePlaylistUrl, Guid playlistId, Guid applicationUserId);
 
         Task<bool> ClearSongsQueuedAsync(Guid roomId);
@@ -117,7 +125,21 @@ namespace Listify.DAL
 
         Task<GenreDTO[]> ReadGenresAsync();
 
+        Task<FollowVM[]> ReadFollowsByRoomIdAsync(Guid roomId);
+        Task<FollowVM[]> ReadFollowsByApplicationUserIdAsync(Guid applicationUserId);
+        Task<FollowVM> ReadFollowAsync(Guid id);
+        Task<FollowVM> ReadFollowAsync(Guid roomId, Guid applicationUserId);
+        Task<FollowVM> CreateFollowAsync(FollowCreateRequest request, Guid applicationUserId);
+        Task<bool> DeleteFollowAsync(Guid followId, Guid applicationUserId);
+
+        Task<bool> ClearUserProfileImageAsync(Guid applicationUserId);
+        Task<bool> ClearRoomImageAsync(Guid roomId, Guid applicationUserId);
+        Task<bool> ClearPlaylistImageAsync(Guid playlistId, Guid applicationUserId);
+
         Task<ProfileVM> ReadProfileAsync(string username);
-        Task<ProfileVM> UpdateProfileAsync(ProfileUpdateRequest request, Guid applicationUserId);
+        Task<ApplicationUserVM> UpdateApplicationUserProfileImageUrlAsync(string profileImageUrl, Guid profileId, Guid applicationUserId);
+        Task<ApplicationUserVM> UpdateApplicationUserRoomImageUrlAsync(string roomImageUrl, Guid roomId, Guid applicationUserId);
+        Task<ApplicationUserVM> UpdatePlaylistImageUrlAsync(string playlistImageUrl, Guid playlistId, Guid applicationUserId);
+        Task<ApplicationUserRoomVM[]> ReadApplicationUserRoomOnlineAsync(string connectionId);
     }
 }

@@ -59,13 +59,23 @@ namespace Listify.Domain.Lib.Enums
     {
         Username,
         RoomCode,
-        RoomTitle
+        RoomTitle,
+        ProfileDescription
     }
 
     public enum ConnectionType
     {
         ListifyHub,
         RoomHub
+    }
+
+    public enum YoutubeThumbnailType
+    {
+        Default,
+        Medium,
+        High,
+        Standard,
+        Maxres
     }
 
     public enum EndpointType

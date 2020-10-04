@@ -5,3 +5,19 @@
 .button-login {
   display: block;
 }
+
+#appTitle {
+  padding: 0px 0px 0px 10px;
+}
+
+.cursor-link {
+  cursor: pointer;
+}
+
+.padding-simple {
+  padding: 10px;
+}
+
+.padding-sides {
+pad: 0px 10px 0px 10px;
+}

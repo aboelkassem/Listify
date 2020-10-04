@@ -24,8 +24,17 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
-  displayedColumns: string[] = ['playlistName', 'isSelected', 'isPublic', 'genreName', 'deletePlaylist', 'queuePlaylist'];
+  displayedColumns: string[] = [
+    'playlistImageUrl',
+    'playlistName',
+    'isSelected',
+    'isPublic',
+    'genreName',
+    'deletePlaylist',
+    'queuePlaylist'];
   dataSource = new MatTableDataSource<IPlaylist>();
+
+  loading = false;
 
   playlists: IPlaylist[] = [];
   numberOfPlaylist = this.hubService.applicationUser.playlistCountMax;
@@ -120,7 +129,9 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
       const confirmationModalData: IConfirmationModalData = {
         title: 'Are your sure ?',
         message: 'Are your sure you want to delete this playlist?',
-        isConfirmed: false
+        isConfirmed: false,
+        confirmMessage: 'Confirm',
+        cancelMessage: 'Cancel'
       };
       const confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
         width: '250px',
@@ -140,20 +151,43 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   }
 
   queuePlaylist(id: string): void {
-    const confirmationModalData: IConfirmationModalData = {
+    let confirmationModalData: IConfirmationModalData = {
       title: 'Are your sure ?',
       message: 'Are your sure you want to add the entire playlist to your queue?',
-      isConfirmed: false
+      isConfirmed: false,
+      confirmMessage: 'Confirm',
+      cancelMessage: 'Cancel'
     };
 
-    const confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
+    let confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
       width: '250px',
       data: confirmationModalData
     });
 
     confirmationModal.afterClosed().subscribe(result => {
       if (result !== undefined) {
-        this.hubService.requestQueuePlaylistInRoomHome(id);
+
+        confirmationModalData = {
+          title: 'Randomize the playlist?',
+          message: 'would you like to randomize the playlist in the queue?',
+          isConfirmed: false,
+          confirmMessage: 'Randomize',
+          cancelMessage: 'Do not Randomize'
+        };
+
+        confirmationModal = this.modalDialog.open(ConfirmationmodalComponent, {
+          width: '350px',
+          data: confirmationModalData
+        });
+
+        confirmationModal.afterClosed().subscribe(randomizeResult => {
+          this.loading = true;
+          if (randomizeResult !== undefined) {
+            this.hubService.requestQueuePlaylistInRoomHome(id, true);
+          }else {
+            this.hubService.requestQueuePlaylistInRoomHome(id, false);
+          }
+        });
       }
     });
   }

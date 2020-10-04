@@ -1,7 +1,8 @@
-import { Subscription } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
 import { RoomHubService } from './room-hub.service';
 import { Injectable, OnDestroy } from '@angular/core';
 import reframe from 'reframe.js';
+import { ISongQueued } from '../interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -9,22 +10,57 @@ import reframe from 'reframe.js';
 export class YoutubeService implements OnDestroy {
 
   player: any;
+  isPausedFromServer: boolean;
+  songCurrent: ISongQueued;
 
   $pauseSubscription: Subscription;
   $playSubscription: Subscription;
+  $serverStateResponseSubscription: Subscription;
+  $roomReceivedSubscription: Subscription;
+  $timerSubscription: Subscription;
 
   // reframed: boolean = false;
 
-  constructor(
-    private roomService: RoomHubService
-  ) {
+  constructor(private roomService: RoomHubService) {
+    this.$timerSubscription = timer(0, 15000).subscribe(() => {
+      if (
+        this.getPlayerState() !== PlayerState.PAUSED &&
+        this.getPlayerState() !== PlayerState.PLAYING &&
+        this.roomService !== undefined &&
+        this.roomService.applicationUserRoom !== undefined &&
+        !this.roomService.applicationUserRoom.isOwner) {
+          this.roomService.requestServerState(this.roomService.applicationUserRoom.room.roomCode);
+      }
+    });
+
+    this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe(roomInformation => {
+      this.stop();
+      this.loadVideo('');
+      this.songCurrent = undefined;
+    });
+
     this.$playSubscription = this.roomService.getPlayFromServerResponse().subscribe(playFromServerResponse => {
       // this.stop();
-      this.loadVideoAndSeek(playFromServerResponse.songQueued.song.youtubeId, playFromServerResponse.currentTime);
-      this.play();
+      this.isPausedFromServer = false;
+      if (playFromServerResponse.songQueued) {
+        this.loadVideoAndSeek(playFromServerResponse.songQueued.song.youtubeId, playFromServerResponse.currentTime);
+        this.play();
+        this.songCurrent = playFromServerResponse.songQueued;
+      }
+    });
+
+    // this assigns the video properties when the server responses
+    this.$serverStateResponseSubscription = this.roomService.getServerStateResponse().subscribe(response => {
+      this.stop();
+      if (response.songQueued) {
+        this.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+        this.play();
+        this.songCurrent = response.songQueued;
+      }
     });
 
     this.$pauseSubscription = this.roomService.getPauseResponse().subscribe(pauseString => {
+      this.isPausedFromServer = true;
       this.pause();
     });
   }
@@ -32,6 +68,9 @@ export class YoutubeService implements OnDestroy {
   ngOnDestroy(): void {
     this.$pauseSubscription.unsubscribe();
     this.$playSubscription.unsubscribe();
+    this.$serverStateResponseSubscription.unsubscribe();
+    this.$roomReceivedSubscription.unsubscribe();
+    this.$timerSubscription.unsubscribe();
   }
 
   setPlayer(player: any, isReframed: boolean): void {

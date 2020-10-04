@@ -5,9 +5,9 @@ namespace Listify.WebAPI.Models
 {
     public class RoomInformation
     {
-        public RoomDTO Room { get; set; }
+        public RoomVM Room { get; set; }
+        public ApplicationUserDTO RoomOwner { get; set; }
         public ApplicationUserRoomVM ApplicationUserRoom { get; set; }
         public ApplicationUserRoomCurrencyRoomVM[] ApplicationUserRoomCurrenciesRoom { get; set; }
-        public ApplicationUserDTO RoomOwner { get; set; }
     }
 }

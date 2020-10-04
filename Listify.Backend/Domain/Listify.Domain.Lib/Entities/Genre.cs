@@ -10,5 +10,8 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<PlaylistGenre> PlaylistGenres { get; set; } =
             new List<PlaylistGenre>();
+
+        public ICollection<RoomGenre> RoomGenres { get; set; } =
+            new List<RoomGenre>();
     }
 }

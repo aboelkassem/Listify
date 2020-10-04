@@ -83,9 +83,9 @@ namespace Listify.WebAPI
             services.AddSingleton(currencyPoll);
             //services.AddScoped<ICurrencyPoll, CurrencyPoll>();
 
-            //IRoomsOnlinePool roomsOnline = new RoomsOnlinePool(listifyDAL);
-            //roomsOnline.Start(45000);
-            //services.AddSingleton(roomsOnline);
+            IRoomsOnlinePoll roomsOnline = new RoomsOnlinePoll(listifyDAL);
+            roomsOnline.Start(45000);
+            services.AddSingleton(roomsOnline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -17,13 +17,14 @@ namespace Listify.Domain.Lib.Entities
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 30 songs
         public int PlaylistSongCount { get; set; } = 30;
-        //public int QueueSongsCount { get; set; } = 50;
-        public int QueueCount { get; set; } = 30;
+        public int QueueSongsCount { get; set; } = 100;
         public string ChatColor { get; set; } = "#000000";
         public DateTime DateJoined { get; set; } = DateTime.UtcNow;
+        public string ProfileTitle { get; set; }
+        public string ProfileDescription { get; set; }
+        public string ProfileImageUrl { get; set; }
 
         public Room Room { get; set; }
-        public Profile Profile { get; set; }
 
         public ICollection<ApplicationUserRoom> ApplicationUsersRooms { get; set; } =
             new List<ApplicationUserRoom>();
@@ -36,6 +37,9 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<Purchase> Purchases { get; set; } =
             new List<Purchase>();
+
+        public ICollection<Follow> Follows { get; set; } =
+            new List<Follow>();
 
         public ICollection<LogAPI> LogsAPI { get; set; } =
             new List<LogAPI>();

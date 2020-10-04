@@ -18,6 +18,8 @@ using Listify.Domain.Lib.Enums;
 using System.Text;
 using Listify.Services;
 using Listify.WebAPI.Models;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Listify.WebAPI.Hubs
 {
@@ -65,36 +67,36 @@ namespace Listify.WebAPI.Hubs
             //}
         }
 
-        public async Task RequestApplicationUserInformation()
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                var applicationUser = await _dal.ReadApplicationUserAsync(userId);
+        //public async Task RequestApplicationUserInformation()
+        //{
+        //    try
+        //    {
+        //        var userId = await GetUserIdAsync();
+        //        var applicationUser = await _dal.ReadApplicationUserAsync(userId);
 
-                await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUser);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public async Task UpdateApplicationUserInformation(ApplicationUserUpdateRequest request)
-        {
-            try
-            {
-                var userId = await GetUserIdAsync();
-                if (userId != Guid.Empty)
-                {
-                    var applicationUser = await _dal.UpdateApplicationUserAsync(request, userId);
-                    await Clients.Caller.SendAsync("ReceiveApplicationUserInformation", applicationUser);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
+        //        await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUser);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
+        //public async Task UpdateApplicationUserInformation(ApplicationUserUpdateRequest request)
+        //{
+        //    try
+        //    {
+        //        var userId = await GetUserIdAsync();
+        //        if (userId != Guid.Empty)
+        //        {
+        //            var applicationUser = await _dal.UpdateApplicationUserAsync(request, userId);
+        //            await Clients.Caller.SendAsync("ReceiveApplicationUserInformation", applicationUser);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
         public async Task RequestValidatedText(ContentAvailabilityRequest request)
         {
             var userId = await GetUserIdAsync();
@@ -126,6 +128,13 @@ namespace Listify.WebAPI.Hubs
                         IsAvailable = await _service.IsContentValid(request.Content)
                     };
                     break;
+                case ValidatedTextType.ProfileDescription:
+                    contentAvailability = new ContentAvailability
+                    {
+                        ValidatedTextType = request.ValidatedTextType,
+                        IsAvailable = await _service.IsContentValid(request.Content)
+                    };
+                    break;
             }
             if (contentAvailability != null)
             {
@@ -142,19 +151,43 @@ namespace Listify.WebAPI.Hubs
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine(ex.Message);
             }
         }
-        public async Task RequestRoom(string id)
+        public async Task RequestRoomsFollowed()
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var rooms = await _dal.ReadRoomsFollowsAsync(userId);
+                await Clients.Caller.SendAsync("ReceiveRoomsFollowed", rooms);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestRoomsFollowedProfile(Guid applicationUserId)
+        {
+            try
+            {
+                var rooms = await _dal.ReadRoomsFollowsAsync(applicationUserId);
+                await Clients.Caller.SendAsync("ReceiveRoomsFollowed", rooms);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestRoom(string roomCode)
         {
             try
             {
                 RoomVM room;
-                if (Guid.TryParse(id, out var guid))
+                if (!string.IsNullOrWhiteSpace(roomCode))
                 {
-                    room = await _dal.ReadRoomAsync(guid);
-                    room.RoomKey = string.Empty;
+                    room = await _dal.ReadRoomAsync(roomCode);
+                    //room.RoomKey = string.Empty;
                 }
                 else
                 {
@@ -162,13 +195,16 @@ namespace Listify.WebAPI.Hubs
                     var userId = await GetUserIdAsync();
                     var user = await _dal.ReadApplicationUserAsync(userId);
                     room = await _dal.ReadRoomAsync(user.Room.Id);
+                    
+                    //var decodedRoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(room.RoomKey));
+                    //room.RoomKey = decodedRoomKey;
+                }
 
-                    var decodedRoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(room.RoomKey));
-
-                    room.RoomKey = decodedRoomKey;
+                if (room != null)
+                {
+                    room.RoomKey = string.Empty;
                 }
                 await Clients.Caller.SendAsync("ReceiveRoom", room);
-
             }
             catch (Exception ex)
             {
@@ -268,12 +304,25 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+
         public async Task RequestGenres()
         {
             try
             {
                 var genres = await _dal.ReadGenresAsync();
                 await Clients.Caller.SendAsync("ReceiveGenres", genres);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestGenresRoom()
+        {
+            try
+            {
+                var genres = await _dal.ReadGenresAsync();
+                await Clients.Caller.SendAsync("ReceiveGenresRoom", genres);
             }
             catch (Exception ex)
             {
@@ -380,7 +429,9 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-
+                var userId = await GetUserIdAsync();
+                var songsPlaylist = await _dal.AddYoutubePlaylistToPlaylistAsync(youtubePlaylistUrl, playlistId, userId);
+                await Clients.Caller.SendAsync("ReceiveAddYoutubePlaylistToPlaylist", songsPlaylist);
             }
             catch (Exception ex)
             {
@@ -388,6 +439,109 @@ namespace Listify.WebAPI.Hubs
             }
         }
         public async Task RequestAddSpotifyPlaylistToPlaylist(string spotifyPlaylistId, Guid playlistId)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var user = await _dal.ReadApplicationUserAsync(userId);
+
+                var songsInPlaylist = await _dal.ReadSongsPlaylistAsync(playlistId);
+
+                var numerOfSongsTemainingToAddToPlaylist = user.PlaylistSongCount - songsInPlaylist.Length;
+                var counter = 0;
+
+                SpotifyPlaylistTracksResponse spotifyTracks;
+
+                var nextURL = string.Empty;
+                var tracks = new List<Item>();
+
+                while (nextURL != null)
+                {
+                    using (var client = new HttpClient())
+                    {
+                        if (spotifyPlaylistId.IndexOf("/") > 0)
+                        {
+                            spotifyPlaylistId = spotifyPlaylistId.Split("/").Last();
+                        }
+
+                        client.SetBearerToken(Globals.SPOTIFY_ACCESS_TOKEN);
+                        var response = await client.GetStringAsync($"https://api.spotify.com/v1/playlists/{spotifyPlaylistId}");
+                        spotifyTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksResponse>(response);
+
+                        if (spotifyTracks == null || spotifyTracks.items == null)
+                        {
+                            var spotifyCollabTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksCollabResponse>(response);
+
+                            foreach (var track in spotifyCollabTracks.tracks.items)
+                            {
+                                if (counter < numerOfSongsTemainingToAddToPlaylist)
+                                {
+                                    counter++;
+                                    tracks.Add(track);
+                                }
+                            }
+                            nextURL = spotifyCollabTracks.tracks.next;
+                        }
+                        else
+                        {
+                            foreach (var track in spotifyTracks.items)
+                            {
+                                if (counter < numerOfSongsTemainingToAddToPlaylist)
+                                {
+                                    counter++;
+                                    tracks.Add(track);
+                                }
+                            }
+                            nextURL = spotifyCollabTracks.tracks.next;
+                        }
+                    }
+                }
+
+                var songs = new List<SongVM>();
+                foreach (var track in tracks)
+                {
+                    var searchSnippet = track.track.name + "-" + track.track.artists[0].name;
+                    var song = await _dal.SearchYoutubeAndReturnFirstResultAsync(searchSnippet);
+
+                    if (song != null && !songs.Any(s => s.Id == song.Id))
+                    {
+                        songs.Add(song);
+                    }
+                }
+
+                var songsPlaylist = await _dal.AddSongsToPlaylistAsync(songs.ToArray(), playlistId, userId);
+                await Clients.Caller.SendAsync("ReceiveAddSpotifyPlaylistToPlaylist", songsPlaylist);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            await Clients.Caller.SendAsync("ReceiveAddSpotifyPlaylistToPlaylist", null);
+        }
+
+        public async Task RequestClearProfileImage(Guid profileId)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestClearRoomImage(Guid roomId)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestClearPlaylistImage(Guid playlistId)
         {
             try
             {
@@ -648,7 +802,7 @@ namespace Listify.WebAPI.Hubs
             }
         }
         
-        public async Task QueuePlaylistInRoomHome(Guid playlistId)
+        public async Task QueuePlaylistInRoomHome(Guid playlistId, bool isRandomized)
         {
             try
             {
@@ -668,7 +822,7 @@ namespace Listify.WebAPI.Hubs
                 var applicationUser = await _dal.ReadApplicationUserAsync(applicationUserRoom.ApplicationUser.Id);
                 var roomHome = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
 
-                var songsQueued = await _dal.QueuePlaylistInRoomHomeAsync(playlistId, applicationUser.Id);
+                var songsQueued = await _dal.QueuePlaylistInRoomHomeAsync(playlistId, isRandomized, applicationUser.Id);
 
                 await Clients.Caller.SendAsync("ReceiveQueuePlaylistInRoomHome", songsQueued);
             }
@@ -793,6 +947,23 @@ namespace Listify.WebAPI.Hubs
             var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
             if (connection != null)
             {
+                if (connection.ApplicationUserRoom.IsOwner)
+                {
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+
+                    if (applicationUserRoom != null)
+                    {
+                        var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                        {
+                            IsRoomPlaying = false,
+                            Id = room.Id,
+                            IsRoomOnline = false,
+                            RoomGenres = room.RoomGenres.ToArray()
+                        });
+                    }
+                }
+
                 connection = await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                 {
                     Id = connection.Id,
@@ -836,7 +1007,7 @@ namespace Listify.WebAPI.Hubs
             });
 
             var username = response.Claims.ToList().First(s => s.Type == "name").Value;
-            var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
+            var userId = response.Claims.ToList().First(s => s.Type == "sub").Value;
 
             if (!string.IsNullOrWhiteSpace(username) && string.IsNullOrWhiteSpace(userId))
             {

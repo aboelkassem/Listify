@@ -18,6 +18,8 @@ namespace Listify.Domain.BLL
                 c.CreateMap<ApplicationUserCreateRequest, ApplicationUser>();
                 c.CreateMap<ApplicationUserUpdateRequest, ApplicationUser>();
 
+                c.CreateMap<ApplicationUser, ProfileVM>().ReverseMap();
+
                 c.CreateMap<ApplicationUserRoom, ApplicationUserRoomDTO>().ReverseMap();
                 c.CreateMap<ApplicationUserRoom, ApplicationUserRoomVM>().ReverseMap();
                 c.CreateMap<ApplicationUserRoomVM, ApplicationUserRoomDTO>().ReverseMap();
@@ -77,14 +79,20 @@ namespace Listify.Domain.BLL
                 c.CreateMap<RoomVM, RoomDTO>().ReverseMap();
                 c.CreateMap<RoomUpdateRequest, Room>();
 
-                c.CreateMap<Lib.Entities.Profile, ProfileDTO>().ReverseMap();
-                c.CreateMap<Lib.Entities.Profile, ProfileVM>().ReverseMap();
-                c.CreateMap<ProfileVM, ProfileDTO>().ReverseMap();
-                c.CreateMap<ProfileUpdateRequest, Lib.Entities.Profile>();
+                c.CreateMap<RoomGenre, RoomGenreDTO>().ReverseMap();
+                c.CreateMap<RoomGenre, RoomGenreVM>().ReverseMap();
+                c.CreateMap<RoomGenreVM, RoomGenreDTO>().ReverseMap();
+
+                c.CreateMap<Follow, FollowDTO>().ReverseMap();
+                c.CreateMap<Follow, FollowVM>().ReverseMap();
+                c.CreateMap<FollowVM, FollowDTO>().ReverseMap();
+                c.CreateMap<FollowCreateRequest, Follow>();
 
                 c.CreateMap<Song, SongDTO>().ReverseMap();
-                c.CreateMap<Song, SongVM>().ReverseMap();
-                //c.CreateMap<Song, SongVM>().PreserveReferences().ReverseMap();
+                c.CreateMap<Song, SongVM>().ReverseMap()
+                    .ForMember(s => s.SongRequests, opt => opt.Ignore())
+                    .ReverseMap()
+                    .ForMember(s => s.SongRequests, opt => opt.Ignore());
                 c.CreateMap<SongVM, SongDTO>().ReverseMap();
                 c.CreateMap<SongCreateRequest, Song>();
                 c.CreateMap<SongUpdateRequest, Song>();
@@ -102,10 +110,6 @@ namespace Listify.Domain.BLL
                 c.CreateMap<PlaylistGenre, PlaylistGenreVM>().ReverseMap();
                 c.CreateMap<PlaylistGenreVM, PlaylistGenreDTO>().ReverseMap();
                 c.CreateMap<PlaylistGenreCreateRequest, PlaylistGenre>();
-
-                c.CreateMap<Playlist, PlaylistCommunityDTO>().ReverseMap();
-                c.CreateMap<Playlist, PlaylistCommunityVM>().ReverseMap();
-                c.CreateMap<PlaylistCommunityVM, PlaylistCommunityDTO>().ReverseMap();
 
                 c.CreateMap<SongQueued, SongQueuedDTO>().ReverseMap();
                 c.CreateMap<SongQueued, SongQueuedVM>().ReverseMap();

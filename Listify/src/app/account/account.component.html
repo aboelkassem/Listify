@@ -1,48 +1,154 @@
-<div class="mat-h3">Account</div>
+<div class="padding-simple">
+  <mat-card class="account-container">
+    <form class="accountForm-container" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
+      <ngx-loading-x [show]="loading"></ngx-loading-x>
+      <div class="padding-basic flex-container">
+        <div class="padding-internal account-container">
+          <div class="flex-content-2">
+            <mat-card>
+              <div class="mat-h3">My Account Information</div>
+              <!-- Account information -->
+              <mat-form-field>
+                <input matInput (keyup.enter)="saveApplicationUserInfo()" id="username" [disabled]="!disableAttr" name="username" placeholder="Username" [(ngModel)]="username" required>
+              </mat-form-field>
+              <button type="button" [disabled]="disableAttr" mat-stroked-button appearance="outline" color="primary" type="button" (click)="changeUsername()">Change Username</button>
 
-<div >
-  <form class="accountForm-container" (ngSubmit)="saveApplicationUserInfo()" #accountForm="ngForm">
-    <mat-form-field>
-      <input matInput (keyup.enter)="saveApplicationUserInfo()" id="username" [disabled]="!disableAttr" name="username" placeholder="Username" [(ngModel)]="username" required>
-    </mat-form-field>
-    <button type="button" [disabled]="disableAttr" mat-stroked-button appearance="outline" color="primary" type="button" (click)="changeUsername()">Change Username</button>
+              <mat-form-field>
+                <input matInput (click)="makeTheFormDirty()" style="pointer-events:auto; cursor: default;" [style.background]="chatColor" [cpCancelButton]="true" [cpOKButton]="true" [(colorPicker)]="chatColor" [(colorPicker)]="chatColor" (keyup.enter)="saveApplicationUserInfo()" id="chatColor" name="chatColor">
+              </mat-form-field>
+            </mat-card>
+          </div>
+          <div class="flex-content-2">
+            <mat-card>
+              <!-- Profile information -->
+              <div class="mat-h3">My Profile Information</div>
+              <div *ngIf="profileImageUrl !== undefined && profileImageUrl !== null">
+                <div class="mat-h4">My Profile Image:</div>
+                <img class="room-image" width="85px" height="85px" [src]="profileImageUrl" [alt]="username" />
+              </div>
+              <div>
+                <button type="button" appearance="outline" (click)="uploadProfileImage()"
+                  mat-stroked-button color="primary">
+                    Upload Profile Image
+                </button>
 
-    <mat-form-field>
-      <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomCode" name="roomCode" placeholder="Room Code" [(ngModel)]="roomCode" required>
-    </mat-form-field>
+                <button *ngIf="profileImageUrl !== undefined && profileImageUrl !== null"
+                  type="button" appearance="outline" (click)="clearProfileImage()"
+                  mat-stroked-button color="primary">
+                    Clear Image
+                </button>
+              </div>
+              <div>
+                <mat-form-field>
+                  <input matInput (keyup.enter)="saveApplicationUserInfo()" id="profileTitle" name="profileTitle" placeholder="My Profile Title" [(ngModel)]="profileTitle" />
+                </mat-form-field>
+                <mat-form-field>
+                  <textarea matInput (keyup.enter)="saveApplicationUserInfo()" id="profileDescription" name="profileDescription" placeholder="My Profile Description" [(ngModel)]="profileDescription"></textarea>
+                </mat-form-field>
+              </div>
+            </mat-card>
+          </div>
+          <div class="flex-content-2">
+            <mat-card>
+              <!-- Room information -->
+              <div class="mat-h3">My Room Information</div>
+              <div *ngIf="roomImageUrl !== undefined && roomImageUrl !== null">
+                <div class="mat-h4">Room Image:</div>
+                <img class="room-image" width="85px" height="85px" [src]="roomImageUrl" [alt]="roomCode" />
+              </div>
+              <div>
+                <button type="button" appearance="outline" (click)="uploadRoomImage()"
+                  mat-stroked-button color="primary">
+                    Upload Room Image
+                </button>
 
-    <mat-form-field>
-      <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomTitle" name="roomTitle" placeholder="Room Title" [(ngModel)]="roomTitle">
-    </mat-form-field>
+                <button *ngIf="roomImageUrl !== undefined && roomImageUrl !== null"
+                  type="button" appearance="outline" (click)="clearRoomImage()"
+                  mat-stroked-button color="primary">
+                    Clear Image
+                </button>
+              </div>
+              <div>
+                <mat-form-field>
+                  <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomCode" name="roomCode" placeholder="Room Code" [(ngModel)]="roomCode" required>
+                </mat-form-field>
 
-    <mat-form-field>
-      <input matInput (click)="makeTheFormDirty()" style="pointer-events:auto; cursor: default;" [style.background]="chatColor" [cpCancelButton]="true" [cpOKButton]="true" [(colorPicker)]="chatColor" [(colorPicker)]="chatColor" (keyup.enter)="saveApplicationUserInfo()" id="chatColor" name="chatColor">
-    </mat-form-field>
+                <mat-form-field>
+                  <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomTitle" name="roomTitle" placeholder="Room Title" [(ngModel)]="roomTitle">
+                </mat-form-field>
 
-    <mat-checkbox [(ngModel)]="isPublic" name="isPublic">Is Room Public?</mat-checkbox>
+                <div class="mat-h3">Room Genres: </div>
+                <div class="genres-container">
+                  <mat-form-field>
+                    <mat-select [(ngModel)]="genreSelectedId">
+                      <mat-option *ngFor="let genre of genres; let p = index" [value]="genre.id">
+                        {{genre.name}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <button mat-stroked-button color="primary" type="button" id="addGenre" (click)="addGenre()" [disabled]="genreSelectedId === undefined">Add Genre</button>
+                </div>
 
-    <mat-checkbox [(ngModel)]="allowRequests" name="allowRequests">Is Room Allowing Song Requests In Queue?</mat-checkbox>
-    <mat-checkbox [(ngModel)]="matureContent" name="matureContent">Mature Content?</mat-checkbox>
-    <mat-checkbox [(ngModel)]="matureContentChat" name="matureContent">Mature Content in Chat?</mat-checkbox>
+                <div *ngIf="roomGenres?.length <= 0">
+                  <div class="mat-h3">No Genres has been selected for Your Room</div>
+                </div>
+                <div *ngIf="roomGenres !== undefined && roomGenres?.length > 0">
+                  <div class="mat-h3">Selected Genres</div>
+                  <ul>
+                    <table>
+                      <tr>
+                        <th></th>
+                        <th></th>
+                      </tr>
+                      <tr *ngFor="let roomGenre of roomGenres">
+                        <td>
+                          <li>{{roomGenre?.genre.name}}</li>
+                        </td>
+                        <td>
+                          <button mat-stroked-button color="primary" type="button" id="removeGenre" (click)="removeGenre(roomGenre.genre.id)">Remove Genre</button>
+                        </td>
+                      </tr>
+                    </table>
+                  </ul>
+                </div>
 
-    <mat-checkbox [(ngModel)]="isLocked" name="isLocked">Is Room Locked?</mat-checkbox>
+                <mat-checkbox [(ngModel)]="isPublic" name="isPublic">Is Room Public?</mat-checkbox>
 
-    <div *ngIf="isLocked">
-      <mat-form-field>
-        <input matInput id="roomKey" placeholder="Enter room key" name="roomKey" [(ngModel)]="roomKey" required>
-      </mat-form-field>
-    </div>
+                <mat-checkbox [(ngModel)]="allowRequests" name="allowRequests">Is Room Allowing Song Requests In Queue?</mat-checkbox>
+                <mat-checkbox [(ngModel)]="matureContent" name="matureContent">Does your Room Allow Mature Content?</mat-checkbox>
+                <mat-checkbox [(ngModel)]="matureContentChat" name="matureContent">Does your Room Allow Mature Content in Chat?</mat-checkbox>
 
-    <mat-form-field>
-      <input matInput id="playlistSongCount" name="playlistSongCount" placeholder="Playlist Songs Count" [(ngModel)]="playlistSongCount" disabled>
-    </mat-form-field>
-    <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
+                <mat-checkbox [(ngModel)]="isLocked" name="isLocked">Is Room Locked?</mat-checkbox>
 
-    <mat-form-field>
-      <input matInput id="playlistCount" name="playlistCount" placeholder="Playlist Count" [(ngModel)]="playlistCount" disabled>
-    </mat-form-field>
-    <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistCount()">Add Another Playlist</button>
+                <div *ngIf="isLocked">
+                  <mat-form-field>
+                    <input matInput id="roomKey" placeholder="Enter room key" name="roomKey" [(ngModel)]="roomKey" required>
+                  </mat-form-field>
+                </div>
+              </div>
+            </mat-card>
+          </div>
+          <div class="flex-content-2">
+            <mat-card>
+              <!-- Purchases Card -->
+              <div class="mat-h3">Purchases</div>
 
+              <button mat-stroked-button color="primary" type="button" id="viewPastPurchases" (click)="viewPastPurchases()">View My Past Purchases</button>
+
+              <mat-form-field>
+                <input matInput id="playlistSongCount" name="playlistSongCount" placeholder="Playlist Songs Count" [(ngModel)]="playlistSongCount" disabled>
+              </mat-form-field>
+              <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
+
+              <mat-form-field>
+                <input matInput id="playlistCount" name="playlistCount" placeholder="Playlist Count" [(ngModel)]="playlistCount" disabled>
+              </mat-form-field>
+              <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistCount()">Add Another Playlist</button>
+            </mat-card>
+          </div>
+        </div>
+      </div>
     <button mat-stroked-button color="primary" type="submit" [disabled]="!accountForm.valid || !accountForm.dirty">Submit Changes</button>
-  </form>
+    </form>
+  </mat-card>
 </div>

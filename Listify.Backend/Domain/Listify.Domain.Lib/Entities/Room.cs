@@ -16,8 +16,10 @@ namespace Listify.Domain.Lib.Entities
         public bool IsRoomLocked { get; set; }
         public bool IsRoomPublic { get; set; } = true;
         public bool IsRoomOnline { get; set; } = true;
+        public bool IsRoomPlaying { get; set; } // 3 references
         public bool MatureContent { get; set; }
         public bool MatureContentChat { get; set; }
+        public string RoomImageUrl { get; set; }
 
         // This is the Room Owner
         public Guid ApplicationUserId { get; set; }
@@ -35,5 +37,11 @@ namespace Listify.Domain.Lib.Entities
         // SongRequest in the playlist.
         public ICollection<SongQueued> SongsQueued { get; set; } =
             new List<SongQueued>();
+
+        public ICollection<Follow> Follows { get; set; } =
+            new List<Follow>();
+
+        public ICollection<RoomGenre> RoomGenres { get; set; } =
+            new List<RoomGenre>();
     }
 }

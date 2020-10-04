@@ -1,4 +1,4 @@
-import { IGenre, IPlaylistCommunity, ISongQueued } from 'src/app/interfaces';
+import { IGenre, ISongQueued } from 'src/app/interfaces';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { Injectable } from '@angular/core';
 import * as singalR from '@aspnet/signalR';
@@ -14,11 +14,15 @@ export class HubService {
   applicationUser: IApplicationUser;
 
   // events for asynchronous room for using in other places (observable)
+  $receiveClearUserProfileImage = new Subject<boolean>();
+  $receiveClearRoomImage = new Subject<boolean>();
+  $receiveClearPlaylistImage = new Subject<boolean>();
   $roomReceived = new Subject<IRoom>();
   $roomsReceived = new Subject<IRoom[]>();
+  $roomsFollowedReceived = new Subject<IRoom[]>();
   $playlistReceived = new Subject<IPlaylist>();
   $playlistsReceived = new Subject<IPlaylist[]>();
-  $playlistsCommunityReceived = new Subject<IPlaylistCommunity[]>();
+  $playlistsCommunityReceived = new Subject<IPlaylist[]>();
   $currencyRoomReceived = new Subject<ICurrencyRoom>();
   $currenciesRoomReceived = new Subject<ICurrencyRoom[]>();
   $songPlaylistReceived = new Subject<ISongPlaylist>();
@@ -38,6 +42,7 @@ export class HubService {
   $addYoutubePlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
   $addSpotifyPlaylistToPlaylistReceived = new Subject<ISongPlaylist[]>();
   $genresReceived = new Subject<IGenre[]>();
+  $genresRoomReceived = new Subject<IGenre[]>();
   $profileReceived = new Subject<IProfile>();
   $purchasesReceived = new Subject<IPurchase[]>();
   $receiveQueuePlaylistInRoomHome = new Subject<ISongQueued[]>();
@@ -74,7 +79,7 @@ export class HubService {
         this.$playlistsReceived.next(playlists);
       });
 
-      this._hubConnection.on('ReceivePlaylistsCommunity', (playlists: IPlaylistCommunity[]) => {
+      this._hubConnection.on('ReceivePlaylistsCommunity', (playlists: IPlaylist[]) => {
         this.$playlistsCommunityReceived.next(playlists);
       });
 
@@ -100,6 +105,10 @@ export class HubService {
 
       this._hubConnection.on('ReceiveSearchYoutube', (responses: ISongSearchResults) => {
         this.$searchYoutubeReceived.next(responses);
+      });
+
+      this._hubConnection.on('ReceiveSearchYoutubePlaylist', (responses: ISongSearchResults) => {
+        this.$searchYoutubePlaylistReceived.next(responses);
       });
 
       this._hubConnection.on('ReceivePurchasableItems', (purchasableItems: IPurchasableItem[]) => {
@@ -149,8 +158,28 @@ export class HubService {
         this.$genresReceived.next(genres);
       });
 
+      this._hubConnection.on('ReceiveGenresRoom', (genres: IGenre[]) => {
+        this.$genresRoomReceived.next(genres);
+      });
+
       this._hubConnection.on('ReceiveProfile', (profile: IProfile) => {
         this.$profileReceived.next(profile);
+      });
+
+      this._hubConnection.on('ReceiveClearUserProfileImage', (response: boolean) => {
+        this.$receiveClearUserProfileImage.next(response);
+      });
+
+      this._hubConnection.on('ReceiveClearRoomImage', (response: boolean) => {
+        this.$receiveClearRoomImage.next(response);
+      });
+
+      this._hubConnection.on('ReceiveClearPlaylistImage', (response: boolean) => {
+        this.$receiveClearPlaylistImage.next(response);
+      });
+
+      this._hubConnection.on('ReceiveRoomsFollowed', (rooms: IRoom[]) => {
+        this.$roomsFollowedReceived.next(rooms);
       });
 
       this._hubConnection.on('PingRequest', (ping: string) => {
@@ -194,9 +223,21 @@ export class HubService {
     }
   }
 
-  requestRoom(id: string): void {
+  requestRoomsFollowedProfile(applicationUserId: string): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('RequestRoom', id);
+      this._hubConnection.invoke('RequestRoomsFollowedProfile', applicationUserId);
+    }
+  }
+
+  requestRoomsFollowed(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestRoomsFollowed');
+    }
+  }
+
+  requestRoom(roomCode: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestRoom', roomCode);
     }
   }
 
@@ -342,9 +383,9 @@ export class HubService {
     }
   }
 
-  requestQueuePlaylistInRoomHome(id: string): void {
+  requestQueuePlaylistInRoomHome(id: string, isRandomized: boolean): void {
     if (this._hubConnection) {
-      this._hubConnection.invoke('QueuePlaylistInRoomHome', id);
+      this._hubConnection.invoke('QueuePlaylistInRoomHome', id, isRandomized);
     }
   }
 
@@ -378,12 +419,35 @@ export class HubService {
     }
   }
 
+  requestClearProfileImage(profileId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestClearProfileImage', profileId);
+    }
+  }
+
+  requestClearRoomImage(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestClearRoomImage', roomId);
+    }
+  }
+
+  requestClearPlaylistImage(playlistId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestClearPlaylistImage', playlistId);
+    }
+  }
+
   requestGenres(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestGenres');
     }
   }
 
+  requestGenresRoom(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestGenresRoom');
+    }
+  }
 
   requestClearAll(): void {
     this.$clearAllEvent.next('ClearAll');
@@ -453,7 +517,7 @@ export class HubService {
     return this.$playlistsReceived.asObservable();
   }
 
-  getPlaylistsCommunity(): Observable<IPlaylistCommunity[]> {
+  getPlaylistsCommunity(): Observable<IPlaylist[]> {
     return this.$playlistsCommunityReceived.asObservable();
   }
 
@@ -521,6 +585,10 @@ export class HubService {
     return this.$genresReceived.asObservable();
   }
 
+  getGenresRoom(): Observable<IGenre[]> {
+    return this.$genresRoomReceived.asObservable();
+  }
+
   getClearAll(): Observable<string> {
     return this.$clearAllEvent.asObservable();
   }
@@ -535,6 +603,22 @@ export class HubService {
 
   getProfile(): Observable<IProfile> {
     return this.$profileReceived.asObservable();
+  }
+
+  getClearUserProfileImage(): Observable<boolean> {
+    return this.$receiveClearUserProfileImage.asObservable();
+  }
+
+  getClearRoomImage(): Observable<boolean> {
+    return this.$receiveClearRoomImage.asObservable();
+  }
+
+  getClearPlaylistImage(): Observable<boolean> {
+    return this.$receiveClearPlaylistImage.asObservable();
+  }
+
+  getRoomsFollowed(): Observable<IRoom[]> {
+    return this.$roomsFollowedReceived.asObservable();
   }
 
   getPing(): Observable<string> {

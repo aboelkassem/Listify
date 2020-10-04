@@ -3,25 +3,53 @@
   (ready)="onReady($event)"
   (change)="onStateChange($event)"
 ></youtube-component> -->
+<mat-card>
+  <ngx-loading-x [show]="loading"></ngx-loading-x>
 
-<youtube-component
-  (ready)="onReady($event)"
-  (change)="onStateChange($event)"
-></youtube-component>
-<app-applicationuserroomcurrencies></app-applicationuserroomcurrencies>
+  <div class="playerComponent-container">
+    <div class="mat-h3">Player</div>
+    <youtube-component
+      (ready)="onReady($event)"
+      (change)="onStateChange($event)"
+    ></youtube-component>
+    <app-applicationuserroomcurrencies></app-applicationuserroomcurrencies>
 
-<div>
-  <label>Song Name:</label> <b>{{songName}}</b>
-</div>
-<div>
-  <label>Requested By:</label> <b [ngStyle]="{color: requestedByColor}">{{requestedBy}}</b>
-</div>
-<div>
-  <label>Value :</label> <b>{{playValue}}</b>
-</div>
-<div>
-  <label>Room Title:</label> <b>{{roomTitle}}</b>
-</div>
-<div>
-  <label>Room Owner:</label> <b>{{roomOwner}}</b>
-</div>
+    <div class="playerComponent-child">
+      <label>Song Name:</label> <b>{{songName}}</b>
+    </div>
+    <div class="playerComponent-child">
+      <label>Requested By:</label>
+        <b [ngStyle]="{color: requestedByColor}">
+          <a [routerLink]="['/profile', requestedBy]">{{requestedBy}}</a>
+        </b>
+    </div>
+    <div class="playerComponent-child">
+      <label>Value :</label> <b>{{playValue}}</b>
+      <br>
+      <button *ngIf="isPlaying" mat-stroked-button mat-accent color="accent" (click)="addToPlaylistDefault()">
+        Add to My Default Playlist
+      </button>
+    </div>
+    <div class="playerComponent-child">
+      <label>Room Title:</label> <b>{{roomTitle}}</b>
+    </div>
+    <div class="playerComponent-child">
+      <label>Room Owner:</label>
+        <b [ngStyle]="{color: roomOwnerColor}">
+          <a [routerLink]="['/profile', roomOwnerUsername]">{{roomOwnerUsername}}</a>
+        </b>
+    </div>
+    <div class="playerComponent-child">
+      <label>Users Online:</label> <b> <a [routerLink]="" (click)="showApplicationUsersRoomModal()">{{ numberUsersOnline }}</a></b>
+    </div>
+    <div class="playerComponent-child">
+      <label>Number Follows:</label> <b> <a [routerLink]="" (click)="viewProfileFollows()"> {{ numberFollows }}</a></b>
+      <button *ngIf="!isOwner && !isFollowing" mat-fab mat-icon-button color="primary" mat-primary class="cursor-link" (click)="followButtonClick()">
+        <mat-icon>favorite</mat-icon>
+      </button>
+      <button *ngIf="!isOwner && isFollowing" mat-fab mat-icon-button disabled color="accent" mat-accent class="cursor-link" (click)="unfollowButtonClick()">
+        <mat-icon>favorite</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-card>

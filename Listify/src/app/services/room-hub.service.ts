@@ -1,6 +1,6 @@
 import { Subject, Observable } from 'rxjs';
 // tslint:disable-next-line:max-line-length
-import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IPlayFromServerResponse, IApplicationUser } from './../interfaces';
+import { IApplicationUserRoom, IRoomInformation, ISongQueued, IRoom, ISongQueuedCreateRequest, IServerStateRequest, IServerStateResponse, IChatMessage, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IApplicationUser, IFollow, IApplicationUserRequest, IPlayFromServerResponse, IUpvoteSongQueuedRequest } from './../interfaces';
 import { Injectable } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import * as singalR from '@aspnet/signalR';
@@ -10,7 +10,6 @@ import * as singalR from '@aspnet/signalR';
 })
 export class RoomHubService {
 
-  messages: IChatMessage[] = [];
   applicationUserRoomCurrenciesRoom: IApplicationUserRoomCurrencyRoom[] = [];
   applicationUserRoom: IApplicationUserRoom;
   room: IRoom;
@@ -19,6 +18,8 @@ export class RoomHubService {
   private _roomCode: string;
   private _hubConnection: singalR.HubConnection;
 
+  $followReceived = new Subject<IFollow>();
+  $followsReceived = new Subject<IFollow[]>();
   $roomInformationReceived = new Subject<IRoomInformation>();
   $songNextReceived = new Subject<ISongQueued>();
   $songsQueuedReceived = new Subject<ISongQueued[]>();
@@ -32,6 +33,13 @@ export class RoomHubService {
   $messageReceived = new Subject<IChatMessage>();
   $pauseRequestReceived = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
+  $applicationUserReceived = new Subject<IApplicationUser>();
+  $applicationUserReceivedAfterUpdate = new Subject<IApplicationUser>();
+  $applicationUsersRoomOnline = new Subject<IApplicationUserRoom[]>();
+  $applicationUserRoomOfflineReceived = new Subject<IApplicationUserRoom>();
+  $applicationUserRoomOnlineReceived = new Subject<IApplicationUserRoom>();
+  $requestRoomChange = new Subject<IRoom>();
+  $addSongCurrentToPlaylistReceived = new Subject<boolean>();
 
   constructor(private oauthService: OAuthService) { }
 
@@ -91,20 +99,56 @@ export class RoomHubService {
     });
 
     this._hubConnection.on('ReceiveApplicationUserRoomCurrencyRoom', (applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom) => {
+      const originalCurrency = this.applicationUserRoomCurrenciesRoom.filter(x => x.id === applicationUserRoomCurrency.id)[0];
+      if (originalCurrency) {
+        // tslint:disable-next-line:max-line-length
+        this.applicationUserRoomCurrenciesRoom[this.applicationUserRoomCurrenciesRoom.indexOf(originalCurrency)] = applicationUserRoomCurrency;
+      }
+
       this.$applicationUserRoomCurrencyRoomReceived.next(applicationUserRoomCurrency);
-    });
-
-    this._hubConnection.on('ReceiveApplicationUserRoomOnline', (applicationUserRoom: IApplicationUserRoom) => {
-      // ToDO: Need to complete in frontend
-    });
-
-    this._hubConnection.on('ReceiveApplicationUserRoomOffline', (applicationUserRoom: IApplicationUserRoom) => {
-      // ToDO: Need to complete in frontend
     });
 
     // tslint:disable-next-line:max-line-length
     this._hubConnection.on('ReceiveApplicationUserRoomCurrenciesRoom', (applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[]) => {
       this.$applicationUserRoomCurrenciesRoomReceived.next(applicationUserRoomCurrencies);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUser', (response: IApplicationUser) => {
+      // ToDO: Need to complete in frontend
+      this.$applicationUserReceived.next(response);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserUpdated', (response: IApplicationUser) => {
+      // ToDO: Need to complete in frontend
+      this.$applicationUserReceivedAfterUpdate.next(response);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserRoomOnline', (response: IApplicationUserRoom) => {
+      // ToDO: Need to complete in frontend
+      this.$applicationUserRoomOnlineReceived.next(response);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUserRoomOffline', (response: IApplicationUserRoom) => {
+      // ToDO: Need to complete in frontend
+      this.$applicationUserRoomOfflineReceived.next(response);
+    });
+
+    this._hubConnection.on('ReceiveApplicationUsersRoomOnline', (applicationUserRooms: IApplicationUserRoom[]) => {
+      // ToDO: Need to complete in frontend
+      this.$applicationUsersRoomOnline.next(applicationUserRooms);
+    });
+
+    this._hubConnection.on('ReceiveAddSongCurrentToPlaylist', (wasSuccessful: boolean) => {
+      // ToDO: Need to complete in frontend
+      this.$addSongCurrentToPlaylistReceived.next(wasSuccessful);
+    });
+
+    this._hubConnection.on('ReceiveFollow', (follow: IFollow) => {
+      this.$followReceived.next(follow);
+    });
+
+    this._hubConnection.on('ReceiveFollows', (follows: IFollow[]) => {
+      this.$followsReceived.next(follows);
     });
 
     this._hubConnection.on('ReceivePause', () => {
@@ -121,6 +165,60 @@ export class RoomHubService {
     });
 
     this._hubConnection.start();
+  }
+
+  requestApplicationUser(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestApplicationUser');
+    }
+  }
+
+  updateApplicationUser(applicationUserRequest: IApplicationUserRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('UpdateApplicationUser', applicationUserRequest);
+    }
+  }
+
+  changeRoom(roomCode: string): void {
+    this._roomCode = roomCode;
+
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestRoom', roomCode);
+    }
+  }
+
+  requestQueueUpdated(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestQueueUpdated', roomId);
+    }
+  }
+
+  requestApplicationUsersRoomOnline(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestApplicationUsersRoomOnline');
+    }
+  }
+
+  requestUpdateUsersRoomInformationInRoom(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('UpdateUsersRoomInformationInRoom');
+    }
+  }
+
+  requestAddSongCurrentToPlaylist(songQueuedId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestAddSongCurrentToPlaylist', songQueuedId);
+    }
+  }
+
+  requestQueueClear(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestQueueClear');
+    }
+  }
+
+  requestRoomChange(room: IRoom): void {
+    this.$requestRoomChange.next(room);
   }
 
   requestServerState(roomId: string): void {
@@ -177,6 +275,18 @@ export class RoomHubService {
     }
   }
 
+  skipSong(songQueued: ISongQueued): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('SkipSong', songQueued);
+    }
+  }
+
+  removeSongFromQueue(songQueued: ISongQueued): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RemoveFromQueue', songQueued);
+    }
+  }
+
   sendMessage(message: IChatMessage): void {
     const data: IChatMessage = {
       applicationUserRoom: this.applicationUserRoom,
@@ -193,6 +303,24 @@ export class RoomHubService {
       this._hubConnection.invoke('WagerQuantitySongQueued', request);
     }
   }
+
+  upvoteSongQueued(request: IUpvoteSongQueuedRequest): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('UpvoteSongQueued', request);
+    }
+  }
+
+  // requestUpvoteSongQueuedNoWager(songQueuedId: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('UpvoteSongQueuedNoWager', songQueuedId);
+  //   }
+  // }
+
+  // requestDownvoteSongQueuedNoWager(songQueuedId: string): void {
+  //   if (this._hubConnection) {
+  //     this._hubConnection.invoke('DownvoteSongQueuedNoWager', songQueuedId);
+  //   }
+  // }
 
   requestApplicationUserRoomCurrencies(): void {
     if (this._hubConnection) {
@@ -212,8 +340,32 @@ export class RoomHubService {
     }
   }
 
+  requestFollow(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestFollow', roomId);
+    }
+  }
+
+  requestUnfollow(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestUnFollow', roomId);
+    }
+  }
+
   getRoomInformation(): Observable<IRoomInformation> {
     return this.$roomInformationReceived.asObservable();
+  }
+
+  getRoomChangeRequest(): Observable<IRoom> {
+    return this.$requestRoomChange.asObservable();
+  }
+
+  getApplicationUser(): Observable<IApplicationUser> {
+    return this.$applicationUserReceived.asObservable();
+  }
+
+  getApplicationUserUpdated(): Observable<IApplicationUser> {
+    return this.$applicationUserReceivedAfterUpdate.asObservable();
   }
 
   getSongNext(): Observable<ISongQueued> {
@@ -258,6 +410,30 @@ export class RoomHubService {
 
   getApplicationUserRoomCurrenciesRoom(): Observable<IApplicationUserRoomCurrencyRoom[]> {
     return this.$applicationUserRoomCurrenciesRoomReceived.asObservable();
+  }
+
+  getApplicationUsersRoomOnline(): Observable<IApplicationUserRoom[]> {
+    return this.$applicationUsersRoomOnline.asObservable();
+  }
+
+  getApplicationUserRoomOnlineReceived(): Observable<IApplicationUserRoom> {
+    return this.$applicationUserRoomOnlineReceived.asObservable();
+  }
+
+  getApplicationUserRoomOfflineReceived(): Observable<IApplicationUserRoom> {
+    return this.$applicationUserRoomOfflineReceived.asObservable();
+  }
+
+  getAddSongCurrentToPlaylist(): Observable<boolean> {
+    return this.$addSongCurrentToPlaylistReceived.asObservable();
+  }
+
+  getFollow(): Observable<IFollow> {
+    return this.$followReceived.asObservable();
+  }
+
+  getFollows(): Observable<IFollow[]> {
+    return this.$followsReceived.asObservable();
   }
 
   getForceDisconnect(): Observable<string> {

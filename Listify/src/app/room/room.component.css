@@ -3,16 +3,40 @@
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: flex-start;
+  height: 100%;
+  padding: 10px 10px 10px 10px;
+}
+
+.padding-simple {
+  padding: 0px 10px 10px 10px;
+}
+
+.contentFlex-verticalContainer {
+  display: flex;
+  flex-direction: ;
+}
+
+.contentFlex {
+  border: 1px;
+  color: black;
+  border-style: ridge;
+  padding: 10px 10px 10px 10px;
 }
 
 .contentFlex-player {
-  flex: 1;
+  flex: 0 0;
 }
 
 .contentFlex-songQueued, .contentFlex-queue {
-  flex: 3 2 100%;
+  flex: 1 1 100%;
 }
 
 .contentFlex-chat {
-  flex: 2 1;
+  flex: 1 0;
+  min-width: 210px;
+}
+
+.contentFlex-queueMax {
+  flex: 2 2;
+  min-width: 1000px;
 }

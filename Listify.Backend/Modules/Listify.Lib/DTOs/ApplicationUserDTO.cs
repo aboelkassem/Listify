@@ -18,5 +18,8 @@ namespace Listify.Lib.DTOs
         public string ChatColor { get; set; }
         //public int QueueSongsCount { get; set; } = 50;
         public DateTime DateJoined { get; set; }
+        public string ProfileTitle { get; set; }
+        public string ProfileDescription { get; set; }
+        public string ProfileImageUrl { get; set; }
     }
 }

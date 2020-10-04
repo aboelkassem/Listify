@@ -1,11 +1,13 @@
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
-import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation } from './../../interfaces';
+// tslint:disable-next-line:max-line-length
+import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation, ISongQueued, IConfirmationModalData } from './../../interfaces';
 import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
-import { ISongQueued } from 'src/app/interfaces';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirmationmodal.component';
 
 @Component({
   selector: 'app-queue',
@@ -14,13 +16,17 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class QueueComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
-  displayedColumns: string[] = ['songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued'];
+  displayedColumns: string[] = ['songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued', 'removeFromQueue'];
   dataSource = new MatTableDataSource<ISongQueued>();
+
+  loading = false;
 
   @Input() room: IRoom;
 
   songsQueued: ISongQueued[] = [];
   applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
+  applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom;
+  isRoomOwner: boolean;
 
   $songsQueuedSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
@@ -29,14 +35,25 @@ export class QueueComponent implements OnInit, OnDestroy {
 
   constructor(
     private roomService: RoomHubService,
+    private confirmationModal: MatDialog,
     private toastrService: ToastrService) {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
+      this.loading = false;
+
+      songsQueued.forEach(element => {
+        const minimumValue = Math.min(...element.song.songThumbnails.map(s => s.sizeX));
+        element.song.songThumbnailSelected = element.song.songThumbnails.filter(x => x.sizeX === minimumValue)[0];
+      });
+
       this.songsQueued = songsQueued;
       this.dataSource.data = this.songsQueued;
+      this.loading = false;
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
+      this.isRoomOwner = roomInformation.applicationUserRoom.isOwner;
+      this.room = roomInformation.room;
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
     });
 
@@ -53,6 +70,8 @@ export class QueueComponent implements OnInit, OnDestroy {
       if (applicationUserRoomCurrencySelected) {
         this.applicationUserRoomCurrencies[this.applicationUserRoomCurrencies.indexOf(applicationUserRoomCurrency)]
           = applicationUserRoomCurrency;
+
+        this.applicationUserRoomCurrency = applicationUserRoomCurrencySelected;
       }
     });
   }
@@ -99,6 +118,54 @@ export class QueueComponent implements OnInit, OnDestroy {
         this.toastrService.warning('You must select a type of currency to wager on a song in the queue, please try again',
         'Invalid Selected Currency');
       }
+    }
+  }
+
+  clearQueue(): void {
+    const confirmationModalData: IConfirmationModalData = {
+      title: 'Clear the queue ?',
+      message: 'Are your sure you want to remove this clear the queue and refund all currency spent on the songs?',
+      isConfirmed: false,
+      confirmMessage: 'Confirm',
+      cancelMessage: 'Cancel'
+    };
+
+    const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+      width: '250px',
+      data: confirmationModalData
+    });
+
+    confirmationModal.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        this.loading = true;
+        this.roomService.requestQueueClear();
+        this.toastrService.success('You have added cleared the entry queue.', 'Clear Success');
+      }
+    });
+  }
+
+  removeFromQueue(songQueued: ISongQueued): void {
+    if (this.roomService.applicationUserRoom.isOwner) {
+      const confirmationModalData: IConfirmationModalData = {
+        title: 'Are your sure ?',
+        message: 'Are your sure you want to remove this song from the queue and refund all currency spent?',
+        isConfirmed: false,
+        confirmMessage: 'Confirm',
+        cancelMessage: 'Cancel'
+      };
+
+      const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+        width: '250px',
+        data: confirmationModalData
+      });
+
+      confirmationModal.afterClosed().subscribe(result => {
+        if (result !== undefined) {
+          this.loading = true;
+          this.roomService.removeSongFromQueue(songQueued);
+          this.toastrService.success('You have removed ' + songQueued.song.songName + ' from the queue', 'Removed success');
+        }
+      });
     }
   }
 }

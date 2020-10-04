@@ -1,0 +1,31 @@
+.applicationUsersRoom-container {
+  overflow: auto;
+  word-wrap: break-word;
+  height: 310px;
+  overflow-y: auto;
+  max-width: 100%;
+  position: relative;
+  width: 100%;
+}
+
+#applicationUserRoomList-container {
+  word-wrap: break-word;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  justify-content: flex-start;
+}
+
+.close-btn {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0px 0px 0px 0px;
+}
+
+.padding-basic {
+  padding: 10px 10px 10px 10px;
+}

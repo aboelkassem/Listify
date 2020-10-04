@@ -1,14 +1,17 @@
+import { PlayerService } from './../../services/player.service';
+import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 import { GlobalsService } from './../../services/globals.service';
 import { HubService } from 'src/app/services/hub.service';
 import { Router } from '@angular/router';
-import { IPurchasableLineItem, IPurchasableItem, IPurchasableCurrencyLineItem } from './../../interfaces';
+import { IPurchasableItem, IPurchasableCurrencyLineItem, IConfirmationModalData } from './../../interfaces';
 import { CartService } from './../../services/cart.service';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
 import { MatTableDataSource } from '@angular/material/table';
 import { Subscription } from 'rxjs';
 import { RoomHubService } from 'src/app/services/room-hub.service';
+import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirmationmodal.component';
 
 @Component({
   selector: 'app-applicationuserroomcurrencies',
@@ -17,11 +20,12 @@ import { RoomHubService } from 'src/app/services/room-hub.service';
 })
 export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy {
 
-  displayedColumns: string[] = ['currencyName', 'quantity', 'purchaseCurrency'];
+  displayedColumns: string[] = ['currencyName', 'quantity', 'purchaseCurrency', 'skipButton'];
   dataSource = new MatTableDataSource<IApplicationUserRoomCurrencyRoom>();
 
   applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
   purchasableItems: IPurchasableItem[] = [];
+  isRoomOwner = false;
 
   $roomReceivedSubscription: Subscription;
   $applicationUserRoomCurrencySubscription: Subscription;
@@ -29,8 +33,10 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
 
   constructor(
     private roomHubService: RoomHubService,
+    private playerService: PlayerService,
     private router: Router,
     private hubService: HubService,
+    private confirmationModal: MatDialog,
     private globalsService: GlobalsService,
     private toastrService: ToastrService,
     private cartService: CartService) {
@@ -38,6 +44,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
     this.$roomReceivedSubscription = this.roomHubService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
       this.dataSource.data = this.applicationUserRoomCurrencies;
+      this.isRoomOwner = roomInformation.applicationUserRoom.isOwner;
       this.hubService.requestPurchasableItems();
     });
 
@@ -64,6 +71,29 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
 
   ngOnInit(): void {
     // this.hubService.requestPurchasableItems();
+  }
+
+  skipSong(): void {
+    if (this.isRoomOwner) {
+      const confirmationModalData: IConfirmationModalData = {
+        title: 'Skip This Song ?',
+        message: 'Are your sure you want to skip the current song?',
+        isConfirmed: false,
+        confirmMessage: 'Confirm',
+        cancelMessage: 'Cancel'
+      };
+
+      const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+        width: '300px',
+        data: confirmationModalData
+      });
+
+      confirmationModal.afterClosed().subscribe(result => {
+        if (result !== undefined && this.playerService.currentSong) {
+          this.roomHubService.skipSong(this.playerService.currentSong);
+        }
+      });
+    }
   }
 
   addApplicationUserRoomCurrency(applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom): void {

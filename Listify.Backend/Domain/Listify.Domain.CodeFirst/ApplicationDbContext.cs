@@ -18,7 +18,6 @@ namespace Listify.Domain.CodeFirst
         }
 
         public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public virtual DbSet<Profile> Profiles { get; set; }
         public virtual DbSet<ApplicationUserRoom> ApplicationUsersRooms { get; set; }
         public virtual DbSet<ApplicationUserRoomConnection> ApplicationUsersRoomsConnections { get; set; }
         public virtual DbSet<ApplicationUserRoomCurrencyRoom> ApplicationUsersRoomsCurrenciesRooms { get; set; }
@@ -35,9 +34,12 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<PurchaseLineItemCurrency> PurchaseLineItemsCurrencies { get; set; }
         public virtual DbSet<Purchase> Purchases { get; set; }
         public virtual DbSet<Room> Rooms { get; set; }
+        public virtual DbSet<RoomGenre> RoomsGenres { get; set; }
+        public virtual DbSet<Follow> Follows { get; set; }
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<SongPlaylist> SongsPlaylists { get; set; }
         public virtual DbSet<SongQueued> SongsQueued { get; set; }
+        public virtual DbSet<SongThumbnail> SongsThumbnails { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<TransactionSongQueued> TransactionsSongsQueued { get; set; }
 
@@ -62,6 +64,10 @@ namespace Listify.Domain.CodeFirst
                 .HasIndex(s => s.ConnectionId)
                 .IsUnique(true);
 
+            builder.Entity<Song>()
+                .HasIndex(s => s.YoutubeId)
+                .IsUnique(true);
+
             builder.Entity<Room>()
                 .HasMany(s => s.ApplicationUsersRooms)
                 .WithOne(s => s.Room)
@@ -73,8 +79,13 @@ namespace Listify.Domain.CodeFirst
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Room>()
-                .HasMany(s => s.CurrenciesRoom)
+                .HasMany(s => s.Follows)
                 .WithOne(s => s.Room)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ApplicationUser>()
+                .HasMany(s => s.Follows)
+                .WithOne(s => s.ApplicationUser)
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<SongQueued>()
@@ -87,10 +98,15 @@ namespace Listify.Domain.CodeFirst
                 .WithMany(s => s.TransactionsSongQueued)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<Currency>()
-                .HasMany(s => s.CurrenciesRoom)
-                .WithOne(s => s.Currency)
+            builder.Entity<CurrencyRoom>()
+                .HasMany(s => s.ApplicationUsersRoomsCurrenciesRooms)
+                .WithOne(s => s.CurrencyRoom)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //builder.Entity<PurchaseLineItemCurrency>()
+            //    .HasOne(s => s.ApplicationUserRoomCurrency)
+            //    .WithMany(s => s.)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
 
             // Seed Some Data 

@@ -1,10 +1,20 @@
-<div class="contentFlex-container">
-  <div class="contentFlex-player">
-    <app-player class="appPlayer-tag"></app-player>
-  </div>
-  <div class="contentFlex-chat"><app-chat></app-chat></div>
-  <div class="contentFlex-queue"><app-queue [room]="room"></app-queue></div>
-  <div *ngIf="allowRequests || isRoomOwner" class="contentFlex-songQueued">
-    <app-searchsongrequest></app-searchsongrequest>
+<div class="contentFlex-verticalContainer">
+  <router-outlet></router-outlet>
+  <div class="padding-simple">
+    <mat-card class="contentFlex-container">
+      <ngx-loading-x [show]="loading"></ngx-loading-x>
+      <div class="contentFlex contentFlex-player">
+        <app-player class="appPlayer-tag"></app-player>
+      </div>
+      <div class="contentFlex contentFlex-chat">
+        <app-chat></app-chat>
+      </div>
+      <div id="contentFlex-queue" class="contentFlex">
+        <app-queue [room]="room"></app-queue>
+      </div>
+      <div *ngIf="allowRequests || isRoomOwner" class="contentFlex-songQueued">
+        <app-searchsongrequest></app-searchsongrequest>
+      </div>
+    </mat-card>
   </div>
 </div>

@@ -8,6 +8,6 @@ namespace Listify.Lib.DTOs
     public class TransactionDTO : BaseDTO
     {
         public TransactionType TransactionType { get; set; }
-        public int QuantityChange { get; set; }
+        public int QuantityChanged { get; set; }
     }
 }

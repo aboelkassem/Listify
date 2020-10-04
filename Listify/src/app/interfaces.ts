@@ -6,9 +6,23 @@ export interface IApplicationUser {
   playlistSongCount: number;
   playlistCountMax: number;
   chatColor: string;
-  queueCount: number;
   timestamp: string;
   dateJoined: string;
+  profileTitle: string;
+  profileDescription: string;
+  profileImageUrl: string;
+}
+
+export interface IProfile {
+  id: string;
+  username: string;
+  room: IRoom;
+  dateJoined: Date;
+  profileTitle: string;
+  profileDescription: string;
+  profileImageUrl: string;
+  playlists: IPlaylist[];
+  numberFollows: number;
 }
 
 export interface IApplicationUserRequest {
@@ -23,6 +37,9 @@ export interface IApplicationUserRequest {
   matureContent: boolean;
   matureContentChat: boolean;
   chatColor: string;
+  profileTitle: string;
+  profileDescription: string;
+  roomGenres: IRoomGenre[];
 }
 
 export interface IRoom {
@@ -33,10 +50,24 @@ export interface IRoom {
   allowRequests: boolean;
   isRoomLocked: boolean;
   isRoomPublic: boolean;
+  isRoomOnline: boolean;
   matureContent: boolean;
   matureContentChat: boolean;
   songsQueued: ISongQueued[];
+  roomGenres: IRoomGenre[];
   numberUsersOnline: number;
+  roomImageUrl: string;
+  numberFollows: number;
+  follows: IFollow[];
+}
+
+export interface IRoomGenre {
+  genre: IGenre;
+}
+
+export interface IFollow {
+  applicationUser: IApplicationUser;
+  room: IRoom;
 }
 
 export interface IApplicationUserRoom {
@@ -79,9 +110,7 @@ export interface IPlaylist {
   applicationUser: IApplicationUser;
   songsPlaylist: ISongPlaylist[];
   playlistGenres: IPlaylistGenre[];
-}
-
-export interface IPlaylistCommunity extends IPlaylist {
+  playlistImageUrl: string;
   numberOfSongs: number;
 }
 
@@ -109,8 +138,8 @@ export interface ISongQueued extends ISongRequest {
 
 export interface ISongQueuedCreateRequest {
   applicationUserRoomId: string;
-  applicationUserRoomCurrencyId: string;
-  quantityWagered: number;
+  applicationUserRoomCurrencyId: string;  // deleted
+  quantityWagered: number; // deleted
   songSearchResult: ISongSearchResult;
 }
 
@@ -152,6 +181,15 @@ export interface ISongSearchResult {
   videoId: string;
   quantityWagered: number;
   applicationUserRoomCurrencyId: string;
+  youtubeThumbnails: ISongThumbnail[];
+  youtubeThumbnailSelected: ISongThumbnail;
+}
+
+export interface ISongThumbnail {
+  songThumbnailType: number;
+  url: string;
+  width: number;
+  height: number;
 }
 
 export interface IRoomInformation {
@@ -181,6 +219,9 @@ export interface IWagerQuantitySongQueuedRequest {
   applicationUserRoom: IApplicationUserRoom;
   applicationUserRoomCurrencyRoom: IApplicationUserRoomCurrencyRoom;
   quantity: number;
+}
+
+export interface IUpvoteSongQueuedRequest {
 }
 
 export interface IPurchase {
@@ -229,6 +270,8 @@ export interface IConfirmationModalData {
   title: string;
   message: string;
   isConfirmed: boolean;
+  cancelMessage: string;
+  confirmMessage: string;
 }
 
 export interface IInputModalData {
@@ -256,15 +299,4 @@ export interface IValidatedTextRequest {
 export interface IValidatedTextResponse {
   isAvailable: boolean;
   validatedTextType: number;
-}
-
-export interface IProfile {
-  username: string;
-  roomName: string;
-  roomUrl: string;
-  profileTitle: string;
-  profileDescription: string;
-  avatarUrl: string;
-  dateJoined: Date;
-  playlistsCommunity: IPlaylistCommunity[];
 }

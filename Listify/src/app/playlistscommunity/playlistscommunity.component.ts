@@ -1,3 +1,4 @@
+import { IPlaylist } from './../interfaces';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
@@ -5,7 +6,7 @@ import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { IConfirmationModalData, IPlaylistCommunity, IGenre } from '../interfaces';
+import { IConfirmationModalData, IGenre } from '../interfaces';
 import { ConfirmationmodalComponent } from '../shared/modals/confirmationmodal/confirmationmodal.component';
 
 @Component({
@@ -17,11 +18,13 @@ export class PlaylistscommunityComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
-  displayedColumns: string[] = ['playlistName', 'owner', 'numberOfSongs', 'genreName', 'queuePlaylist'];
-  dataSource = new MatTableDataSource<IPlaylistCommunity>();
-  playlists: IPlaylistCommunity[] = [];
+  displayedColumns: string[] = ['playlistImageUrl', 'playlistName', 'owner', 'profileImageUrl', 'numberOfSongs', 'genreName', 'queuePlaylist'];
+  dataSource = new MatTableDataSource<IPlaylist>();
+  playlists: IPlaylist[] = [];
   genres: IGenre[] = [];
   genreSelectedId: string;
+
+  loading = false;
 
   $genresReceivedSubscription: Subscription;
   $playlistsCommunityReceivedSubscription: Subscription;
@@ -51,20 +54,43 @@ export class PlaylistscommunityComponent implements OnInit, OnDestroy {
   }
 
   queuePlaylist(id: string): void {
-    const confirmationModalData: IConfirmationModalData = {
+    let confirmationModalData: IConfirmationModalData = {
       title: 'Are your sure ?',
       message: 'Are your sure you want to add the entire playlist to your queue?',
-      isConfirmed: false
+      isConfirmed: false,
+      confirmMessage: 'Confirm',
+      cancelMessage: 'Cancel'
     };
 
-    const confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+    let confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
       width: '250px',
       data: confirmationModalData
     });
 
     confirmationModal.afterClosed().subscribe(result => {
       if (result !== undefined) {
-        this.hubService.requestQueuePlaylistInRoomHome(id);
+
+        confirmationModalData = {
+          title: 'Randomize the playlist?',
+          message: 'would you like to randomize the playlist in the queue?',
+          isConfirmed: false,
+          confirmMessage: 'Randomize',
+          cancelMessage: 'Do not Randomize'
+        };
+
+        confirmationModal = this.confirmationModal.open(ConfirmationmodalComponent, {
+          width: '350px',
+          data: confirmationModalData
+        });
+
+        confirmationModal.afterClosed().subscribe(randomizeResult => {
+          this.loading = true;
+          if (randomizeResult !== undefined) {
+            this.hubService.requestQueuePlaylistInRoomHome(id, true);
+          }else {
+            this.hubService.requestQueuePlaylistInRoomHome(id, false);
+          }
+        });
       }
     });
   }
@@ -73,7 +99,7 @@ export class PlaylistscommunityComponent implements OnInit, OnDestroy {
     if (id === undefined || id === null || id === '') {
       this.dataSource.data = this.playlists;
     }else {
-      const playlists: IPlaylistCommunity[] = [];
+      const playlists: IPlaylist[] = [];
 
       this.playlists.forEach(playlist => {
         playlist.playlistGenres.forEach(playlistGenreFiltered => {

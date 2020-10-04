@@ -1,9 +1,52 @@
-<div class="profile-container">
-  <div id="profile_picture"></div>
-  <div class="mat-h2">{{username}}</div>
-  <hr>
-  <div class="mat-h4"> Date Joined: <b>{{dateJoined | date}}</b></div>
-  <br>
-  <div class="mat-h3">Community Playlists</div>
-  <div class="mat-h3">Favorite Rooms</div>
+<div class="padding-noTop">
+    <mat-card class="padding-simple">
+      <ngx-loading-x [show]="loading"></ngx-loading-x>
+      <div class="flex-container">
+        <div class="flex-content">
+          <mat-card class="flexVert-container">
+            <div class="mat-h1">
+              <div *ngIf="profileImageUrl !== undefined && profileImageUrl !== null && profileImageUrl !== ''">
+                <img class="profile-image" width="85px" height="85px" [src]="profileImageUrl" [alt]="username" />
+                <b> {{username}}</b>
+              </div>
+              <div *ngIf="profileImageUrl === undefined || profileImageUrl === null || profileImageUrl === ''">
+                <b> {{username}}</b>
+              </div>
+            </div>
+            <div class="mat-h4">
+              Date Joined: <b> {{ dateJoined | date}}</b>
+            </div>
+            <div class="mat-h2">
+              {{profileTitle}}
+            </div>
+            <div class="mat-h4">
+              {{profileDescription}}
+            </div>
+            <hr>
+            <div class="mat-h3">My Room</div>
+            <div class="mat-h4">
+            <div class="mat-h3">{{ roomTitle }}</div>
+              <div *ngIf="roomImageUrl === undefined || roomImageUrl === null || roomImageUrl === ''">
+                <b><a [routerLink]="['/', roomCode]">{{ roomCode }}</a></b>
+              </div>
+              <div *ngIf="roomImageUrl !== undefined && roomImageUrl !== null && roomImageUrl !== ''">
+                <a [routerLink]="['/', roomCode]">{{ roomCode }}
+                  <img class="room-image" width="85px" height="85px" [src]="roomImageUrl" [alt]="roomCode" />
+                </a>
+                <b><a [routerLink]="['/', roomCode]">{{ roomCode }}</a></b>
+              </div>
+            </div>
+            <div class="mat-h4">Follows: <a [routerLink]="" (click)="viewProfileFollows()">{{ numberOfFollows }}</a></div>
+          </mat-card>
+        </div>
+        <div class="flex-content">
+          <mat-card>
+            <app-profileplaylists></app-profileplaylists>
+          </mat-card>
+        </div>
+        <div class="flex-content">
+          <app-roomsfollowed></app-roomsfollowed>
+        </div>
+      </div>
+    </mat-card>
 </div>

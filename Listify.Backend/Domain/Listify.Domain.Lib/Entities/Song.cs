@@ -14,5 +14,8 @@ namespace Listify.Domain.Lib.Entities
 
         public ICollection<SongRequest> SongRequests { get; set; } =
             new List<SongRequest>();
+
+        public ICollection<SongThumbnail> SongThumbnails { get; set; } =
+            new List<SongThumbnail>();
     }
 }

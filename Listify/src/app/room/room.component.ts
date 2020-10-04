@@ -17,6 +17,8 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class RoomComponent implements OnInit, OnDestroy {
 
+  loading = false;
+
   roomCode: string;
   songsQueued: ISongQueued[];
 

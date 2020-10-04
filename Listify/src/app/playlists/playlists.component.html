@@ -1,68 +1,93 @@
-<div class="mat-h3">Maximum number of playlists: {{numberOfPlaylist}} playlist</div>
-<button mat-stroked-button color="primary" (click)="createPlaylist()">Create New Playlist</button>
+<div class="padding-simple">
+  <mat-card>
+    <ngx-loading-x [show]="loading"></ngx-loading-x>
+    <div class="padding-basic">
+      <mat-card>
+        <div class="mat-h3">Maximum number of playlists: {{numberOfPlaylist}} playlist</div>
+        <button mat-stroked-button color="primary" (click)="createPlaylist()">Create New Playlist</button>
 
-<div class="playlists-container" *ngIf="playlists.length > 0">
-  <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
-    <ng-container matColumnDef="playlistName">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Playlist Name</th>
-      <td mat-cell *matCellDef="let element"><a [routerLink]="['/playlist', element.id]">{{element.playlistName}}</a></td>
-    </ng-container>
+        <div class="playlists-container" *ngIf="playlists.length > 0">
+          <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
+            <ng-container matColumnDef="playlistImageUrl">
+              <th mat-header-cell *matHeaderCellDef>Songs Count</th>
+              <td mat-cell *matCellDef="let element">
+                <div *ngIf="element.playlistImageUrl !== undefined && element.playlistImageUrl !== null">
+                  <a [routerLink]="['/playlist', element.id]">
+                    <img class="room-image" width="85px" height="85px" [src]="element.playlistImageUrl" [alt]="element.playlistName" />
+                  </a>
+                </div>
+              </td>
+            </ng-container>
 
-    <ng-container matColumnDef="isSelected">
-      <th mat-header-cell *matHeaderCellDef>Is Default</th>
-      <td mat-cell *matCellDef="let element">
-        {{element.isSelected}}
-      </td>
-    </ng-container>
+            <ng-container matColumnDef="playlistName">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Playlist Name</th>
+              <td mat-cell *matCellDef="let element"><a [routerLink]="['/playlist', element.id]">{{element.playlistName}}</a></td>
+            </ng-container>
 
-    <ng-container matColumnDef="isPublic">
-      <th mat-header-cell *matHeaderCellDef>Is Public</th>
-      <td mat-cell *matCellDef="let element">
-        {{element.isPublic}}
-      </td>
-    </ng-container>
+            <ng-container matColumnDef="isSelected">
+              <th mat-header-cell *matHeaderCellDef>Is Default</th>
+              <td mat-cell *matCellDef="let element">
+                {{element.isSelected}}
+              </td>
+            </ng-container>
 
-    <ng-container matColumnDef="genreName">
-      <th mat-header-cell *matHeaderCellDef>Genres</th>
-      <td mat-cell *matCellDef="let element">
-        <table>
-          <tr>
-            <th></th>
-          </tr>
-          <tr>
-            <td *ngFor="let playlistGenre of element.playlistsGenres">
-              {{playlistGenre.genre.name}}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </ng-container>
+            <ng-container matColumnDef="isPublic">
+              <th mat-header-cell *matHeaderCellDef>Is Public</th>
+              <td mat-cell *matCellDef="let element">
+                {{element.isPublic}}
+              </td>
+            </ng-container>
 
-    <ng-container matColumnDef="queuePlaylist">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-stroked-button color="primary" (click)="queuePlaylist(element.id)">Queue Playlist</button>
-      </td>
-    </ng-container>
+            <ng-container matColumnDef="genreName">
+              <th mat-header-cell *matHeaderCellDef>Genres</th>
+              <td mat-cell *matCellDef="let element">
+                <table>
+                  <tr>
+                    <th></th>
+                  </tr>
+                  <tr>
+                    <td *ngFor="let playlistGenre of element.playlistsGenres; let p = index">
+                      <div *ngIf="p === element.playlistsGenres.length - 1">
+                        {{playlistGenre.genre.name}}
+                      </div>
+                      <div *ngIf="p !== element.playlistsGenres.length - 1">
+                        {{playlistGenre.genre.name}}
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </ng-container>
 
-    <ng-container matColumnDef="deletePlaylist">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let element">
-        <button mat-stroked-button color="accent" (click)="deletePlaylist(element.id)">Delete Playlist</button>
-      </td>
-    </ng-container>
+            <ng-container matColumnDef="queuePlaylist">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-stroked-button color="primary" (click)="queuePlaylist(element.id)">Queue Playlist</button>
+              </td>
+            </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+            <ng-container matColumnDef="deletePlaylist">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-stroked-button color="accent" (click)="deletePlaylist(element.id)">Delete Playlist</button>
+              </td>
+            </ng-container>
 
-  <mat-paginator
-    [pageSizeOptions]="[5, 10, 20]"
-    showFirstLastButtons
-    class="table-paginator"
-  ></mat-paginator>
-</div>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
 
-<div class="playlists-container" *ngIf="playlists.length <= 0">
-  <span>No playlists</span>
+          <mat-paginator
+            [pageSizeOptions]="[5, 10, 20]"
+            showFirstLastButtons
+            class="table-paginator"
+          ></mat-paginator>
+        </div>
+
+        <div class="playlists-container" *ngIf="playlists.length <= 0">
+          <span>No playlists</span>
+        </div>
+      </mat-card>
+    </div>
+  </mat-card>
 </div>

@@ -111,6 +111,72 @@ namespace Listify.WebAPI.Hubs
             //}
         }
 
+        public async Task RequestApplicationUser()
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var applicationUser = await _dal.ReadApplicationUserAsync(userId);
+
+                await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task UpdateApplicationUser(ApplicationUserUpdateRequest request)
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                if (userId != Guid.Empty)
+                {
+                    var applicationUser = await _dal.UpdateApplicationUserAsync(request, userId);
+                    await Clients.Caller.SendAsync("ReceiveApplicationUser", applicationUser);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task UpdateUsersRoomInformationInRoom()
+        {
+            try
+            {
+                var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var applicationUserRoomOwner = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+
+                await RequestRoom(applicationUserRoomOwner.Room.RoomCode);
+
+                var owner = await _dal.ReadApplicationUserRoomOwnerAsync(applicationUserRoomOwner.Room.Id);
+
+                var applicationuserRoomConnections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(applicationUserRoomOwner.Room.Id);
+
+                foreach (var applicationuserRoomConnection in applicationuserRoomConnections)
+                {
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationuserRoomConnection.ApplicationUserRoom.Id);
+                    var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
+                    var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+
+                    var roomInformation = new RoomInformation
+                    {
+                        ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray(),
+                        ApplicationUserRoom = applicationUserRoom,
+                        Room = room,
+                        RoomOwner = owner.ApplicationUser
+                    };
+
+                    await Clients.Client(applicationuserRoomConnection.ConnectionId).SendAsync("ReceiveRoomInformation", roomInformation);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         public async Task RequestServerState(Guid roomId)
         {
             var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(roomId);
@@ -157,17 +223,12 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        
         public async Task DequeueNextSong(string roomCode)
         {
             try
             {
                 var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-
-                //if (applicationUserRoomConnection == null)
-                //{
-                //    await CheckConnectionAsync();
-                //    await OnConnectedAsync();
-                //}
 
                 if (applicationUserRoomConnection.ApplicationUserRoom.IsOwner)
                 {
@@ -179,12 +240,30 @@ namespace Listify.WebAPI.Hubs
 
                         if (nextSong != null)
                         {
+                            await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                            {
+                                IsRoomOnline = true,
+                                IsRoomPlaying = true,
+                                Id = room.Id,
+                                RoomGenres = room.RoomGenres.ToArray()
+                            });
+
                             //var song = await _services.ReadSongAsync(nextSong.Song.Id);
                             await Clients.Group(room.RoomCode).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
                             {
                                 CurrentTime = 0,
                                 SongQueued = nextSong,
-                                Weight = nextSong.WeightedValue
+                                Weight = nextSong != null ? nextSong.WeightedValue : 0
+                            });
+                        }
+                        else
+                        {
+                            await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                            {
+                                IsRoomOnline = false,
+                                IsRoomPlaying = false,
+                                Id = room.Id,
+                                RoomGenres = room.RoomGenres.ToArray()
                             });
                         }
                     }
@@ -195,6 +274,74 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        public async Task SkipSong(SongQueuedVM songQueued)
+        {
+            try
+            {
+                var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                if (applicationUserRoomConnection.ApplicationUserRoom.IsOwner)
+                {
+                    var userId = await GetUserIdAsync();
+
+                    var applicationUserRoomCurrencyRooms = await _dal.SkipSongAsync(songQueued.Id);
+
+                    await DequeueNextSong(songQueued.Room.RoomCode);
+
+                    // refund the currencies that has been applied to this song queued
+                    foreach (var applicationUserRoomCurrencyRoom in applicationUserRoomCurrencyRooms)
+                    {
+                        var connections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomCurrencyRoom.ApplicationUserRoom.Id);
+                        var currencies = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomCurrencyRoom.ApplicationUserRoom.Id);
+                        
+                        foreach (var connection in connections)
+                        {
+                            await _roomHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrenciesRoom", currencies);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RemoveFromQueue(SongQueuedVM songQueued)
+        {
+            try
+            {
+                var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                if (applicationUserRoomConnection.ApplicationUserRoom.IsOwner)
+                {
+                    var userId = await GetUserIdAsync();
+
+                    var applicationUserRoomCurrencyRooms = await _dal.SkipSongAsync(songQueued.Id);
+
+                    var songQueuedVM = await _dal.ReadSongQueuedAsync(songQueued.Id);
+
+                    var songsQueued = await _dal.ReadSongsQueuedAsync(songQueuedVM.Room.Id);
+                    await Clients.Group(songQueued.Room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
+
+                    // refund the currencies that has been applied to this song queued
+                    foreach (var applicationUserRoomCurrencyRoom in applicationUserRoomCurrencyRooms)
+                    {
+                        var connections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomCurrencyRoom.ApplicationUserRoom.Id);
+                        var currencies = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomCurrencyRoom.ApplicationUserRoom.Id);
+
+                        foreach (var connection in connections)
+                        {
+                            await _roomHub.Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrenciesRoom", currencies);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         public async Task RequestPlayFromServer(PlayFromServerResponse request)
         {
             var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
@@ -204,6 +351,16 @@ namespace Listify.WebAPI.Hubs
                 var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
                 if (applicationUserRoom != null && applicationUserRoom.IsOwner)
                 {
+                    var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+
+                    await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                    {
+                        IsRoomOnline = true,
+                        IsRoomPlaying = true,
+                        Id = room.Id,
+                        RoomGenres = room.RoomGenres.ToArray()
+                    });
+
                     await Clients.GroupExcept(applicationUserRoom.Room.RoomCode, new List<string>
                     {
                         Context.ConnectionId
@@ -220,6 +377,15 @@ namespace Listify.WebAPI.Hubs
                 var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
                 if (applicationUserRoom != null && applicationUserRoom.IsOwner)
                 {
+                    var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+                    await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                    {
+                        IsRoomOnline = true,
+                        IsRoomPlaying = false,
+                        Id = room.Id,
+                        RoomGenres = room.RoomGenres.ToArray()
+                    });
+
                     await Clients.GroupExcept(applicationUserRoom.Room.RoomCode, new List<string>
                     {
                         Context.ConnectionId
@@ -251,6 +417,40 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        public async Task UpvoteSongQueued(UpvoteSongQueuedRequest request)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        //public async Task UpvoteSongQueuedNoWager(Guid songQueuedId)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
+        //public async Task DownvoteSongQueuedNoWager(Guid songQueuedId)
+        //{
+        //    try
+        //    {
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //    }
+        //}
+
         public async Task RequestApplicationUserRoomCurrencies()
         {
             try
@@ -326,57 +526,156 @@ namespace Listify.WebAPI.Hubs
 
         public async Task RequestRoom(string roomCode)
         {
-            var userId = await GetUserIdAsync();
-            var room = await _dal.ReadRoomAsync(roomCode);
+            var user = await GetApplicationUserAsync();
+
+            // if the room was not specified, then get the default
+            var room = string.IsNullOrWhiteSpace(roomCode) || roomCode == "undefined"
+                ? await _dal.ReadRoomAsync(user.Room.Id)
+                : await _dal.ReadRoomAsync(roomCode);
 
             if (room != null)
             {
-                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(userId, room.Id);
+                var applicationUserRoomNew = await _dal.ReadApplicationUserRoomAsync(user.Id, room.Id);
 
-                if (applicationUserRoom == null)
-                {
-                    applicationUserRoom = await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                applicationUserRoomNew = applicationUserRoomNew == null
+                    ? await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
                     {
                         IsOnline = true,
                         RoomId = room.Id
-                    }, userId);
+                    }, user.Id)
+                    : await _dal.UpdateApplicationUserRoomAsync(new ApplicationUserRoomUpdateRequest
+                    {
+                        Id = applicationUserRoomNew.Id,
+                        IsOnline = true
+                    });
+
+                var currenciesRoom = await _dal.ReadCurrenciesRoomAsync(room.Id);
+                var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoomNew.Id);
+
+                var roomEntityNew = await _dal.ReadRoomAsync(applicationUserRoomNew.Room.Id);
+                var applicationUserRoomConnectionPrevious = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+                connection = connection == null
+                    ? await _dal.CreateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionCreateRequest
+                    {
+                        ApplicationUserRoomId = applicationUserRoomNew.Id,
+                        ConnectionId = Context.ConnectionId,
+                        IsOnline = true,
+                        ConnectionType = ConnectionType.RoomHub
+                    })
+                    : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    {
+                        ApplicationUserRoomId = applicationUserRoomNew.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = true,
+                        Id = connection.Id,
+                    });
+
+                if (applicationUserRoomNew.IsOwner)
+                {
+                    var applicationUserRoomConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomNew.Id);
+
+                    foreach (var appConnection in applicationUserRoomConnections.Where(s => s.ConnectionId != Context.ConnectionId))
+                    {
+                        await Clients.Client(appConnection.ConnectionId).SendAsync("ForceServerDisconnect");
+
+                        var applicationUserRoomTemp = await _dal.ReadApplicationUserRoomAsync(appConnection.ApplicationUserRoom.Id);
+
+                        await Clients.Group(applicationUserRoomTemp.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoomTemp);
+
+                        await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                        {
+                            ApplicationUserRoomId = appConnection.ApplicationUserRoom.Id,
+                            HasPingBeenSent = appConnection.HasPingBeenSent,
+                            Id = appConnection.Id,
+                            IsOnline = false
+                        });
+                    }
                 }
-
-                var applicationUserRoomCurrenciesRoom = await _dal.CheckApplicationUserRoomCurrenciesRoomAsync(applicationUserRoom.Id);
-
-                var roomEntity = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
 
                 var roomInformation = new RoomInformation
                 {
-                    ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
                     ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray(),
-                    RoomOwner = roomEntity.ApplicationUser
+                    ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoomNew),
+                    Room = room,
+                    RoomOwner = roomEntityNew.ApplicationUser
                 };
 
                 await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
 
-                if (applicationUserRoom.IsOwner)
+                if (applicationUserRoomConnectionPrevious != null)
                 {
-                    var songNext = await _dal.DequeueSongQueuedAsync(room.Id, userId);
-                    await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                    var applicationUserRoomPrevious = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnectionPrevious.ApplicationUserRoom.Id);
+
+                    if (applicationUserRoomPrevious != null)
                     {
-                        CurrentTime = 0,
-                        PlayerState = (int)ServerStateType.Stopped,
-                        SongQueued = songNext,
-                        Weight = songNext.WeightedValue
+                        await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoomPrevious.Room.RoomCode);
+
+                        await Clients.Group(applicationUserRoomPrevious.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoomPrevious);
+
+                        if (applicationUserRoomPrevious.IsOwner)
+                        {
+                            var previousRoom = await _dal.ReadRoomAsync(applicationUserRoomPrevious.Room.Id);
+
+                            await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                            {
+                                Id = previousRoom.Id,
+                                IsRoomPlaying = false,
+                                IsRoomOnline = false,
+                                RoomGenres = previousRoom.RoomGenres.ToArray()
+                            });
+                        }
+
+                        await _dal.UpdateApplicationUserRoomAsync(new ApplicationUserRoomUpdateRequest
+                        {
+                            IsOnline = false,
+                            Id = applicationUserRoomPrevious.Id
+                        });
+                    }
+                }
+
+                await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomCode);
+
+                await Clients.Group(room.RoomCode).SendAsync("ReceiveApplicationUserRoomOnline", applicationUserRoomNew);
+
+                if (applicationUserRoomNew.IsOwner)
+                {
+                    await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                    {
+                        Id = room.Id,
+                        IsRoomOnline = true,
+                        IsRoomPlaying = true,
+                        RoomGenres = room.RoomGenres.ToArray()
                     });
+
+                    await _dal.RestartSongPlaylistCountAsync(applicationUserRoomNew.ApplicationUser.Id);
+
+                    var songNext = await _dal.DequeueSongQueuedAsync(room.Id, applicationUserRoomNew.ApplicationUser.Id);
+                    if (songNext != null)
+                    {
+                        await Clients.Client(Context.ConnectionId).SendAsync("RequestPlayFromServer", new PlayFromServerResponse
+                        {
+                            CurrentTime = 0,
+                            PlayerState = (int)ServerStateType.Stopped,
+                            SongQueued = songNext,
+                            Weight = songNext.WeightedValue
+                        });
+                    }
                 }
                 else
                 {
+                    var applicationUser = await _dal.ReadApplicationUserAsync(applicationUserRoomNew.ApplicationUser.Id);
+
                     var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(room.Id);
                     var channelOwnerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoomOwnerVM.Id);
 
                     if (channelOwnerConnections.Count() > 0)
                     {
-                        // ToDo: Do we want this to go to all connections?
                         // Only try to grab data from the first connection
                         // the ping service will remove stale connections upon rejoining.
-                        foreach (var channelOwnerConnection in channelOwnerConnections)
+                        foreach (var channelOwnerConnection in channelOwnerConnections.Where(s => s.ConnectionId != Context.ConnectionId))
                         {
                             await Clients.Client(channelOwnerConnection.ConnectionId).SendAsync("RequestServerState", new ServerStateRequest
                             {
@@ -437,6 +736,158 @@ namespace Listify.WebAPI.Hubs
             }
         }
 
+        public async Task RequestFollow(Guid roomId)
+        {
+            try
+            {
+                var room = await _dal.ReadRoomAsync(roomId);
+
+                if (room != null)
+                {
+                    var userId = await GetUserIdAsync();
+                    var follow = await _dal.CreateFollowAsync(new FollowCreateRequest
+                    {
+                        RoomId = roomId
+                    }, userId);
+
+                    await Clients.Caller.SendAsync("ReceiveFollow", follow);
+
+                    var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(roomId);
+
+                    var connections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(roomId);
+
+                    var follows = await _dal.ReadFollowsByRoomIdAsync(roomId);
+                    
+                    foreach (var connection in connections)
+                    {
+                        await Clients.Client(connection.ConnectionId).SendAsync("ReceiveFollows", follows);
+                    }
+                    return;
+                }
+
+                await Clients.Caller.SendAsync("ReceiveFollow", null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestUnFollow(Guid roomId)
+        {
+            try
+            {
+                var room = await _dal.ReadRoomAsync(roomId);
+
+                if (room != null)
+                {
+                    var userId = await GetUserIdAsync();
+                    var follow = await _dal.ReadFollowAsync(roomId, userId);
+
+                    if (follow != null)
+                    {
+                        if (await _dal.DeleteFollowAsync(follow.Id, userId))
+                        {
+                            await Clients.Caller.SendAsync("ReceiveFollow", null);
+
+                            var applicationUserRoomOwnerVM = await _dal.ReadApplicationUserRoomOwnerAsync(roomId);
+                            var connections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(roomId);
+
+                            var follows = await _dal.ReadFollowsByRoomIdAsync(roomId);
+                            foreach (var connection in connections)
+                            {
+                                await Clients.Client(connection.ConnectionId).SendAsync("ReceiveFollows", follows);
+                            }
+                        }
+                        return;
+                    }
+                }
+
+                await Clients.Caller.SendAsync("ReceiveFollow", null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public async Task RequestApplicationUsersRoomOnline()
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestQueueUpdated(Guid roomId)
+        {
+            try
+            {
+                var room = await _dal.ReadRoomAsync(roomId);
+
+                var songsQueued = await _dal.ReadSongsQueuedAsync(roomId);
+
+                await Clients.Group(room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestAddSongCurrentToPlaylist(Guid songQueuedId)
+        {
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        public async Task RequestQueueClear()
+        {
+            try
+            {
+                var applicationUser = await GetApplicationUserAsync();
+                if (await _dal.ClearSongsQueuedAsync(applicationUser.Room.Id))
+                {
+                    // send the updated queue to all the users in the room
+                    var songsQueued = await _dal.ReadSongsQueuedAsync(applicationUser.Room.Id);
+
+                    await Clients.Group(applicationUser.Room.RoomCode).SendAsync("ReceiveSongsQueued", songsQueued);
+
+                    // send all the updated currencies to each user in the room
+                    var connections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(applicationUser.Room.Id);
+                    var currenciesRoom = await _dal.ReadCurrenciesRoomAsync(applicationUser.Room.Id);
+
+                    foreach (var connection in connections)
+                    {
+                        var applicationUserRoomCurrenciesRoom = new List<ApplicationUserRoomCurrencyRoomVM>();
+
+                        foreach (var currencyRoom in currenciesRoom)
+                        {
+                            var applicationUserRoomCurrencyRoom = await _dal.ReadApplicationUserRoomCurrencyRoomAsync(connection.ApplicationUserRoom.Id, currencyRoom.Id);
+
+                            if (applicationUserRoomCurrencyRoom != null)
+                            {
+                                applicationUserRoomCurrenciesRoom.Add(applicationUserRoomCurrencyRoom);
+                            }
+                        }
+
+                        await Clients.Client(connection.ConnectionId).SendAsync("ReceiveApplicationUserRoomCurrenciesRoom", applicationUserRoomCurrenciesRoom);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             try
@@ -490,14 +941,17 @@ namespace Listify.WebAPI.Hubs
                     {
                         var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);
 
-                        if (applicationUserRoom == null)
-                        {
-                            applicationUserRoom = await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
+                        applicationUserRoom = applicationUserRoom == null
+                            ? await _dal.CreateApplicationUserRoomAsync(new ApplicationUserRoomCreateRequest
                             {
                                 IsOnline = true,
                                 RoomId = room.Id
-                            }, applicationUser.Id);
-                        }
+                            }, applicationUser.Id)
+                            : await _dal.UpdateApplicationUserRoomAsync(new ApplicationUserRoomUpdateRequest
+                              {
+                                  IsOnline = true,
+                                  Id = applicationUserRoom.Id
+                              });
 
                         var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
 
@@ -511,17 +965,17 @@ namespace Listify.WebAPI.Hubs
                             })
                             : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                             {
+                                ApplicationUserRoomId = applicationUserRoom.Id,
                                 HasPingBeenSent = connection.HasPingBeenSent,
                                 IsOnline = true,
                                 Id = connection.Id,
-                                ApplicationUserRoomId = applicationUserRoom.Id
                             });
 
                         if (applicationUserRoom.IsOwner)
                         {
                             var applicationUserRoomConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
 
-                            foreach (var appConnection in applicationUserRoomConnections)
+                            foreach (var appConnection in applicationUserRoomConnections.Where(s => s.ConnectionId != Context.ConnectionId))
                             {
                                 await Clients.Client(appConnection.ConnectionId).SendAsync("ForceServerDisconnect");
 
@@ -546,20 +1000,28 @@ namespace Listify.WebAPI.Hubs
                         await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomCode);
                         await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOnline", applicationUserRoom);
 
-                        var roomEntity = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
-
                         var roomInformation = new RoomInformation
                         {
-                            Room = _mapper.Map<RoomDTO>(room),
+                            Room = room,
                             ApplicationUserRoom = _mapper.Map<ApplicationUserRoomVM>(applicationUserRoom),
                             ApplicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom.ToArray(),
-                            RoomOwner = roomEntity.ApplicationUser
+                            RoomOwner = room.ApplicationUser
                         };
 
                         await Clients.Caller.SendAsync("ReceiveRoomInformation", roomInformation);
 
                         if (applicationUserRoom.IsOwner)
                         {
+                            await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                            {
+                                Id = room.Id,
+                                IsRoomOnline = true,
+                                IsRoomPlaying = true,
+                                RoomGenres = room.RoomGenres.ToArray()
+                            });
+
+                            await _dal.RestartSongPlaylistCountAsync(applicationUserRoom.ApplicationUser.Id);
+
                             var songNext = await _dal.DequeueSongQueuedAsync(room.Id, applicationUserRoom.ApplicationUser.Id);
                             if (songNext != null)
                             {
@@ -579,7 +1041,6 @@ namespace Listify.WebAPI.Hubs
 
                             if (channelOwnerConnections.Count() > 0)
                             {
-                                // ToDo: Do we want this to go to all connections?
                                 // Only try to grab data from the first connection
                                 // the ping service will remove stale connections upon rejoining.
                                 foreach (var channelOwnerConnection in channelOwnerConnections)
@@ -607,18 +1068,37 @@ namespace Listify.WebAPI.Hubs
                 var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
                 if (connection != null)
                 {
-                    connection = await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
+                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
+                    await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoom);
+
+                    await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
-                        Id = connection.Id,
+                        ApplicationUserRoomId = connection.ApplicationUserRoom.Id,
                         HasPingBeenSent = connection.HasPingBeenSent,
+                        Id = connection.Id,
                         IsOnline = false
                     });
 
-                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
-
-                    if (await _dal.UpdateApplicationUserRoomAndRoomToOfflineAsync(applicationUserRoom.Id))
+                    var connections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
+                    var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+                    
+                    if (!connections.Any(s => s.ConnectionId != Context.ConnectionId && s.IsOnline))
                     {
-                        await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
+                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                        {
+                            IsRoomPlaying = false,
+                            Id = room.Id,
+                            IsRoomOnline = false,
+                            RoomGenres = room.RoomGenres.ToArray()
+                        });
+
+                        await _dal.UpdateApplicationUserRoomAsync(new ApplicationUserRoomUpdateRequest
+                        {
+                            IsOnline = false,
+                            Id = applicationUserRoom.Id
+                        });
                     }
                 }
             }
@@ -646,6 +1126,25 @@ namespace Listify.WebAPI.Hubs
             var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
             return applicationUserRoom.ApplicationUser.Id;
         }
+        protected virtual async Task<ApplicationUserVM> GetApplicationUserAsync()
+        {
+            var applicationUserRoomConnection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+
+            if (applicationUserRoomConnection == null)
+            {
+                applicationUserRoomConnection = await CheckConnectionAsync();
+
+                if (applicationUserRoomConnection == null)
+                {
+                    await _roomHub.Clients.Client(Context.ConnectionId).SendAsync("ForceServerDisconnect");
+                    return null;
+                }
+            }
+
+            var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
+            return _mapper.Map<ApplicationUserVM>(applicationUserRoom.ApplicationUser);
+        }
+
         protected virtual async Task<ApplicationUserRoomConnectionVM> CheckConnectionAsync()
         {
             var context = Context.GetHttpContext();
@@ -662,7 +1161,7 @@ namespace Listify.WebAPI.Hubs
             });
 
             var username = response.Claims.ToList().First(s => s.Type == "name").Value;
-            var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
+            var userId = response.Claims.ToList().First(s => s.Type == "sub").Value;
 
             if (!string.IsNullOrWhiteSpace(username) && string.IsNullOrWhiteSpace(userId))
             {

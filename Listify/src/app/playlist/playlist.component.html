@@ -1,70 +1,89 @@
-<div *ngIf="isOwner" class="mat-h3">Maximum number of Songs: {{numberOfSongs}} songs</div>
+<div class="padding-simple">
+  <mat-card class="playlist-container">
+    <ngx-loading-x [show]="loading"></ngx-loading-x>
+    <div class="padding-basic flex-container">
+      <div class="padding-internal playlist-container">
+        <mat-card>
+          <div *ngIf="isOwner" class="mat-h3">Maximum number of Songs: {{numberOfSongs}} songs</div>
+          <div *ngIf="playlistImageUrl !== undefined && playlistImageUrl !== null">
+            <img class="playlist-image" width="85px" height="85px" [src]="playlistImageUrl" [alt]="playlistName" />
+          </div>
+          <div>
+            <mat-form-field>
+              <input matInput type="file" #file style="display: none;" (change)="onFilesAdded()" single accept="image/*"/>
+              <button mat-stroked-button color="accent" appearance="outline" (click)="uploadPlaylistImage()">Upload Playlist Image</button>
+            </mat-form-field>
+            <div *ngIf="tPlayList.touched && !tPlayList.valid" style="color: red">Place Name is Required</div>
+          </div>
+          <div>
+            <mat-form-field>
+              <input *ngIf="isOwner" matInput id="playlistName" #tPlayList name="playlistName" placeholder="Playlist Name" [(ngModel)]="playlistName" required>
+              <div *ngIf="!isOwner">
+                Playlist Name: <b> {{playlistName}}</b>
+                <br>
+                Owner: <b>{{OwnerName}}</b>
+              </div>
+            </mat-form-field>
+            <div *ngIf="tPlayList.touched && !tPlayList.valid" style="color: red">Place Name is Required</div>
+          </div>
+          <div *ngIf="isOwner">
+            <mat-checkbox type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected">Is default and will play randomly when queue is empty in room home ?</mat-checkbox>
+          </div>
+          <div *ngIf="isOwner">
+            <mat-checkbox type="checkbox" [(ngModel)]="isPublic" name="isPublic" id="isPublic">Is playlist publicly available to the community</mat-checkbox>
+          </div>
+          <div *ngIf="isOwner" class="genres-container">
+            <mat-form-field>
+              <mat-select [(ngModel)]="genreSelectedId">
+                <mat-option *ngFor="let genre of genres; let p = index" [value]="genre.id">
+                  {{genre.name}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button mat-stroked-button color="primary" type="button" id="addGenre" (click)="addGenre()" [disabled]="genreSelectedId === undefined">Add Genre</button>
+          </div>
 
-<ngx-loading-x [show]="loading"></ngx-loading-x>
-<div>
-  <mat-form-field>
-    <input *ngIf="isOwner" matInput id="playlistName" #tPlayList name="playlistName" placeholder="Playlist Name" [(ngModel)]="playlistName" required>
-    <div *ngIf="!isOwner">
-      Playlist Name: <b> {{playlistName}}</b>
-      <br>
-      Owner: <b>{{OwnerName}}</b>
+          <div *ngIf="playlistGenres?.length <= 0">
+            <div class="mat-h3">No Genres has been selected for this playlist</div>
+          </div>
+          <div *ngIf="playlistGenres !== undefined && playlistGenres?.length > 0">
+            <div class="mat-h3">Selected Genres</div>
+            <ul>
+              <table>
+                <tr>
+                  <th></th>
+                  <th></th>
+                </tr>
+                <tr *ngFor="let playlistGenre of playlistGenres">
+                  <td>
+                    <li>{{playlistGenre?.genre.name}}</li>
+                  </td>
+                  <td *ngIf="isOwner">
+                    <button mat-stroked-button color="primary" type="button" id="removeGenre" (click)="removeGenre(playlistGenre.genre.id)">Remove Genre</button>
+                  </td>
+                </tr>
+              </table>
+            </ul>
+          </div>
+          <br>
+          <div>
+            <button mat-stroked-button color="default" type="button" id="back" (click)="back()">Back</button>
+            <button mat-stroked-button color="primary" type="button" id="back" (click)="queuePlaylist()">Queue Playlist In My Room</button>
+            <button *ngIf="isOwner" mat-stroked-button color="primary" type="submit" id="save" (click)="savePlaylist()">Save</button>
+          </div>
+          <br>
+          <div *ngIf="isOwner">
+            <button mat-stroked-button color="primary" type="button" id="importYoutubePlaylist" (click)="importYoutubePlaylist()">Import Youtube Playlist</button>
+            <button mat-stroked-button color="primary" type="button" id="importSpotifyPlaylist" (click)="importSpotifyPlaylist()">Import Spotify Playlist</button>
+          </div>
+
+          <hr>
+          <app-songsplaylist [isOwner]="isOwner"></app-songsplaylist>
+
+          <hr>
+          <app-searchsongplaylist *ngIf="isOwner" [playlist] = "playlist"></app-searchsongplaylist>
+        </mat-card>
+      </div>
     </div>
-  </mat-form-field>
-  <div *ngIf="tPlayList.touched && !tPlayList.valid" style="color: red">Place Name is Required</div>
+  </mat-card>
 </div>
-<div *ngIf="isOwner">
-  <mat-checkbox type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected">Is default and will play randomly when queue is empty in room home ?</mat-checkbox>
-</div>
-<div *ngIf="isOwner">
-  <mat-checkbox type="checkbox" [(ngModel)]="isPublic" name="isPublic" id="isPublic">Is playlist publicly available to the community</mat-checkbox>
-</div>
-<div *ngIf="isOwner" class="genres-container">
-  <mat-form-field>
-    <mat-select [(ngModel)]="genreSelectedId">
-      <mat-option *ngFor="let genre of genres; let p = index" [value]="genre.id">
-        {{genre.name}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-  <button mat-stroked-button color="primary" type="button" id="addGenre" (click)="addGenre()" [disabled]="genreSelectedId === undefined">Add Genre</button>
-</div>
-
-<div *ngIf="playlistGenres?.length <= 0">
-  <div class="mat-h3">No Genres has been selected for this playlist</div>
-</div>
-<div *ngIf="playlistGenres !== undefined && playlistGenres?.length > 0">
-  <div class="mat-h3">Selected Genres</div>
-  <ul>
-    <table>
-      <tr>
-        <th></th>
-        <th></th>
-      </tr>
-      <tr *ngFor="let playlistGenre of playlistGenres">
-        <td>
-          <li>{{playlistGenre?.genre.name}}</li>
-        </td>
-        <td *ngIf="isOwner">
-          <button mat-stroked-button color="primary" type="button" id="removeGenre" (click)="removeGenre(playlistGenre.genre.id)">Remove Genre</button>
-        </td>
-      </tr>
-    </table>
-  </ul>
-</div>
-<br>
-<div>
-  <button mat-stroked-button color="default" type="button" id="back" (click)="back()">Back</button>
-  <button mat-stroked-button color="primary" type="button" id="back" (click)="queuePlaylist()">Queue Playlist In My Room</button>
-  <button *ngIf="isOwner" mat-stroked-button color="primary" type="submit" id="save" (click)="savePlaylist()">Save</button>
-</div>
-<br>
-<div *ngIf="isOwner">
-  <button mat-stroked-button color="primary" type="button" id="importYoutubePlaylist" (click)="importYoutubePlaylist()">Import Youtube Playlist</button>
-  <button mat-stroked-button color="primary" type="button" id="importSpotifyPlaylist" (click)="importSpotifyPlaylist()">Import Spotify Playlist</button>
-</div>
-
-<hr>
-<app-songsplaylist [isOwner]="isOwner"></app-songsplaylist>
-
-<hr>
-<app-searchsongplaylist *ngIf="isOwner" [playlist] = "playlist"></app-searchsongplaylist>

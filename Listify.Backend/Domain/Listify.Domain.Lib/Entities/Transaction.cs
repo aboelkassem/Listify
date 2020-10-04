@@ -12,7 +12,9 @@ namespace Listify.Domain.Lib.Entities
     public class Transaction : BaseEntity
     {
         public TransactionType TransactionType { get; set; }
-        public int QuantityChange { get; set; }
+        public int QuantityChanged { get; set; }
+        public bool HasBeenRefunded { get; set; }
+        public DateTime? RefundTimestamp { get; set; }
 
         public Guid ApplicationUserRoomCurrencyId { get; set; }
         public ApplicationUserRoomCurrencyRoom ApplicationUserRoomCurrency { get; set; }

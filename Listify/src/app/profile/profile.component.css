@@ -1,3 +1,29 @@
 .profile-container {
   padding: 10px 10px 10px 10px;
 }
+
+.padding-simple {
+  padding: 10px 10px 10px 10px;
+}
+
+.padding-noTop {
+  padding: 0px 10px 10px 10px;
+}
+
+.padding-topOnly {
+  padding: 10px 0px 0px 0px;
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.flexVert-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-content {
+  padding: 5px 5px 5px 5px;
+}

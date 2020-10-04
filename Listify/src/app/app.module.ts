@@ -42,6 +42,9 @@ import { PlaylistscommunityComponent } from './playlistscommunity/playlistscommu
 import { ApplicationusersroommodalComponent } from './shared/modals/applicationusersroommodal/applicationusersroommodal.component';
 import { InformationmodalComponent } from './shared/modals/informationmodal/informationmodal.component';
 import { ProfileComponent } from './profile/profile.component';
+import { ProfileplaylistsComponent } from './shared/profileplaylists/profileplaylists.component';
+import { ApplicationusersfollowingmodalComponent } from './shared/modals/applicationusersfollowingmodal/applicationusersfollowingmodal.component';
+import { RoomsfollowedComponent } from './shared/roomsfollowed/roomsfollowed.component';
 
 @NgModule({
   declarations: [
@@ -72,12 +75,16 @@ import { ProfileComponent } from './profile/profile.component';
     ApplicationusersroommodalComponent,
     InformationmodalComponent,
     ProfileComponent,
+    ProfileplaylistsComponent,
+    ApplicationusersfollowingmodalComponent,
+    RoomsfollowedComponent,
   ],
   entryComponents: [
     ConfirmationmodalComponent,
     InputmodalComponent,
     ApplicationusersroommodalComponent,
-    InformationmodalComponent
+    ApplicationusersfollowingmodalComponent,
+    InformationmodalComponent,
   ],
   imports: [
     BrowserModule,

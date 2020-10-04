@@ -13,7 +13,7 @@ namespace Listify.Lib.VMs
     public class TransactionVM : BaseVM
     {
         public TransactionType TransactionType { get; set; }
-        public int QuantityChange { get; set; }
+        public int QuantityChanged { get; set; }
 
         public ApplicationUserRoomCurrencyRoomDTO ApplicationUserRoomCurrency { get; set; }
     }
