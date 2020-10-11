@@ -10,6 +10,11 @@ namespace Listify.Lib.VMs
         public string YoutubeId { get; set; } // +2 referneces
         public int SongLengthSeconds { get; set; } // +2 referneces
 
+        // Default Thumbnail
+        public string ThumbnailUrl { get; set; }
+        public int ThumbnailWidth { get; set; }
+        public int ThumbnailHeight { get; set; }
+
         public ICollection<SongRequestDTO> SongRequests { get; set; } =
             new List<SongRequestDTO>();
     }

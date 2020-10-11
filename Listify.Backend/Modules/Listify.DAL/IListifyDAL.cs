@@ -120,8 +120,8 @@ namespace Listify.DAL
 
         Task<bool> ClearSongsQueuedAsync(Guid roomId);
 
-        Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId);
-        Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId);
+        //Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId);
+        //Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId);
 
         Task<GenreDTO[]> ReadGenresAsync();
 

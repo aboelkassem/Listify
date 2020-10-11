@@ -16,7 +16,7 @@ import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirma
 })
 export class QueueComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
-  displayedColumns: string[] = ['songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued', 'removeFromQueue'];
+  displayedColumns: string[] = ['songThumbnail', 'songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued', 'removeFromQueue'];
   dataSource = new MatTableDataSource<ISongQueued>();
 
   loading = false;
@@ -40,12 +40,6 @@ export class QueueComponent implements OnInit, OnDestroy {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
       this.loading = false;
-
-      songsQueued.forEach(element => {
-        const minimumValue = Math.min(...element.song.songThumbnails.map(s => s.sizeX));
-        element.song.songThumbnailSelected = element.song.songThumbnails.filter(x => x.sizeX === minimumValue)[0];
-      });
-
       this.songsQueued = songsQueued;
       this.dataSource.data = this.songsQueued;
       this.loading = false;

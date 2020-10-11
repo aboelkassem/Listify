@@ -16,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 export class SongsplaylistComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
-  displayedColumns: string[] = ['songName', 'songLengthSec', 'removeSongPlaylist'];
+  displayedColumns: string[] = ['songThumbnail', 'songName', 'songLengthSec', 'removeSongPlaylist'];
   dataSource = new MatTableDataSource<ISongPlaylist>();
 
   @Input() isOwner: boolean;
@@ -37,11 +37,6 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
       this.$playlistSubscription = this.hubService.getPlaylist().subscribe(playlist => {
         if (playlist.songsPlaylist) {
           this.songsPlaylist = playlist.songsPlaylist;
-
-          playlist.songsPlaylist.forEach(s => {
-            const minimumValue = Math.min(...s.song.sogThumbnails.map(t => t.sizeY));
-            s.song.songThumbnailSelected = s.song.songThumbnails.filter(x => x.sizeY === minimumValue)[0];
-          });
 
           this.dataSource.data = this.songsPlaylist;
           this.dataSource.sort = this.sort;

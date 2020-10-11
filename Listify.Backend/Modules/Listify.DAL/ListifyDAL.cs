@@ -148,12 +148,6 @@ namespace Listify.DAL
             };
             await _context.Rooms.AddAsync(room);
 
-            var profile = new Domain.Lib.Entities.Profile
-            {
-                ApplicationUser = entity
-            };
-            await _context.Profiles.AddAsync(profile);
-
             var applicationUserRoom = new ApplicationUserRoom
             {
                 ApplicationUser = entity,
@@ -1026,25 +1020,156 @@ namespace Listify.DAL
         public virtual async Task<SongVM> ReadSongAsync(string youtubeId)
         {
             var entity = await _context.Songs
+                .Include(s => s.SongRequests)
                 .FirstOrDefaultAsync(s => s.YoutubeId == youtubeId && s.Active);
 
             return entity != null ? _mapper.Map<SongVM>(entity) : null;
         }
         public virtual async Task<SongVM> CreateSongAsync(string youtubeId)
         {
+            try
+            {
+                // Create the Song
+                YoutubeSearchResponse response;
+                using (var httpClient = new HttpClient())
+                {
+                    var url = $"https://www.googleapis.com/youtube/v3/videos?id={youtubeId}&part=snippet&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                    var result = await httpClient.GetStringAsync(url);
+                    response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
+                }
 
+                var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+                var hours = 0f;
+                var minutes = 0f;
+                var seconds = 0f;
+
+                if (parsedLength.IndexOf("H") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
+                    {
+                        hours = hoursInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("M") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+                    {
+                        minutes = minutesInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("S") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+                    {
+                        seconds = secondsInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+                    }
+                }
+
+                var time = (int)Math.Round(TimeSpan.FromHours(hours).Add(TimeSpan.FromMinutes(minutes)).Add(TimeSpan.FromSeconds(seconds)).TotalSeconds);
+                return await CreateSongAsync(new SongCreateRequest
+                {
+                    YoutubeId = response.Items.FirstOrDefault().Id,
+                    SongLengthSeconds = time,
+                    SongName = response.Items.FirstOrDefault().Snippet.Title,
+                    ThumbnailUrl = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Url,
+                    ThumbnailWidth = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Width,
+                    ThumbnailHeight = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Height
+            });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public virtual async Task<SongVM> CreateSongAsync(YoutubeResults.YoutubeResult songSearchResult)
         {
+            try
+            {
+                // Create the Song
+                YoutubeSearchResponse response;
+                using (var httpClient = new HttpClient())
+                {
+                    var url = $"https://www.googleapis.com/youtube/v3/videos?id={songSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                    var result = await httpClient.GetStringAsync(url);
+                    response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
+                }
 
+                var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+                var hours = 0f;
+                var minutes = 0f;
+                var seconds = 0f;
+
+                if (parsedLength.IndexOf("H") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
+                    {
+                        hours = hoursInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("M") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+                    {
+                        minutes = minutesInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("S") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+                    {
+                        seconds = secondsInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+                    }
+                }
+
+                var time = (int)Math.Round(TimeSpan.FromHours(hours).Add(TimeSpan.FromMinutes(minutes)).Add(TimeSpan.FromSeconds(seconds)).TotalSeconds);
+                return await CreateSongAsync(new SongCreateRequest
+                {
+                    YoutubeId = songSearchResult.VideoId,
+                    SongLengthSeconds = time,
+                    SongName = songSearchResult.SongName,
+                    ThumbnailUrl = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Url,
+                    ThumbnailWidth = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Width,
+                    ThumbnailHeight = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Height
+            });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public virtual async Task<SongVM> CreateSongAsync(Google.Apis.YouTube.v3.Data.PlaylistItem playlistItem)
         {
+            try
+            {
 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
         public virtual async Task<SongVM> CreateSongAsync(Google.Apis.YouTube.v3.Data.SearchResult songSearchResult)
         {
+            try
+            {
 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
         public virtual async Task<SongVM> CreateSongAsync(SongCreateRequest request)
         {
@@ -1082,7 +1207,71 @@ namespace Listify.DAL
         }
         public virtual async Task<SongVM> UpdateSongAsync(string youtubeId)
         {
+            try
+            {
+                // Create the Song
+                YoutubeSearchResponse response;
+                using (var httpClient = new HttpClient())
+                {
+                    var url = $"https://www.googleapis.com/youtube/v3/videos?id={youtubeId}&part=snippet&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                    var result = await httpClient.GetStringAsync(url);
+                    response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
+                }
 
+                var parsedLength = response.Items[0].ContentDetails.Duration.Substring(2);
+                var hours = 0f;
+                var minutes = 0f;
+                var seconds = 0f;
+
+                if (parsedLength.IndexOf("H") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("H")), out var hoursInt))
+                    {
+                        hours = hoursInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("H") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("M") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("M")), out var minutesInt))
+                    {
+                        minutes = minutesInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("M") + 1);
+                    }
+                }
+
+                if (parsedLength.IndexOf("S") > 0)
+                {
+                    if (float.TryParse(parsedLength.Substring(0, parsedLength.IndexOf("S")), out var secondsInt))
+                    {
+                        seconds = secondsInt;
+                        parsedLength = parsedLength.Substring(parsedLength.IndexOf("S") + 1);
+                    }
+                }
+
+                var time = (int)Math.Round(TimeSpan.FromHours(hours).Add(TimeSpan.FromMinutes(minutes)).Add(TimeSpan.FromSeconds(seconds)).TotalSeconds);
+
+                var songEntity = await _context.Songs
+                    .FirstOrDefaultAsync(s => s.YoutubeId == youtubeId);
+
+                songEntity.SongLengthSeconds = time;
+                songEntity.SongName = response.Items.FirstOrDefault().Snippet.Title;
+                songEntity.ThumbnailUrl = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Url;
+                songEntity.ThumbnailWidth = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Width;
+                songEntity.ThumbnailHeight = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Height;
+                _context.Entry(songEntity).State = EntityState.Modified;
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadSongAsync(songEntity.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public virtual async Task<bool> DeleteSongAsync(Guid id)
         {
@@ -1250,7 +1439,6 @@ namespace Listify.DAL
         {
             var entity = await _context.SongsPlaylists
                 .Include(s => s.Song)
-                .Include(s => s.Song.SongThumbnails)
                 .Include(s => s.Playlist)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
@@ -1315,8 +1503,11 @@ namespace Listify.DAL
                     {
                         YoutubeId = request.SongSearchResult.VideoId,
                         SongLengthSeconds = time,
-                        SongName = request.SongSearchResult.SongName
-                    });
+                        SongName = request.SongSearchResult.SongName,
+                        ThumbnailUrl = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Url,
+                        ThumbnailWidth = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Width,
+                        ThumbnailHeight = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Height
+                });
 
                     song = await _context.Songs.FirstOrDefaultAsync(s => s.Id == songVM.Id);
                 }
@@ -1379,7 +1570,6 @@ namespace Listify.DAL
                 .Include(s => s.Song)
                 .Include(s => s.Room)
                 .Include(s => s.ApplicationUser)
-                .Include(s => s.Song.SongThumbnails)
                 .Where(s => s.RoomId == roomId && s.Active)
                 .OrderByDescending(s => s.WeightedValue)
                 .ThenBy(s => s.TimeStamp)
@@ -1387,24 +1577,7 @@ namespace Listify.DAL
 
             var vms = new List<SongQueuedVM>();
 
-            foreach (var entity in entities)
-            {
-                if (!entity.Song.SongThumbnails.Any())
-                {
-                    await UpdateSongAsync(entity.Song.YoutubeId);
-
-                    var entityUpdated = await _context.SongsQueued
-                        .Include(s => s.Song)
-                        .Include(s => s.ApplicationUser)
-                        .Include(s => s.Song.SongThumbnails)
-                        .FirstOrDefaultAsync(s => s.Id == entity.Id && s.Active);
-                    vms.Add(_mapper.Map<SongQueuedVM>(entityUpdated));
-                }
-                else
-                {
-                    vms.Add(_mapper.Map<SongQueuedVM>(entity));
-                }
-            }
+            entities.ForEach(s => vms.Add(_mapper.Map<SongQueuedVM>(s)));
 
             return vms.ToArray();
         }
@@ -1412,20 +1585,11 @@ namespace Listify.DAL
         {
             var entity = await _context.SongsQueued
                 .Include(s => s.Song)
-                .Include(s => s.Song.SongThumbnails)
                 .Include(s => s.Room)
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
-            if (!entity.Song.SongThumbnails.Any())
-            {
-                await UpdateSongAsync(entity.Song.YoutubeId);
-                return await ReadSongQueuedAsync(entity.Id);
-            }
-            else
-            {
-                return _mapper.Map<SongQueuedVM>(entity);
-            }
+            return _mapper.Map<SongQueuedVM>(entity);
         }
         public virtual async Task<SongQueuedVM> CreateSongQueuedAsync(SongQueuedCreateRequest request)
         {
@@ -1500,8 +1664,11 @@ namespace Listify.DAL
                         {
                             YoutubeId = request.SongSearchResult.VideoId,
                             SongLengthSeconds = time,
-                            SongName = request.SongSearchResult.SongName
-                        });
+                            SongName = request.SongSearchResult.SongName,
+                            ThumbnailUrl = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Url,
+                            ThumbnailWidth = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Width,
+                            ThumbnailHeight = response.Items.FirstOrDefault().Snippet.Thumbnails.Default.Height
+                    });
                     }
 
                     var songsQueued = await ReadSongsQueuedAsync(applicationUserRoom.Room.Id);
@@ -1601,7 +1768,6 @@ namespace Listify.DAL
                 .ThenBy(s => s.TimeStamp)
                 .Include(s => s.ApplicationUser)
                 .Include(s => s.Song)
-                .Include(s => s.Song.SongThumbnails)
                 .FirstOrDefaultAsync();
 
             if (queuedSongNext == null)
@@ -1616,21 +1782,6 @@ namespace Listify.DAL
             }
             else
             {
-                // if this song don't have any thumbnails
-                if (!queuedSongNext.Song.SongThumbnails.Any())
-                {
-                    await UpdateSongAsync(queuedSongNext.Song.YoutubeId);
-
-                    queuedSongNext = await _context.SongsQueued
-                        .Include(s => s.Room)
-                        .Include(s => s.ApplicationUser)
-                        .Include(s => s.Song)
-                        .Include(s => s.Song.SongThumbnails)
-                        .OrderByDescending(s => s.WeightedValue)
-                        .ThenBy(s => s.TimeStamp)
-                        .FirstOrDefaultAsync(s => s.Id == queuedSongNext.Id && s.Active);
-                }
-
                 queuedSongNext.Active = false;
                 queuedSongNext.HasBeenPlayed = true;
                 queuedSongNext.TimestampPlayed = DateTime.UtcNow;
@@ -2311,12 +2462,20 @@ namespace Listify.DAL
         {
             try
             {
+                var songSearchResult = await SearchYoutubeAsync(searchSnippet);
+                var firstSearchResult = songSearchResult.Results.FirstOrDefault();
+                if (firstSearchResult != null)
+                {
+                    var songVM = await ReadSongAsync(firstSearchResult.VideoId);
 
+                    return songVM != null ? songVM : await CreateSongAsync(firstSearchResult);
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
+            return null;
         }
         public virtual async Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet)
         {
@@ -2350,7 +2509,10 @@ namespace Listify.DAL
                             {
                                 VideoId = searchResult.Id.VideoId,
                                 LengthSec = 0,
-                                SongName = searchResult.Snippet.Title
+                                SongName = searchResult.Snippet.Title,
+                                YoutubeThumbnailUrl = searchResult.Snippet.Thumbnails.Default__.Url,
+                                YoutubeThumbnailHeight = searchResult.Snippet.Thumbnails.Default__.Height,
+                                YoutubeThumbnailWidth = searchResult.Snippet.Thumbnails.Default__.Width,
                             });
                             break;
                     }
@@ -2363,40 +2525,54 @@ namespace Listify.DAL
             }
             return null;
         }
+        // return first relevance result
         public virtual async Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet)
         {
-            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            try
             {
-                ApiKey = Globals.GOOGLE_API_KEY,
-                ApplicationName = "Listify" 
-            });
-
-            var searchListRequest = youtubeService.Search.List("snippet");
-            searchListRequest.Q = searchSnippet; // replace with your search term
-            searchListRequest.MaxResults = 100;
-
-            // Call the search.list method to retrieve results matching the specified query term.
-            var searchListResponse = await searchListRequest.ExecuteAsync();
-
-            var youtubeResults = new YoutubeResults();
-
-            // Add each result to the appropriate list, and then display the lists of
-            // matching videos, channels, and playlists.
-            foreach (var searchResult in searchListResponse.Items)
-            {
-                switch (searchResult.Id.Kind)
+                var youtubeService = new YouTubeService(new BaseClientService.Initializer()
                 {
-                    case "youtube#video":
-                            youtubeResults.Results.Add(new YoutubeResults.YoutubeResult
+                    ApiKey = Globals.GOOGLE_API_KEY,
+                    ApplicationName = "Listify"
+                });
+
+                var searchListRequest = youtubeService.Search.List("snippet");
+
+                searchListRequest.Q = searchSnippet; // replace with your search term
+                searchListRequest.MaxResults = 1;
+
+                // Call the search.list method to retrieve results matching the specified query term.
+                var searchListResponse = await searchListRequest.ExecuteAsync();
+
+                var results = new YoutubeResults();
+                var sb = new StringBuilder();
+
+                // Add each result to the appropriate list, and then display the lists of
+                // matching videos, channels, and playlists.
+                foreach (var searchResult in searchListResponse.Items)
+                {
+                    switch (searchResult.Id.Kind)
+                    {
+                        case "youtube#video":
+                            results.Results.Add(new YoutubeResults.YoutubeResult
                             {
                                 VideoId = searchResult.Id.VideoId,
+                                LengthSec = 0,
                                 SongName = searchResult.Snippet.Title,
-                                LengthSec = 0
+                                YoutubeThumbnailUrl = searchResult.Snippet.Thumbnails.Default__.Url,
+                                YoutubeThumbnailHeight = searchResult.Snippet.Thumbnails.Default__.Height,
+                                YoutubeThumbnailWidth = searchResult.Snippet.Thumbnails.Default__.Width,
                             });
-                        break;
+                            break;
+                    }
                 }
+                return results;
             }
-            return youtubeResults;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
 
         public virtual async Task<bool> CheckAuthToLockedRoomAsync(string roomKey, Guid roomId)
@@ -2767,9 +2943,24 @@ namespace Listify.DAL
                     {
                         // Add the song
                         // ToDo: Continue Implementation of this method
+                        await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                        {
+                            PlaylistId = playlist.Id,
+                            Playlist = playlist,
+                            SongId = song.Id,
+                            Song = _mapper.Map<Song>(song),
+                            SongRequestType = SongRequestType.Playlist,
+                            TimeStamp = DateTime.UtcNow,
+                        });
                     }
                 }
+
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return await ReadSongsPlaylistAsync(playlist.Id);
+                }
             }
+            return null;
         }
         public virtual async Task<SongPlaylistVM[]> AddYoutubePlaylistToPlaylistAsync(string youtubePlaylistUrl, Guid playlistId, Guid applicationUserId)
         {
@@ -2796,39 +2987,44 @@ namespace Listify.DAL
                 {
                     var applicationUserRoomCurrencyRoom = await _context.ApplicationUsersRoomsCurrenciesRooms
                         .FirstOrDefaultAsync(s => s.Id == transaction.ApplicationUserRoomCurrencyId);
+
+                    applicationUserRoomCurrencyRoom.Quantity += transaction.QuantityChanged;
+                    _context.Entry(applicationUserRoomCurrencyRoom).State = EntityState.Modified;
                 }
             }
-        }
-        public virtual async Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId)
-        {
-            var songQueued = await _context.SongsQueued
-                .Include(s => s.Room)
-                .FirstOrDefaultAsync(s => s.Id == songQueuedId && s.Active);
 
-            if (songQueued != null)
-            {
-                var songsQueued = await _context.SongsQueued
-                    .Where(s => s.RoomId == songQueued.Room.Id &&
-                        !s.HasBeenPlayed &&
-                        !s.HasBeenSkipped &&
-                        s.Active)
-                    .OrderByDescending(s => s.WeightedValue)
-                    .ThenBy(s => s.TimeStamp)
-                    .ToListAsync();
+            return await _context.SaveChangesAsync() > 0;
+        }
+        //public virtual async Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId)
+        //{
+        //    var songQueued = await _context.SongsQueued
+        //        .Include(s => s.Room)
+        //        .FirstOrDefaultAsync(s => s.Id == songQueuedId && s.Active);
 
-                for (int i = 0; i < songsQueued.Count; i++)
-                {
-                    if (songsQueued[i].Id == songQueued.Id)
-                    {
-                        var selectedSongTimestamp = songsQueued[i].TimeStamp;
-                    }
-                }
-            }
-        }
-        public virtual async Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId)
-        {
-            throw new NotImplementedException();
-        }
+        //    if (songQueued != null)
+        //    {
+        //        var songsQueued = await _context.SongsQueued
+        //            .Where(s => s.RoomId == songQueued.Room.Id &&
+        //                !s.HasBeenPlayed &&
+        //                !s.HasBeenSkipped &&
+        //                s.Active)
+        //            .OrderByDescending(s => s.WeightedValue)
+        //            .ThenBy(s => s.TimeStamp)
+        //            .ToListAsync();
+
+        //        for (int i = 0; i < songsQueued.Count; i++)
+        //        {
+        //            if (songsQueued[i].Id == songQueued.Id)
+        //            {
+        //                var selectedSongTimestamp = songsQueued[i].TimeStamp;
+        //            }
+        //        }
+        //    }
+        //}
+        //public virtual async Task<bool> DownvoteSongQueuedNoWager(Guid songQueuedId)
+        //{
+        //    throw new NotImplementedException();
+        //}
         public virtual async Task<ApplicationUserVM> UpdateApplicationUserProfileImageUrlAsync(string profileImageUrl, Guid profileId, Guid applicationUserId)
         {
             throw new NotImplementedException();

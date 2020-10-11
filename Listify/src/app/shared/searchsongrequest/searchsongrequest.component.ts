@@ -17,7 +17,7 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
   loading = false;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
-  displayedColumns: string[] = ['SongName', 'QuantityWager', 'CurrencyType', 'AddToQueue'];
+  displayedColumns: string[] = ['songThumbnail', 'SongName', 'QuantityWager', 'CurrencyType', 'AddToQueue'];
   dataSource = new MatTableDataSource<ISongSearchResult>();
 
   roomCode: string;
@@ -42,19 +42,13 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
       this.dataSource.data = this.songSearchResults;
 
       this.searchSnippet = '';
-
-      this.songSearchResults.forEach(element => {
-        element.youtubeThumbnailSelected = element.youtubeThumbnails
-          .filter(x => x.songThumbnailType === this.globalsService.getYoutubeThumbnailType('Default'))[0];
-      });
-
       this.loading = false;
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
       this.roomCode = roomInformation.applicationUserRoom.room.roomCode;
       this.applicationUserRoomCurrenciesRoom = roomInformation.applicationUserRoomCurrenciesRoom;
-      this.applicationUserRoomCurrency = roomInformation.applicationUserRoomCurrenciesRoom[];
+      this.applicationUserRoomCurrency = roomInformation.applicationUserRoomCurrenciesRoom[0];
 
       // if (!this.roomService.applicationUserRoom.isOwner) {
       //   this.roomService.requestServerState(this.roomService.room.id);

@@ -12,10 +12,12 @@ namespace Listify.Domain.Lib.Entities
         public string YoutubeId { get; set; }
         public int SongLengthSeconds { get; set; }
 
+        // Default Thumbnail
+        public string ThumbnailUrl { get; set; }
+        public int ThumbnailWidth { get; set; }
+        public int ThumbnailHeight { get; set; }
+
         public ICollection<SongRequest> SongRequests { get; set; } =
             new List<SongRequest>();
-
-        public ICollection<SongThumbnail> SongThumbnails { get; set; } =
-            new List<SongThumbnail>();
     }
 }

@@ -1040,9 +1040,9 @@ namespace Listify.WebAPI.Hubs
                     room = await _dal.UpdateRoomAsync(new RoomUpdateRequest
                     {
                         Id = room.Id,
-                        RoomCode = room.RoomCode,
-                        IsRoomPublic = true,
-                        IsRoomOnline = true
+                        IsRoomOnline = true,
+                        IsRoomPlaying = true,
+                        RoomGenres = room.RoomGenres.ToArray()
                     });
 
                     var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUser.Id, room.Id);

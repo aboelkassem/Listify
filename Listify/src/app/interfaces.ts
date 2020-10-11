@@ -148,6 +148,9 @@ export interface ISong {
   songName: string;
   youtubeId: string;
   songLengthSec: number;
+  thumbnailUrl: string;
+  thumbnailWidth: number;
+  thumbnailHeight: number;
 }
 
 export interface IPlaylistCreateRequest{
@@ -181,15 +184,9 @@ export interface ISongSearchResult {
   videoId: string;
   quantityWagered: number;
   applicationUserRoomCurrencyId: string;
-  youtubeThumbnails: ISongThumbnail[];
-  youtubeThumbnailSelected: ISongThumbnail;
-}
-
-export interface ISongThumbnail {
-  songThumbnailType: number;
-  url: string;
-  width: number;
-  height: number;
+  youtubeThumbnailUrl: string;
+  youtubeThumbnailHeight: number;
+  youtubeThumbnailWidth: number;
 }
 
 export interface IRoomInformation {

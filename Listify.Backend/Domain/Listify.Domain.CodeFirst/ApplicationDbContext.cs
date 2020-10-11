@@ -39,7 +39,6 @@ namespace Listify.Domain.CodeFirst
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<SongPlaylist> SongsPlaylists { get; set; }
         public virtual DbSet<SongQueued> SongsQueued { get; set; }
-        public virtual DbSet<SongThumbnail> SongsThumbnails { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<TransactionSongQueued> TransactionsSongsQueued { get; set; }
 
