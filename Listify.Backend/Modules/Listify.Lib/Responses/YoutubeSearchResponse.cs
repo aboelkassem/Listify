@@ -49,7 +49,7 @@ namespace Listify.Lib.Responses
     public class ThumbnailDetails
     {
         public string Url { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public long? Width { get; set; }
+        public long? Height { get; set; }
     }
 }

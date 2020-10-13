@@ -10,6 +10,6 @@ namespace Listify.BLL.Events.Args
         public ICollection<ApplicationUserRoomCurrencyRoomVM> ApplicationUserRoomsCurrencies { get; set; } =
             new List<ApplicationUserRoomCurrencyRoomVM>();
 
-        public RoomDTO Room { get; set; }
+        public RoomVM Room { get; set; }
     }
 }

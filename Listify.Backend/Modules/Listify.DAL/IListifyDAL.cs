@@ -88,6 +88,7 @@ namespace Listify.DAL
         Task<YoutubeResults> SearchYoutubeLightAsync(string searchSnippet);
         Task<SongVM> SearchYoutubeAndReturnFirstResultAsync(string searchSnippet);
         Task<YoutubeResults> SearchYoutubeAsync(string searchSnippet);
+        Task<int> GetTimeOfYoutubeVideoBySeconds(string youtubeId);
         Task<ICollection<ApplicationUserRoomCurrencyRoomVM>> AddCurrencyQuantityToAllUsersInRoomAsync(Guid roomId, Guid currencyRoomId, int currencyQuantity, TransactionType transactionType);
         Task<ICollection<ApplicationUserRoomConnectionVM>> PingApplicationUsersRoomsConnectionsAsync();
         Task RestartSongPlaylistCountAsync(Guid applicationUserId);

@@ -26,8 +26,7 @@ namespace Listify.BLL.Polls
                     
                     foreach (var currencyRoom in currenciesRoom)
                     {
-
-                        var roomVM = await _dal.ReadRoomAsync(room.Id);
+                        //var roomVM = await _dal.ReadRoomAsync(room.Id);
 
                         if (currencyRoom.TimestampLastUpdate + TimeSpan.FromSeconds(currencyRoom.Currency.TimeSecBetweenTick) < DateTime.UtcNow)
                         {

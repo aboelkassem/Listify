@@ -11,7 +11,7 @@ namespace Listify.Lib.Requests
 
         // Default Thumbnail
         public string ThumbnailUrl { get; set; }
-        public int ThumbnailWidth { get; set; }
-        public int ThumbnailHeight { get; set; }
+        public long? ThumbnailWidth { get; set; }
+        public long? ThumbnailHeight { get; set; }
     }
 }

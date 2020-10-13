@@ -12,8 +12,8 @@ namespace Listify.Lib.VMs
 
         // Default Thumbnail
         public string ThumbnailUrl { get; set; }
-        public int ThumbnailWidth { get; set; }
-        public int ThumbnailHeight { get; set; }
+        public long? ThumbnailWidth { get; set; }
+        public long? ThumbnailHeight { get; set; }
 
         public ICollection<SongRequestDTO> SongRequests { get; set; } =
             new List<SongRequestDTO>();

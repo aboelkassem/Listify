@@ -452,47 +452,71 @@ namespace Listify.WebAPI.Hubs
 
                 SpotifyPlaylistTracksResponse spotifyTracks;
 
-                var nextURL = string.Empty;
-                var tracks = new List<Item>();
+                //var nextURL = string.Empty;
+                var tracks = new List<Lib.Responses.SpotifyPlaylistTracksResponse.Item>();
 
-                while (nextURL != null)
+                //while (nextURL != null)
+                //{
+                //    using (var client = new HttpClient())
+                //    {
+                //        if (spotifyPlaylistId.IndexOf("/") > 0)
+                //        {
+                //            spotifyPlaylistId = spotifyPlaylistId.Split("/").Last();
+                //        }
+
+                //        client.SetBearerToken(Globals.SPOTIFY_ACCESS_TOKEN);
+                //        var response = await client.GetStringAsync($"https://api.spotify.com/v1/playlists/{spotifyPlaylistId}/tracks");
+                //        spotifyTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksResponse>(response);
+
+                //        if (spotifyTracks == null || spotifyTracks.items == null)
+                //        {
+                //            var spotifyCollabTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksCollabResponse>(response);
+
+                //            foreach (var track in spotifyCollabTracks.tracks.items)
+                //            {
+                //                if (counter < numerOfSongsTemainingToAddToPlaylist)
+                //                {
+                //                    counter++;
+                //                    tracks.Add(track);
+                //                }
+                //            }
+                //            nextURL = spotifyCollabTracks.tracks.next;
+                //        }
+                //        else
+                //        {
+                //            foreach (var track in spotifyTracks.items)
+                //            {
+                //                if (counter < numerOfSongsTemainingToAddToPlaylist)
+                //                {
+                //                    counter++;
+                //                    tracks.Add(track);
+                //                }
+                //            }
+                //            nextURL = spotifyCollabTracks.tracks.next;
+                //        }
+                //    }
+                //}
+
+                using (var client = new HttpClient())
                 {
-                    using (var client = new HttpClient())
+                    if (spotifyPlaylistId.IndexOf("/") > 0)
                     {
-                        if (spotifyPlaylistId.IndexOf("/") > 0)
+                        spotifyPlaylistId = spotifyPlaylistId.Split("/").Last();
+                    }
+
+                    client.SetBearerToken(Globals.SPOTIFY_ACCESS_TOKEN);
+                    var response = await client.GetStringAsync($"https://api.spotify.com/v1/playlists/{spotifyPlaylistId}/tracks");
+                    spotifyTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksResponse>(response);
+
+                    if (spotifyTracks != null || spotifyTracks.items != null)
+                    {
+                        foreach (var track in spotifyTracks.items)
                         {
-                            spotifyPlaylistId = spotifyPlaylistId.Split("/").Last();
-                        }
-
-                        client.SetBearerToken(Globals.SPOTIFY_ACCESS_TOKEN);
-                        var response = await client.GetStringAsync($"https://api.spotify.com/v1/playlists/{spotifyPlaylistId}");
-                        spotifyTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksResponse>(response);
-
-                        if (spotifyTracks == null || spotifyTracks.items == null)
-                        {
-                            var spotifyCollabTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksCollabResponse>(response);
-
-                            foreach (var track in spotifyCollabTracks.tracks.items)
+                            if (counter < numerOfSongsTemainingToAddToPlaylist)
                             {
-                                if (counter < numerOfSongsTemainingToAddToPlaylist)
-                                {
-                                    counter++;
-                                    tracks.Add(track);
-                                }
+                                counter++;
+                                tracks.Add(track);
                             }
-                            nextURL = spotifyCollabTracks.tracks.next;
-                        }
-                        else
-                        {
-                            foreach (var track in spotifyTracks.items)
-                            {
-                                if (counter < numerOfSongsTemainingToAddToPlaylist)
-                                {
-                                    counter++;
-                                    tracks.Add(track);
-                                }
-                            }
-                            nextURL = spotifyCollabTracks.tracks.next;
                         }
                     }
                 }
