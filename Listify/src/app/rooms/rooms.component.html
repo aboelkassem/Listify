@@ -27,10 +27,13 @@
           <ng-container matColumnDef="roomImageUrl">
             <th mat-header-cell *matHeaderCellDef>Room Image</th>
             <td mat-cell *matCellDef="let element">
-              <div *ngIf="element.roomImageUrl !== undefined || element.roomImageUrl !== null || element.roomImageUrl !== ''">
+              <div *ngIf="element.roomImageUrl !== undefined && element.roomImageUrl !== null">
                 <a mat-icon-button [routerLink]="" (click)="navigateToRoom(element)">
                   <img width="85px" height="85px" [src]="element.roomImageUrl" [alt]="element.roomCode" />
                 </a>
+              </div>
+              <div *ngIf="element.roomImageUrl === undefined || element.roomImageUrl === null">
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701723/Listify%20Photos/default-room_wzlwbi.jpg" alt="default-roomImage" />
               </div>
             </td>
           </ng-container>
@@ -59,10 +62,13 @@
           <ng-container matColumnDef="profileImageUrl">
             <th mat-header-cell *matHeaderCellDef>Owner image</th>
             <td mat-cell *matCellDef="let element">
-              <div *ngIf="element.applicationUser.profileImageUrl !== undefined || element.applicationUser.profileImageUrl !== null || element.applicationUser.profileImageUrl !== ''">
+              <div *ngIf="element.applicationUser.profileImageUrl !== undefined && element.applicationUser.profileImageUrl !== null">
                 <a mat-icon-button [routerLink]="['/profile', element.applicationUser.username]">
                   <img width="85px" height="85px" [src]="element.applicationUser.profileImageUrl" [alt]="element.username" />
                 </a>
+              </div>
+              <div *ngIf="element.applicationUser.profileImageUrl === undefined || element.applicationUser.profileImageUrl === null">
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701719/Listify%20Photos/default-profile_n3qy8j.jpg" alt="default-profileImage" />
               </div>
             </td>
           </ng-container>

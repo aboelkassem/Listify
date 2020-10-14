@@ -1,6 +1,7 @@
 import { HttpService } from './../services/http.service';
 import { RoomHubService } from './../services/room-hub.service';
 import { Router } from '@angular/router';
+// tslint:disable-next-line:max-line-length
 import { IApplicationUserRequest, IConfirmationModalData, IGenre, IPurchasableItem, IPurchasableLineItem, IValidatedTextRequest, IRoomGenre } from './../interfaces';
 import { HubService } from './../services/hub.service';
 import { Subscription } from 'rxjs';

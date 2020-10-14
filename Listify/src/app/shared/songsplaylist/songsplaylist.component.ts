@@ -1,3 +1,4 @@
+import { ToastrService } from 'ngx-toastr';
 import { MatSort } from '@angular/material/sort';
 import { Component, OnInit, OnDestroy, ViewChild, Input } from '@angular/core';
 import { IConfirmationModalData, ISongPlaylist } from 'src/app/interfaces';
@@ -29,6 +30,7 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
 
   constructor(
     private hubService: HubService,
+    private toastrService: ToastrService,
     private confirmationModal: MatDialog) {
       this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
         this.maxNumberOfSongs = applicationUser.playlistSongCount.toString();
@@ -72,6 +74,8 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
       if (result !== undefined) {
         this.hubService.deleteSongPlaylist(songPlaylist.id);
         this.hubService.requestPlaylist(songPlaylist.playlist.id);
+
+        this.toastrService.success('You have removed ' + songPlaylist.song.songName + ' From your playlist successfully', 'Removed Successfully');
       }
     });
   }

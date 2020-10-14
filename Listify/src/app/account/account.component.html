@@ -26,9 +26,13 @@
                 <div class="mat-h4">My Profile Image:</div>
                 <img class="room-image" width="85px" height="85px" [src]="profileImageUrl" [alt]="username" />
               </div>
+              <div *ngIf="profileImageUrl === undefined || profileImageUrl === null">
+                <div class="mat-h4">My Profile Image:</div>
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701719/Listify%20Photos/default-profile_n3qy8j.jpg" alt="default-profileImage" />
+              </div>
               <div>
-                <button type="button" appearance="outline" (click)="uploadProfileImage()"
-                  mat-stroked-button color="primary">
+                <input type="file" #file style="display: none;" (change)="onFilesAdded()" accept="image/*"/>
+                <button type="button" appearance="outline" (click)="uploadProfileImage()" mat-stroked-button color="primary">
                     Upload Profile Image
                 </button>
 
@@ -56,6 +60,10 @@
                 <div class="mat-h4">Room Image:</div>
                 <img class="room-image" width="85px" height="85px" [src]="roomImageUrl" [alt]="roomCode" />
               </div>
+              <div *ngIf="roomImageUrl === undefined || roomImageUrl === null">
+                <div class="mat-h4">Room Image:</div>
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701723/Listify%20Photos/default-room_wzlwbi.jpg" alt="default-roomImage" />
+              </div>
               <div>
                 <button type="button" appearance="outline" (click)="uploadRoomImage()"
                   mat-stroked-button color="primary">
@@ -80,7 +88,7 @@
                 <div class="mat-h3">Room Genres: </div>
                 <div class="genres-container">
                   <mat-form-field>
-                    <mat-select [(ngModel)]="genreSelectedId">
+                    <mat-select [(ngModel)]="genreSelectedId" name="genreSelectedId">
                       <mat-option *ngFor="let genre of genres; let p = index" [value]="genre.id">
                         {{genre.name}}
                       </mat-option>

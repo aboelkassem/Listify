@@ -9,7 +9,9 @@
                 <img class="profile-image" width="85px" height="85px" [src]="profileImageUrl" [alt]="username" />
                 <b> {{username}}</b>
               </div>
-              <div *ngIf="profileImageUrl === undefined || profileImageUrl === null || profileImageUrl === ''">
+              <div *ngIf="profileImageUrl === undefined || profileImageUrl === null">
+                <div class="mat-h4">My Profile Image:</div>
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701719/Listify%20Photos/default-profile_n3qy8j.jpg" alt="default-profileImage" />
                 <b> {{username}}</b>
               </div>
             </div>
@@ -34,6 +36,9 @@
                   <img class="room-image" width="85px" height="85px" [src]="roomImageUrl" [alt]="roomCode" />
                 </a>
                 <b><a [routerLink]="['/', roomCode]">{{ roomCode }}</a></b>
+              </div>
+              <div *ngIf="roomImageUrl === undefined || roomImageUrl === null">
+                <img class="room-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701723/Listify%20Photos/default-room_wzlwbi.jpg" alt="default-roomImage" />
               </div>
             </div>
             <div class="mat-h4">Follows: <a [routerLink]="" (click)="viewProfileFollows()">{{ numberOfFollows }}</a></div>

@@ -8,21 +8,24 @@
           <div *ngIf="playlistImageUrl !== undefined && playlistImageUrl !== null">
             <img class="playlist-image" width="85px" height="85px" [src]="playlistImageUrl" [alt]="playlistName" />
           </div>
-          <div>
-            <mat-form-field>
-              <input matInput type="file" #file style="display: none;" (change)="onFilesAdded()" single accept="image/*"/>
-              <button mat-stroked-button color="accent" appearance="outline" (click)="uploadPlaylistImage()">Upload Playlist Image</button>
-            </mat-form-field>
+          <div *ngIf="playlistImageUrl === undefined || playlistImageUrl === null">
+            <img class="playlist-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701721/Listify%20Photos/default-playlist_qylqhq.png" alt="default-playlistImage" />
           </div>
           <div>
-            <mat-form-field>
+            <div>
+              <input type="file" #file style="display: none;" (change)="onFilesAdded()" accept="image/*"/>
+              <button mat-stroked-button color="accent" appearance="outline" (click)="uploadPlaylistImage()">Upload Playlist Image</button>
+            </div>
+          </div>
+          <div>
+            <div>
               <input *ngIf="isOwner" matInput id="playlistName" name="playlistName" placeholder="Playlist Name" [(ngModel)]="playlistName" required>
               <div *ngIf="!isOwner">
                 Playlist Name: <b> {{playlistName}}</b>
                 <br>
                 Owner: <b>{{OwnerName}}</b>
               </div>
-            </mat-form-field>
+            </div>
           </div>
           <div *ngIf="isOwner">
             <mat-checkbox type="checkbox" [(ngModel)]="isSelected" name="isSelected" id="isSelected">Is default and will play randomly when queue is empty in room home ?</mat-checkbox>

@@ -129,7 +129,10 @@ namespace Listify.Domain.CodeFirst
                    SongName = "Spotify Ad Studio",
                    YoutubeId = "owQ5YZrleGU",
                    Active = true,
-                   TimeStamp = System.DateTime.UtcNow
+                   TimeStamp = System.DateTime.UtcNow,
+                   ThumbnailUrl= "https://i.ytimg.com/vi/owQ5YZrleGU/default.jpg",
+                   ThumbnailWidth = 120,
+                   ThumbnailHeight = 90
                });
 
             builder.Entity<PurchasableItem>()

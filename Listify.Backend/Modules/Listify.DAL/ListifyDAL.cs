@@ -834,7 +834,7 @@ namespace Listify.DAL
 
             foreach (var entity in entities)
             {
-                var playlistGenres = _context.PlaylistsGenres
+                var playlistGenres = await _context.PlaylistsGenres
                     .Include(s => s.Genre)
                     .Where(s => s.PlaylistId == entity.Id && s.Active)
                     .ToListAsync();
@@ -867,18 +867,17 @@ namespace Listify.DAL
         {
             var entity = await _context.Playlists
                 .Include(s => s.PlaylistGenres)
-                .Include(s => s.SongsPlaylist)
                 .Include(s => s.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
 
             if (entity != null)
             {
-                var songsPlaylsit = _context.SongsPlaylists
+                var songsPlaylsit = await _context.SongsPlaylists
                     .Include(s => s.Song)
                     .Where(s => s.PlaylistId == entity.Id && s.Active)
                     .ToListAsync();
 
-                var playlistGenres = _context.PlaylistsGenres
+                var playlistGenres = await _context.PlaylistsGenres
                     .Include(s => s.Genre)
                     .Where(s => s.PlaylistId == entity.Id && s.Active)
                     .ToListAsync();
@@ -1038,11 +1037,18 @@ namespace Listify.DAL
         }
         public virtual async Task<SongVM> ReadSongAsync(string youtubeId)
         {
-            var entity = await _context.Songs
-                .Include(s => s.SongRequests)
-                .FirstOrDefaultAsync(s => s.YoutubeId == youtubeId && s.Active);
+            try
+            {
+                var entity = await _context.Songs
+                    .FirstOrDefaultAsync(s => s.YoutubeId == youtubeId && s.Active);
 
-            return entity != null ? _mapper.Map<SongVM>(entity) : null;
+                return entity != null ? _mapper.Map<SongVM>(entity) : null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
         }
         public virtual async Task<SongVM> CreateSongAsync(string youtubeId)
         {
@@ -1512,7 +1518,7 @@ namespace Listify.DAL
                         ApplicationUser = applicationUser,
                         Room = applicationUser.Room,
                         Song = songPlaylist.Song,
-                        SongRequestType = SongRequestType.Playlist,
+                        SongRequestType = SongRequestType.Queued,
                         WeightedValue = 0,
                     };
 
@@ -1647,7 +1653,10 @@ namespace Listify.DAL
                     songPlaylist = new SongPlaylist
                     {
                         Playlist = playlist,
-                        Song = song
+                        Song = song,
+                        SongRequestType = SongRequestType.Playlist,
+                        PlaylistId = playlist.Id,
+                        SongId = song.Id
                     };
 
                     await _context.SongsPlaylists.AddAsync(songPlaylist);
@@ -1809,6 +1818,7 @@ namespace Listify.DAL
                             ApplicationUserId = applicationUserRoom.ApplicationUser.Id,
                             RoomId = applicationUserRoom.Room.Id,
                             SongId = song.Id,
+                            SongRequestType = SongRequestType.Queued,
                             WeightedValue = request.SongSearchResult.QuantityWagered * applicationUserRoomCurrency.CurrencyRoom.Currency.Weight,
                             TransactionsSongQueued = new List<TransactionSongQueued>
                             {

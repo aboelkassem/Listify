@@ -16,6 +16,9 @@
                     <img class="room-image" width="85px" height="85px" [src]="element.playlistImageUrl" [alt]="element.playlistName" />
                   </a>
                 </div>
+                <div *ngIf="element.playlistImageUrl === undefined || element.playlistImageUrl === null">
+                  <img class="playlist-image" width="85px" height="85px" src="https://res.cloudinary.com/dvdcninhs/image/upload/v1602701721/Listify%20Photos/default-playlist_qylqhq.png" alt="default-playlistImage" />
+                </div>
               </td>
             </ng-container>
 

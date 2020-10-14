@@ -1,3 +1,4 @@
+import { ToastrService } from 'ngx-toastr';
 import { ISongSearchResult, ISong, ISongSearchResults, ISongPlaylist, ISongPlaylistCreateRequest } from './../../interfaces';
 import { Component, OnInit, OnDestroy, Input, ViewChild } from '@angular/core';
 import { IPlaylist } from 'src/app/interfaces';
@@ -13,7 +14,7 @@ import { MatTableDataSource } from '@angular/material/table';
 })
 export class SearchsongplaylistComponent implements OnInit, OnDestroy {
 
-  displayedColumns: string[] = ['songName', 'addToPlaylist'];
+  displayedColumns: string[] = ['songThumbnail', 'songName', 'addToPlaylist'];
   dataSource = new MatTableDataSource<ISongSearchResult>();
 
 
@@ -27,7 +28,7 @@ export class SearchsongplaylistComponent implements OnInit, OnDestroy {
   private $songPlaylistSubscription: Subscription;
 
   constructor(
-    private hubService: HubService) {
+    private hubService: HubService, private toastrService: ToastrService) {
       this.$searchYoutubeSubscription = this.hubService.getSearchYoutube().subscribe((songSearchResults: ISongSearchResults) => {
         this.songSearchResults = songSearchResults.results;
         this.dataSource.data = this.songSearchResults;
@@ -61,7 +62,8 @@ export class SearchsongplaylistComponent implements OnInit, OnDestroy {
         songSearchResult: searchResult
       };
       this.hubService.saveSongPlaylist(request);
-
+      this.toastrService.success('you have successfully added ' + request.songSearchResult.songName + 'to your playlist'
+        , 'Song Added to Playlist');
       this.clearSearch();
     }
   }
