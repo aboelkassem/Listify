@@ -336,6 +336,24 @@ namespace Listify.DAL
             }
             return null;
         }
+        public virtual async Task<ProfileVM> UpdateProfileAsync(ProfileUpdateRequest request, Guid applicationUserId)
+        {
+            var entity = await _context.ApplicationUsers
+                .Include(s => s.Room)
+                .Include(s => s.Playlists)
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId);
+
+            if (entity != null)
+            {
+                entity.Username = request.Username;
+                entity.ProfileTitle = request.ProfileTitle;
+                entity.ProfileImageUrl = request.ProfileImageUrl;
+                entity.ProfileDescription = request.ProfileDescription;
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+
+            return await _context.SaveChangesAsync() > 0 ? _mapper.Map<ProfileVM>(entity) : null;
+        }
 
         public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid id)
         {
@@ -1096,7 +1114,7 @@ namespace Listify.DAL
                 YoutubeSearchResponse response;
                 using (var httpClient = new HttpClient())
                 {
-                    var url = $"https://www.googleapis.com/youtube/v3/videos?id={songSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                    var url = $"https://www.googleapis.com/youtube/v3/videos?id={songSearchResult.VideoId}&part=snippet&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
                     var result = await httpClient.GetStringAsync(url);
                     response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
                 }
@@ -1568,7 +1586,7 @@ namespace Listify.DAL
                     using (var httpClient = new HttpClient())
                     {
                         //var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
-                        var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                        var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
                         var result = await httpClient.GetStringAsync(url);
                         response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
                     }
@@ -1729,7 +1747,7 @@ namespace Listify.DAL
                         using (var httpClient = new HttpClient())
                         {
                             //var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet";
-                            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
+                            var url = $"https://www.googleapis.com/youtube/v3/videos?id={request.SongSearchResult.VideoId}&part=snippet&part=contentDetails&key={Globals.GOOGLE_API_KEY}";
                             var result = await httpClient.GetStringAsync(url);
                             response = JsonConvert.DeserializeObject<YoutubeSearchResponse>(result);
                         }

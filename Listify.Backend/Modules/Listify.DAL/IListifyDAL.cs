@@ -138,6 +138,7 @@ namespace Listify.DAL
         Task<bool> ClearPlaylistImageAsync(Guid playlistId, Guid applicationUserId);
 
         Task<ProfileVM> ReadProfileAsync(string username);
+        Task<ProfileVM> UpdateProfileAsync(ProfileUpdateRequest request, Guid applicationUserId);
         Task<ApplicationUserVM> UpdateApplicationUserProfileImageUrlAsync(string profileImageUrl, Guid profileId, Guid applicationUserId);
         Task<ApplicationUserVM> UpdateApplicationUserRoomImageUrlAsync(string roomImageUrl, Guid roomId, Guid applicationUserId);
         Task<ApplicationUserVM> UpdatePlaylistImageUrlAsync(string playlistImageUrl, Guid playlistId, Guid applicationUserId);

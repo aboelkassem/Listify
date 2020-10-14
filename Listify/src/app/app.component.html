@@ -1,8 +1,8 @@
 
 <div *ngIf="!isAuthenticated">
   <div class="bg-dark">
-    <div class="mat-display-4 title-text">{{title}}</div>
-    <div class="mat-display-4 lsfyContainer">A Music Sharing And Streaming Experience ...</div>
+    <div class="mat-display-1 title-text">{{title}}</div>
+    <div class="mat-display-1 lsfyContainer">A Music Sharing And Streaming Experience ...</div>
     <!-- <slideshow [imageUrls]="imageUrlArray"
       [showArrows] = "false"
       [autoPlay]= "true"
@@ -34,7 +34,7 @@
     </mat-sidenav>
     <mat-sidenav-content>
       <h2>Welcome, {{username}}!</h2>
-      <app-home></app-home>
+      <app-room></app-room>
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

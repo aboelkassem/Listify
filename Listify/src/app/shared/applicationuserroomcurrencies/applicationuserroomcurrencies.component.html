@@ -18,5 +18,12 @@
     </td>
   </ng-container>
 
+  <ng-container matColumnDef="skipButton">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let element">
+      <button mat-mat-raised-button (click)="skipSong()"><mat-icon mat-list-icon>skip_next</mat-icon></button>
+    </td>
+  </ng-container>
+
   <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 </table>

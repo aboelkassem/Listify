@@ -943,7 +943,8 @@ namespace Listify.WebAPI.Hubs
                             {
                                 ApplicationUserRoomId = applicationUserRoom.Id,
                                 ConnectionId = Context.ConnectionId,
-                                IsOnline = true
+                                IsOnline = true,
+                                ConnectionType = ConnectionType.ListifyHub
                             })
                             : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                             {
@@ -1087,7 +1088,8 @@ namespace Listify.WebAPI.Hubs
                     {
                         ApplicationUserRoomId = applicationUserRoom.Id,
                         ConnectionId = Context.ConnectionId,
-                        IsOnline = true
+                        IsOnline = true,
+                        ConnectionType = ConnectionType.ListifyHub
                     })
                     : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {

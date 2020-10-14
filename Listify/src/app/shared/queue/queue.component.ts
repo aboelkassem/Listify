@@ -25,7 +25,7 @@ export class QueueComponent implements OnInit, OnDestroy {
 
   songsQueued: ISongQueued[] = [];
   applicationUserRoomCurrencies: IApplicationUserRoomCurrencyRoom[] = [];
-  applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom;
+  applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom = {} as any;
   isRoomOwner: boolean;
 
   $songsQueuedSubscription: Subscription;
@@ -49,11 +49,13 @@ export class QueueComponent implements OnInit, OnDestroy {
       this.isRoomOwner = roomInformation.applicationUserRoom.isOwner;
       this.room = roomInformation.room;
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
+      this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
     });
 
     // tslint:disable-next-line:max-line-length
     this.$applicationUserRoomCurrenciesReceived = this.roomService.getApplicationUserRoomCurrenciesRoom().subscribe(applicationUserRoomCurrencies => {
       this.applicationUserRoomCurrencies = applicationUserRoomCurrencies;
+      this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
     });
 
     // tslint:disable-next-line:max-line-length
@@ -71,6 +73,7 @@ export class QueueComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.applicationUserRoomCurrency.currencyRoom = {} as any;
     if (this.roomService.isConnected) {
       this.roomService.requestSongsQueued(this.room.id);
     }

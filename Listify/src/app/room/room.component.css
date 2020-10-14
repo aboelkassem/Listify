@@ -13,7 +13,7 @@
 
 .contentFlex-verticalContainer {
   display: flex;
-  flex-direction: ;
+  flex-direction: column;
 }
 
 .contentFlex {

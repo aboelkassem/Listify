@@ -9,7 +9,7 @@
         <div class="playlists-container" *ngIf="playlists.length > 0">
           <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
             <ng-container matColumnDef="playlistImageUrl">
-              <th mat-header-cell *matHeaderCellDef>Songs Count</th>
+              <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let element">
                 <div *ngIf="element.playlistImageUrl !== undefined && element.playlistImageUrl !== null">
                   <a [routerLink]="['/playlist', element.id]">

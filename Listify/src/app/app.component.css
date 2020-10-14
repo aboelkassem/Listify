@@ -1,5 +1,5 @@
 .sidenav-full {
-  height: 600px;
+  height: 100%;
 }
 
 .button-login {
@@ -19,5 +19,5 @@
 }
 
 .padding-sides {
-pad: 0px 10px 0px 10px;
+  padding: 0px 10px 0px 10px;
 }

@@ -975,7 +975,7 @@ namespace Listify.WebAPI.Hubs
                         {
                             var applicationUserRoomConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
 
-                            foreach (var appConnection in applicationUserRoomConnections.Where(s => s.ConnectionId != Context.ConnectionId))
+                            foreach (var appConnection in applicationUserRoomConnections.Where(s => s.ConnectionId != Context.ConnectionId && s.ConnectionType == ConnectionType.RoomHub))
                             {
                                 await Clients.Client(appConnection.ConnectionId).SendAsync("ForceServerDisconnect");
 
@@ -1209,13 +1209,15 @@ namespace Listify.WebAPI.Hubs
                     {
                         ApplicationUserRoomId = applicationUserRoom.Id,
                         ConnectionId = Context.ConnectionId,
-                        IsOnline = true
+                        IsOnline = true,
+                        ConnectionType = ConnectionType.RoomHub
                     })
                     : await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
                         HasPingBeenSent = connection.HasPingBeenSent,
                         IsOnline = true,
-                        Id = connection.Id
+                        Id = connection.Id,
+                        ApplicationUserRoomId = applicationUserRoom.Id
                     });
 
                     return connection;

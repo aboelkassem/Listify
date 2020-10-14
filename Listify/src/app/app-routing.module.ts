@@ -34,8 +34,8 @@ const routes: Routes = [
   {path: 'checkout', component: CheckoutComponent},
   {path: 'checkoutfail', component: CheckoutfailComponent},
   {path: 'profile/:id', component: ProfileComponent},
-  // {path: ':id', component: HomeComponent},
-  {path: ':id', component: RoomComponent},
+  {path: ':id', component: HomeComponent},
+  // {path: ':id', component: RoomComponent},
 ];
 
 @NgModule({

@@ -250,7 +250,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   addGenre(): void {
     if (this.genreSelectedId === undefined || this.genreSelectedId === null) {
-      this.toastrService.error('You have not selected any genres, please choose one.','No Genre Selected');
+      this.toastrService.error('You have not selected any genres, please choose one.', 'No Genre Selected');
     }else {
       let playlistGenre = this.playlistGenres.filter(x => x.genre.id === this.genreSelectedId)[0];
       if (playlistGenre) {

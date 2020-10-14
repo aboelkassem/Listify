@@ -7,9 +7,9 @@
         <div class="mat-h3">Public Online Rooms</div>
         <div class="roomCode-container">
           <mat-form-field appearance="outline" class="messageForm-InputBox">
-            <input matInput id="roomCode" (keyup.enter)="requestRoom()" name="roomCode" [(ngModel)]="roomCode" #roomCode placeholder="Enter room code here ..." required>
-            <button type="button" (click)="requestRoom()" appearance="outline" mat-stroked-button color="primary" [disabled] = "!roomCode.valid"> Join</button>
+            <input matInput id="roomCode" (keyup.enter)="requestRoom()" name="roomCode" [(ngModel)]="roomCode" placeholder="Enter room code here ..." required>
           </mat-form-field>
+          <button type="button" (click)="requestRoom()" appearance="outline" mat-stroked-button color="primary"> Join</button>
 
           <mat-form-field>
             <div class="mat-h4">Filter by Genre</div>

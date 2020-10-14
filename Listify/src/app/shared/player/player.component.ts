@@ -103,6 +103,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
           }
 
           this.numberFollows = this.applicationUsersRoom.length;
+          this.numberUsersOnline = this.applicationUsersRoom.length;
+
         });
 
       this.$applicationUsersRoomOnlineSubscription = this.roomService.getApplicationUsersRoomOnline()
@@ -116,6 +118,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.roomOwnerUsername = roomInformation.roomOwner.username;
         this.roomOwnerColor = roomInformation.roomOwner.chatColor;
         this.numberFollows = roomInformation.room.follows.length;
+        this.numberUsersOnline = this.applicationUsersRoom.length;
 
         this.isFollowing = roomInformation.room.follows.filter(x => x.applicationUser.id === this.hubService.applicationUser.id).length > 0;
         this.isOwner = roomInformation.applicationUserRoom.isOwner;

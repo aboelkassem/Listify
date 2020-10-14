@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Listify.Domain.Lib.Entities
 {
+    [Table("PurchaseLineItems", Schema = "Listify")]
     public class PurchaseLineItem : BaseEntity
     {
         public int OrderQuantity { get; set; }

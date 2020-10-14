@@ -430,6 +430,10 @@ export class AccountComponent implements OnInit, OnDestroy {
       this.toastrService.error('There was an error while deleting the genre, please try again.', 'Could not remove genre');
     }
   }
+
+  viewPastPurchases(): void {
+    // ToDo: need to complete in both backend-frontend
+  }
 }
 
 enum NextRequestType {
