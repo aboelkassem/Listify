@@ -21,6 +21,34 @@ namespace Listify.Services
             _dal = dal;
         }
 
+        public virtual async Task<string> GetSpotifyAccessToken()
+        {
+            try
+            {
+                // Get Spotify Access Token
+                string auth = Convert.ToBase64String(Encoding.UTF8.GetBytes(Globals.SPOTIFY_CLIENT_ID + ":" + Globals.SPOTIFY_CLIENT_SECRET));
+
+                List<KeyValuePair<string, string>> args = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("grant_type", "client_credentials")
+                    };
+
+                HttpClient http = new HttpClient();
+                http.DefaultRequestHeaders.Add("Authorization", $"Basic {auth}");
+                HttpContent content = new FormUrlEncodedContent(args);
+
+                HttpResponseMessage res = await http.PostAsync("https://accounts.spotify.com/api/token", content);
+                string msg = await res.Content.ReadAsStringAsync();
+
+                var response = JsonConvert.DeserializeObject<SpotifyAccessTokenResponse>(msg);
+                return response.Access_token;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
         public virtual async Task<bool> IsContentValid(string content)
         {
             try

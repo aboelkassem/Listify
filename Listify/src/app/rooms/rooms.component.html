@@ -83,21 +83,16 @@
           <ng-container matColumnDef="genres">
             <th mat-header-cell *matHeaderCellDef>Genres</th>
             <td mat-cell *matCellDef="let element">
-              <table>
-                <tr>
-                  <th></th>
-                </tr>
-                <tr>
-                  <td *ngFor="let roomGenre of element.roomGenres; let p = index">
-                    <div *ngIf="p === element.roomGenres.length - 1">
-                      {{roomGenre.genre.name}}
-                    </div>
-                    <div *ngIf="p !== element.roomGenres.length - 1">
-                      {{roomGenre.genre.name}}
-                    </div>
-                  </td>
-                </tr>
-              </table>
+              <ul>
+                <li *ngFor="let roomGenre of element.roomGenres; let p = index">
+                  <div *ngIf="p === element.roomGenres.length - 1">
+                    {{roomGenre.genre.name}}
+                  </div>
+                  <div *ngIf="p !== element.roomGenres.length - 1">
+                    {{roomGenre.genre.name}}
+                  </div>
+                </li>
+              </ul>
             </td>
           </ng-container>
 

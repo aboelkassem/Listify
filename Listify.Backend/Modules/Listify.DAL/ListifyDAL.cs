@@ -434,27 +434,38 @@ namespace Listify.DAL
         }
         public virtual async Task<ApplicationUserRoomVM> ReadApplicationUserRoomAsync(Guid applicationUserId, Guid roomId)
         {
-            var entity = await _context.ApplicationUsersRooms
+            try
+            {
+                var entity = await _context.ApplicationUsersRooms
                 .Include(s => s.ApplicationUser)
                 .Include(s => s.Room)
                 .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId &&
                 s.RoomId == roomId && s.Active);
 
-            var numberFollows = await _context.Follows
-                .Where(s => s.RoomId == entity.RoomId && s.Active)
-                .CountAsync();
+                if (entity != null)
+                {
+                    var numberFollows = await _context.Follows
+                    .Where(s => s.RoomId == entity.RoomId && s.Active)
+                    .CountAsync();
 
-            var usersOnline = await _context.ApplicationUsersRooms
-                .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
-                .CountAsync();
+                    var usersOnline = await _context.ApplicationUsersRooms
+                        .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
+                        .CountAsync();
 
-            entity.Room.RoomKey = string.Empty;
+                    entity.Room.RoomKey = string.Empty;
 
-            var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
-            vm.Room.NumberFollows = numberFollows;
-            vm.Room.NumberUsersOnline = usersOnline;
+                    var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
+                    vm.Room.NumberFollows = numberFollows;
+                    vm.Room.NumberUsersOnline = usersOnline;
 
-            return entity != null ? vm : null;
+                    return vm;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
         }
         public virtual async Task<ApplicationUserRoomVM> CreateApplicationUserRoomAsync(ApplicationUserRoomCreateRequest request, Guid applicationUserId)
         {
@@ -1424,61 +1435,61 @@ namespace Listify.DAL
 
         public virtual async Task<SongQueuedVM[]> QueuePlaylistInRoomHomeAsync(Guid playlistId, bool isRandomized, Guid applicationUserId)
         {
-            var applicationUser = await _context.ApplicationUsers
-                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
-
-            var room = await _context.Rooms
-                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
-
-            var playlist = await _context.Playlists
-                .FirstOrDefaultAsync(s => s.Id == playlistId && s.Active);
-
-            if (room != null && playlist != null)
+            try
             {
-                var songsQueued = await _context.SongsQueued
-                    .Where(s => s.RoomId == room.Id &&
-                        !s.HasBeenPlayed &&
-                        !s.HasBeenSkipped &&
-                        s.Active)
-                    .ToListAsync();
+                var applicationUser = await _context.ApplicationUsers
+    .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
 
-                var songsPlaylsit = await _context.SongsPlaylists
-                    .Where(s => s.PlaylistId == playlist.Id && s.Active)
-                    .ToListAsync();
+                var room = await _context.Rooms
+                    .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
 
-                if (isRandomized)
+                var playlist = await _context.Playlists
+                    .FirstOrDefaultAsync(s => s.Id == playlistId && s.Active);
+
+                if (room != null && playlist != null)
                 {
-                    songsPlaylsit = songsPlaylsit.OrderBy(s => Guid.NewGuid()).ToList();
-                }
+                    var songsQueued = await _context.SongsQueued
+                        .Where(s => s.RoomId == room.Id &&
+                            !s.HasBeenPlayed &&
+                            !s.HasBeenSkipped &&
+                            s.Active)
+                        .ToListAsync();
 
-                var counter = songsQueued.Count();
+                    var songsPlaylsit = await _context.SongsPlaylists
+                        .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                        .ToListAsync();
 
-                foreach (var songPlaylist in songsPlaylsit)
-                {
-                    if (counter < applicationUser.QueueSongsCount && !songsQueued.Any(s => s.SongId == songPlaylist.SongId))
+                    if (isRandomized)
                     {
-                        counter++;
+                        songsPlaylsit = songsPlaylsit.OrderBy(s => Guid.NewGuid()).ToList();
+                    }
 
-                        _context.SongsQueued.Add(new SongQueued
+                    var counter = songsQueued.Count();
+
+                    foreach (var songPlaylist in songsPlaylsit)
+                    {
+                        if (counter < applicationUser.QueueSongsCount && !songsQueued.Any(s => s.SongId == songPlaylist.SongId))
                         {
-                            ApplicationUserId = applicationUserId,
-                            RoomId = room.Id,
-                            SongId = songPlaylist.SongId,
-                            WeightedValue = 0,
-                            TransactionsSongQueued = new List<TransactionSongQueued>
+                            counter++;
+
+                            await _context.SongsQueued.AddAsync(new SongQueued
                             {
-                                new TransactionSongQueued
-                                {
-                                    TransactionType = TransactionType.Request
-                                }
-                            }
-                        });
+                                ApplicationUserId = applicationUserId,
+                                RoomId = room.Id,
+                                SongId = songPlaylist.SongId,
+                                WeightedValue = 0
+                            });
+                        }
+                    }
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return (await ReadSongsQueuedAsync(room.Id)).ToArray();
                     }
                 }
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return (await ReadSongsQueuedAsync(room.Id)).ToArray();
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
             return null;
         }
@@ -3058,42 +3069,49 @@ namespace Listify.DAL
 
         public virtual async Task<SongPlaylistVM[]> AddSongsToPlaylistAsync(SongVM[] songs, Guid playlistId, Guid applicationUserId)
         {
-            var applicationUser = await _context.ApplicationUsers
+            try
+            {
+                var applicationUser = await _context.ApplicationUsers
                 .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
 
-            var playlist = await _context.Playlists
-                .FirstOrDefaultAsync(s => s.Id == playlistId && s.ApplicationUserId == applicationUserId && s.Active);
+                var playlist = await _context.Playlists
+                    .FirstOrDefaultAsync(s => s.Id == playlistId && s.ApplicationUserId == applicationUserId && s.Active);
 
-            if (playlist != null)
-            {
-                var songsPlaylist = await _context.SongsPlaylists
-                    .Where(s => s.PlaylistId == playlist.Id && s.Active)
-                    .ToListAsync();
-
-                var counter = songsPlaylist.Count();
-
-                foreach (var song in songs)
+                if (playlist != null)
                 {
-                    if (applicationUser.PlaylistSongCount > counter && !songsPlaylist.Any(s => s.SongId == song.Id))
+                    var songsPlaylist = await _context.SongsPlaylists
+                        .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                        .ToListAsync();
+
+                    var counter = songsPlaylist.Count();
+
+                    foreach (var song in songs)
                     {
-                        // Add the song
-                        // ToDo: Continue Implementation of this method
-                        await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                        if (applicationUser.PlaylistSongCount > counter && !songsPlaylist.Any(s => s.SongId == song.Id))
                         {
-                            PlaylistId = playlist.Id,
-                            Playlist = playlist,
-                            SongId = song.Id,
-                            Song = _mapper.Map<Song>(song),
-                            SongRequestType = SongRequestType.Playlist,
-                            TimeStamp = DateTime.UtcNow,
-                        });
+                            // Add the song
+                            // ToDo: Continue Implementation of this method
+                            await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                            {
+                                PlaylistId = playlist.Id,
+                                Playlist = playlist,
+                                SongId = song.Id,
+                                Song = _mapper.Map<Song>(song),
+                                SongRequestType = SongRequestType.Playlist,
+                                TimeStamp = DateTime.UtcNow,
+                            });
+                        }
+                    }
+
+                    if (await _context.SaveChangesAsync() > 0)
+                    {
+                        return await ReadSongsPlaylistAsync(playlist.Id);
                     }
                 }
-
-                if (await _context.SaveChangesAsync() > 0)
-                {
-                    return await ReadSongsPlaylistAsync(playlist.Id);
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
             return null;
         }
@@ -3126,17 +3144,20 @@ namespace Listify.DAL
                     }
                     else
                     {
-                        // create the songVM and add it to the list
-                        var songVM = new SongVM
+                        // create the public songVM and add it to the list
+                        if (songPlaylist.Snippet.Title != "Private video")
                         {
-                            SongName = songPlaylist.Snippet.Title,
-                            YoutubeId = songPlaylist.Snippet.ResourceId.VideoId,
-                            SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(songPlaylist.Snippet.ResourceId.VideoId),
-                            ThumbnailUrl = songPlaylist.Snippet.Thumbnails.Default.Url,
-                            ThumbnailHeight = songPlaylist.Snippet.Thumbnails.Default.Height,
-                            ThumbnailWidth = songPlaylist.Snippet.Thumbnails.Default.Width
-                        };
-                        songs.Add(songVM);
+                            var songVM = new SongVM
+                            {
+                                SongName = songPlaylist.Snippet.Title,
+                                YoutubeId = songPlaylist.Snippet.ResourceId.VideoId,
+                                SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(songPlaylist.Snippet.ResourceId.VideoId),
+                                ThumbnailUrl = songPlaylist.Snippet.Thumbnails.Default.Url,
+                                ThumbnailHeight = songPlaylist.Snippet.Thumbnails.Default.Height,
+                                ThumbnailWidth = songPlaylist.Snippet.Thumbnails.Default.Width
+                            };
+                            songs.Add(songVM);
+                        }
                     }
                 }
 

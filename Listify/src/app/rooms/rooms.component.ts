@@ -124,7 +124,7 @@ export class RoomsComponent implements OnInit, OnDestroy {
 
       confirmationModal.afterClosed().subscribe(result => {
         if (result !== undefined) {
-          this.hubService.requestAuthToLockedRoom(result.data, room.id);
+          this.hubService.requestAuthToLockedRoom(result, room.id);
         }
       });
 

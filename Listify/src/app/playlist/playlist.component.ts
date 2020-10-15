@@ -38,6 +38,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
   playlistImageUrl: string;
 
   $playlistSubscription: Subscription;
+  $queuePlaylistInHomeSubscription: Subscription;
   $applicationUserSubscription: Subscription;
   $genresReceivedSubscription: Subscription;
   $songPlaylistSubscription: Subscription;
@@ -116,6 +117,13 @@ export class PlaylistComponent implements OnInit, OnDestroy {
       this.hubService.requestPlaylist(this.id);
     });
 
+    this.$queuePlaylistInHomeSubscription = this.hubService.getQueuePlaylistInRoomHome().subscribe(songsQueued => {
+      if (songsQueued) {
+        this.loading = false;
+        this.router.navigateByUrl('/');
+      }
+    });
+
     this.$songsPlaylistSubscription = this.hubService.getSongsPlaylist().subscribe(songsPlaylist => {
       if (songsPlaylist) {
         this.songsPlaylist = songsPlaylist;
@@ -145,6 +153,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.$addSpotifyPlaylistToPlaylistSubscription.unsubscribe();
     this.$addYoutubePlaylistToPlaylistSubscription.unsubscribe();
     this.$clearPlaylistImageSubscription.unsubscribe();
+    this.$queuePlaylistInHomeSubscription.unsubscribe();
   }
 
   savePlaylist(): void {
@@ -222,7 +231,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     inputModal.afterClosed().subscribe(result => {
       if (result !== undefined) {
        this.loading = true;
-       this.hubService.requestAddYoutubePlaylistToPlaylist(result.data, this.playlist.id);
+       this.hubService.requestAddYoutubePlaylistToPlaylist(result, this.playlist.id);
       }
     });
   }
@@ -231,7 +240,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     const inputData: IInputModalData = {
       title: 'Spotify Playlist Url',
       message: 'Please enter the Spotify Playlist Url',
-      placeholder: 'Enter Youtube Spotify Url ...',
+      placeholder: 'Enter Spotify Playlist Url ...',
       data: ''
     };
 
@@ -243,7 +252,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     inputModal.afterClosed().subscribe(result => {
       if (result !== undefined) {
        this.loading = true;
-       this.hubService.requestAddSpotifyPlaylistToPlaylist(result.data, this.playlist.id);
+       this.hubService.requestAddSpotifyPlaylistToPlaylist(result, this.playlist.id);
       }
     });
   }

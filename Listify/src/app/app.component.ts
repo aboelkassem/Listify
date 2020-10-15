@@ -65,7 +65,7 @@ export class AppComponent implements OnDestroy, OnInit {
           this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'listifyHub');
         }
 
-        this.router.navigateByUrl('/home');
+        this.router.navigateByUrl('/');
         // if (event.type === 'token_received') {
         //   this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'listifyHub');
         // }

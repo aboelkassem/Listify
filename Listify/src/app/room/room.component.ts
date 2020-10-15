@@ -28,6 +28,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   $songsQueuedSubscription: Subscription;
   $songQueuedSubscription: Subscription;
+  $queuePlaylistInHomeSubscription: Subscription;
   $playFromServerSubscription: Subscription;
   $roomReceivedSubscription: Subscription;
   $pingSubscription: Subscription;
@@ -85,6 +86,11 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.roomService.requestApplicationUserRoomCurrencies();
       });
 
+      this.$queuePlaylistInHomeSubscription = this.hubService.getQueuePlaylistInRoomHome().subscribe(songsQueued => {
+        this.loading = false;
+        this.roomService.requestSongsQueued(this.room.id);
+      });
+
       this.$playFromServerSubscription = this.roomService.getPlayFromServerResponse().subscribe(response => {
         this.roomService.requestSongsQueued(this.roomService.room.id);
 
@@ -114,5 +120,6 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.$playFromServerSubscription.unsubscribe();
     this.$pingSubscription.unsubscribe();
     this.$applicationUserReceivedSubscription.unsubscribe();
+    this.$queuePlaylistInHomeSubscription.unsubscribe();
   }
 }

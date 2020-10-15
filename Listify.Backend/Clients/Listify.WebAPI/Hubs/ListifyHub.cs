@@ -497,6 +497,9 @@ namespace Listify.WebAPI.Hubs
                 //    }
                 //}
 
+                // Get Spotify Access Token
+                var accessToken = await _service.GetSpotifyAccessToken();
+
                 using (var client = new HttpClient())
                 {
                     if (spotifyPlaylistId.IndexOf("/") > 0)
@@ -504,7 +507,7 @@ namespace Listify.WebAPI.Hubs
                         spotifyPlaylistId = spotifyPlaylistId.Split("/").Last();
                     }
 
-                    client.SetBearerToken(Globals.SPOTIFY_ACCESS_TOKEN);
+                    client.SetBearerToken(accessToken);
                     var response = await client.GetStringAsync($"https://api.spotify.com/v1/playlists/{spotifyPlaylistId}/tracks");
                     spotifyTracks = JsonConvert.DeserializeObject<SpotifyPlaylistTracksResponse>(response);
 

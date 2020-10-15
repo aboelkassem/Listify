@@ -108,7 +108,7 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
         if (result !== undefined) {
           const request: IPlaylistCreateRequest = {
             id: undefined,
-            playlistName: result.data,
+            playlistName: result,
             isSelected: false,
             isPublic: false,
             playlistGenres: []

@@ -1142,7 +1142,7 @@ namespace Listify.WebAPI.Hubs
             }
 
             var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(applicationUserRoomConnection.ApplicationUserRoom.Id);
-            return _mapper.Map<ApplicationUserVM>(applicationUserRoom.ApplicationUser);
+            return await _dal.ReadApplicationUserAsync(applicationUserRoom.ApplicationUser.Id);
         }
 
         protected virtual async Task<ApplicationUserRoomConnectionVM> CheckConnectionAsync()
