@@ -60,7 +60,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
       this.$followReceived = this.roomService.getFollow().subscribe(follow => {
         this.loading = false;
-        if (follow !== undefined || follow !== null) {
+        if (follow) {
           this.isFollowing = true;
           this.toastrService.success('You are now following this room.', 'Following');
         }else {
@@ -91,7 +91,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
             this.applicationUsersRoom.splice(this.applicationUsersRoom.indexOf(selectedApplicationUserRoom), 1);
           }
 
-          this.numberFollows = this.applicationUsersRoom.length;
+          this.numberUsersOnline = this.applicationUsersRoom.length;
         });
 
       this.$applicationUserRoomOnlineSubscription = this.roomService.getApplicationUserRoomOnlineReceived()
@@ -102,9 +102,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
             this.applicationUsersRoom.push(applicationUserRoomOnline);
           }
 
-          this.numberFollows = this.applicationUsersRoom.length;
           this.numberUsersOnline = this.applicationUsersRoom.length;
-
         });
 
       this.$applicationUsersRoomOnlineSubscription = this.roomService.getApplicationUsersRoomOnline()

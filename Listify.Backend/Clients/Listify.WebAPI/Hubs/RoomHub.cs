@@ -612,7 +612,7 @@ namespace Listify.WebAPI.Hubs
                     if (applicationUserRoomPrevious != null)
                     {
                         await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoomPrevious.Room.RoomCode);
-
+                        
                         await Clients.Group(applicationUserRoomPrevious.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoomPrevious);
 
                         if (applicationUserRoomPrevious.IsOwner)
@@ -762,6 +762,8 @@ namespace Listify.WebAPI.Hubs
                     {
                         await Clients.Client(connection.ConnectionId).SendAsync("ReceiveFollows", follows);
                     }
+                    await Clients.Caller.SendAsync("ReceiveFollows", follows);
+
                     return;
                 }
 
@@ -797,6 +799,7 @@ namespace Listify.WebAPI.Hubs
                             {
                                 await Clients.Client(connection.ConnectionId).SendAsync("ReceiveFollows", follows);
                             }
+                            await Clients.Caller.SendAsync("ReceiveFollows", follows);
                         }
                         return;
                     }
@@ -1071,6 +1074,7 @@ namespace Listify.WebAPI.Hubs
                     var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
 
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, applicationUserRoom.Room.RoomCode);
+
                     await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveApplicationUserRoomOffline", applicationUserRoom);
 
                     await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest

@@ -44,11 +44,11 @@
     </div>
     <div class="playerComponent-child">
       <label>Number Follows: </label> <b><a [routerLink]="" (click)="viewProfileFollows()"> {{ numberFollows }}</a></b>
-      <button *ngIf="!isOwner && !isFollowing" mat-fab mat-icon-button color="primary" mat-primary class="cursor-link" (click)="followButtonClick()">
+      <button *ngIf="!isOwner && !isFollowing" mat-mini-fab color="primary" mat-primary class="cursor-link" (click)="followButtonClick()">
         <mat-icon>favorite</mat-icon>
       </button>
-      <button *ngIf="!isOwner && isFollowing" mat-fab mat-icon-button disabled color="accent" mat-accent class="cursor-link" (click)="unfollowButtonClick()">
-        <mat-icon>favorite</mat-icon>
+      <button *ngIf="!isOwner && isFollowing" mat-mini-fab color="accent" mat-accent class="cursor-link" (click)="unfollowButtonClick()">
+        <mat-icon>favorite_border</mat-icon>
       </button>
     </div>
   </div>

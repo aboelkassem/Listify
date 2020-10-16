@@ -15,7 +15,7 @@ namespace Listify.Lib.VMs
         public int NumberFollows { get; set; }
 
         public RoomVM Room{ get; set; }
-        public ICollection<PlaylistDTO> Playlists { get; set; } =
-            new List<PlaylistDTO>();
+        public ICollection<PlaylistVM> Playlists { get; set; } =
+            new List<PlaylistVM>();
     }
 }

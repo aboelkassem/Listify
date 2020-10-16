@@ -69,11 +69,11 @@
               <th></th>
             </tr>
             <tr>
-              <td *ngFor="let playlistGenre of element.playlistsGenres; let p = index">
-                <div *ngIf="p === element.playlistsGenres.length - 1">
+              <td *ngFor="let playlistGenre of element.playlistGenres; let p = index">
+                <div *ngIf="p === element.playlistGenres.length - 1">
                   {{playlistGenre.genre.name}}
                 </div>
-                <div *ngIf="p !== element.playlistsGenres.length - 1">
+                <div *ngIf="p !== element.playlistGenres.length - 1">
                   {{playlistGenre.genre.name}}
                 </div>
               </td>

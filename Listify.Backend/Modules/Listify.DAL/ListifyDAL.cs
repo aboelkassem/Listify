@@ -20,6 +20,7 @@ using System.Text;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Web;
+using System.Text.RegularExpressions;
 
 namespace Listify.DAL
 {
@@ -61,9 +62,13 @@ namespace Listify.DAL
 
                 if (entity.Room.IsRoomLocked)
                 {
-                    if (entity.Room.RoomKey != null)
+                    if (entity.Room.RoomKey != null && IsBase64String(entity.Room.RoomKey))
                     {
                         entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+                    }
+                    else
+                    {
+                        entity.Room.RoomKey = string.Empty;
                     }
                 }
 
@@ -73,7 +78,7 @@ namespace Listify.DAL
 
                 var roomGenres = await _context.RoomsGenres
                     .Include(s => s.Genre)
-                    .Where(s => s.RoomId == entity.Id && s.Active)
+                    .Where(s => s.RoomId == entity.Room.Id && s.Active)
                     .ToListAsync();
 
                 var vm = _mapper.Map<ApplicationUserVM>(entity);
@@ -105,13 +110,17 @@ namespace Listify.DAL
                     .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
                     .CountAsync();
 
-                if (entity.Room.IsRoomLocked)
-                {
-                    if (entity.Room.RoomKey != null)
-                    {
-                        entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
-                    }
-                }
+                //if (entity.Room.IsRoomLocked)
+                //{
+                //    if (entity.Room.RoomKey != null && IsBase64String(entity.Room.RoomKey))
+                //    {
+                //        entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
+                //    }
+                //    else
+                //    {
+                //        entity.Room.RoomKey = string.Empty;
+                //    }
+                //}
 
                 var follows = await _context.Follows
                     .Where(s => s.RoomId == entity.Room.Id && s.Active)
@@ -119,7 +128,7 @@ namespace Listify.DAL
 
                 var roomGenres = await _context.RoomsGenres
                     .Include(s => s.Genre)
-                    .Where(s => s.RoomId == entity.Id && s.Active)
+                    .Where(s => s.RoomId == entity.Room.Id && s.Active)
                     .ToListAsync();
 
                 var vm = _mapper.Map<ApplicationUserVM>(entity);
@@ -311,26 +320,30 @@ namespace Listify.DAL
 
                 var roomGenres = await _context.RoomsGenres
                     .Include(s => s.Genre)
-                    .Where(s => s.RoomId == entity.Id && s.Active)
+                    .Where(s => s.RoomId == entity.Room.Id && s.Active)
                     .ToListAsync();
+
+                var vm = _mapper.Map<ProfileVM>(entity);
+                vm.NumberFollows = follows.Count;
 
                 var playlists = await _context.Playlists
                     .Where(s => s.ApplicationUserId == entity.Id && s.IsPublic && s.Active)
                     .ToListAsync();
 
-                var vm = _mapper.Map<ProfileVM>(entity);
-
-                vm.NumberFollows = follows.Count;
-
-                foreach (var playlist in playlists)
+                foreach (var playlist in entity.Playlists)
                 {
-                    var songCount = await _context.SongsPlaylists
+                    var playlistGenres = await _context.PlaylistsGenres
+                        .Include(s => s.Genre)
+                        .Where(s => s.PlaylistId == playlist.Id && s.Active)
+                        .ToListAsync();
+
+                    var playlistVM = _mapper.Map<PlaylistVM>(playlist);
+
+                    playlistVM.NumberOfSongs = await _context.SongsPlaylists
                         .Where(s => s.PlaylistId == playlist.Id && s.Active)
                         .CountAsync();
 
-                    var playlistDTO = _mapper.Map<PlaylistDTO>(playlist);
-                    playlistDTO.NumberOfSongs = songCount;
-                    vm.Playlists.Add(playlistDTO);
+                    vm.Playlists.Add(playlistVM);
                 }
                 return vm;
             }
@@ -370,7 +383,7 @@ namespace Listify.DAL
                 .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
                 .CountAsync();
 
-            entity.Room.RoomKey = string.Empty;
+            //  entity.Room.RoomKey = string.Empty;
 
             var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
             vm.Room.NumberFollows = numberFollows;
@@ -393,7 +406,7 @@ namespace Listify.DAL
                 .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
                 .CountAsync();
 
-            entity.Room.RoomKey = string.Empty;
+            // entity.Room.RoomKey = string.Empty;
 
             var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
             vm.Room.NumberFollows = numberFollows;
@@ -437,10 +450,10 @@ namespace Listify.DAL
             try
             {
                 var entity = await _context.ApplicationUsersRooms
-                .Include(s => s.ApplicationUser)
-                .Include(s => s.Room)
-                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId &&
-                s.RoomId == roomId && s.Active);
+                    .Include(s => s.ApplicationUser)
+                    .Include(s => s.Room)
+                    .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId &&
+                    s.RoomId == roomId && s.Active);
 
                 if (entity != null)
                 {
@@ -452,7 +465,10 @@ namespace Listify.DAL
                         .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
                         .CountAsync();
 
-                    entity.Room.RoomKey = string.Empty;
+                    //if (entity.Room.RoomKey != null)
+                    //{
+                    //    entity.Room.RoomKey = string.Empty;
+                    //}
 
                     var vm = _mapper.Map<ApplicationUserRoomVM>(entity);
                     vm.Room.NumberFollows = numberFollows;
@@ -1438,7 +1454,7 @@ namespace Listify.DAL
             try
             {
                 var applicationUser = await _context.ApplicationUsers
-    .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+                    .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
 
                 var room = await _context.Rooms
                     .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.Active);
@@ -1508,6 +1524,7 @@ namespace Listify.DAL
                     .Where(s => s.PlaylistId == playlist.Id && s.Active)
                     .OrderBy(s => s.PlayCount)
                     .FirstOrDefaultAsync();
+
                 //var songPlaylist = await _context.SongsPlaylists
                 //    .Include(s => s.Song)
                 //    .Include(s => s.Playlist)
@@ -3091,15 +3108,38 @@ namespace Listify.DAL
                         {
                             // Add the song
                             // ToDo: Continue Implementation of this method
-                            await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                            var songVM = await ReadSongAsync(song.YoutubeId);
+
+                            if (songVM == null)
                             {
-                                PlaylistId = playlist.Id,
-                                Playlist = playlist,
-                                SongId = song.Id,
-                                Song = _mapper.Map<Song>(song),
-                                SongRequestType = SongRequestType.Playlist,
-                                TimeStamp = DateTime.UtcNow,
-                            });
+                                //var songNew = await CreateSongAsync(new SongCreateRequest
+                                //{
+                                //    YoutubeId = song.YoutubeId,
+                                //    SongName = song.SongName,
+                                //    SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(song.YoutubeId),
+                                //    ThumbnailUrl = song.ThumbnailUrl,
+                                //    ThumbnailHeight = song.ThumbnailHeight,
+                                //    ThumbnailWidth = song.ThumbnailWidth
+                                //});
+
+                                await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                                {
+                                    PlaylistId = playlist.Id,
+                                    SongId = song.Id,
+                                    SongRequestType = SongRequestType.Playlist,
+                                    TimeStamp = DateTime.UtcNow,
+                                });
+                            }
+                            else
+                            {
+                                await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                                {
+                                    PlaylistId = playlist.Id,
+                                    SongId = songVM.Id,
+                                    SongRequestType = SongRequestType.Playlist,
+                                    TimeStamp = DateTime.UtcNow,
+                                });
+                            }
                         }
                     }
 
@@ -3372,6 +3412,12 @@ namespace Listify.DAL
             }
 
             return false;
+        }
+
+        private bool IsBase64String(string s)
+        {
+            s = s.Trim();
+            return (s.Length % 4 == 0) && Regex.IsMatch(s, @"^[a-zA-Z0-9\+/]*={0,3}$", RegexOptions.None);
         }
 
         public virtual void Dispose()
