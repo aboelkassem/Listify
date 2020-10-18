@@ -8,7 +8,7 @@ import { IRoom, IRoomInformation, IInformationModalData } from './../interfaces'
 import { Subscription } from 'rxjs';
 import { HubService } from './../services/hub.service';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-room',
@@ -34,10 +34,12 @@ export class RoomComponent implements OnInit, OnDestroy {
   $pingSubscription: Subscription;
   $applicationUserReceivedSubscription: Subscription;
   $forceDisconnectSubscription: Subscription;
+  $RoomOwnerLogoutReceivedSubscription: Subscription;
 
   constructor(
     private hubService: HubService,
     private route: ActivatedRoute,
+    private router: Router,
     private globalsService: GlobalsService,
     private youtubeService: YoutubeService,
     private matDialog: MatDialog,
@@ -99,6 +101,22 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.youtubeService.play();
       });
 
+      this.$RoomOwnerLogoutReceivedSubscription = this.roomService.getRoomOwnerLogout().subscribe(isLogged => {
+        if (isLogged) {
+          const informationModalData: IInformationModalData = {
+            title: 'Room Owner Disconnected',
+            message: 'Sorry! The Owner for this room is logout, so this room is not online anymore. you will redirected to your room.'
+          };
+
+          this.matDialog.open(InformationmodalComponent, {
+            width: '350px',
+            data: informationModalData
+          }).afterClosed().subscribe(result => {
+              this.router.navigateByUrl('/');
+          });
+        }
+      });
+
       this.$pingSubscription = this.roomService.getPing().subscribe(ping => {
         if (ping === 'Ping') {
           this.roomService.requestPing();
@@ -121,5 +139,6 @@ export class RoomComponent implements OnInit, OnDestroy {
     this.$pingSubscription.unsubscribe();
     this.$applicationUserReceivedSubscription.unsubscribe();
     this.$queuePlaylistInHomeSubscription.unsubscribe();
+    this.$RoomOwnerLogoutReceivedSubscription.unsubscribe();
   }
 }

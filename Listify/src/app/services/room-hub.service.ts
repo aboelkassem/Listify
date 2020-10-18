@@ -40,6 +40,7 @@ export class RoomHubService {
   $applicationUserRoomOnlineReceived = new Subject<IApplicationUserRoom>();
   $requestRoomChange = new Subject<IRoom>();
   $addSongCurrentToPlaylistReceived = new Subject<boolean>();
+  $RoomOwnerLogoutReceived = new Subject<boolean>();
 
   constructor(private oauthService: OAuthService) { }
 
@@ -149,6 +150,10 @@ export class RoomHubService {
 
     this._hubConnection.on('ReceiveFollows', (follows: IFollow[]) => {
       this.$followsReceived.next(follows);
+    });
+
+    this._hubConnection.on('ReceiveRoomOwnerLogout', (isLogged: boolean) => {
+      this.$RoomOwnerLogoutReceived.next(isLogged);
     });
 
     this._hubConnection.on('ReceivePause', () => {
@@ -434,6 +439,10 @@ export class RoomHubService {
 
   getFollows(): Observable<IFollow[]> {
     return this.$followsReceived.asObservable();
+  }
+
+  getRoomOwnerLogout(): Observable<boolean> {
+    return this.$RoomOwnerLogoutReceived.asObservable();
   }
 
   getForceDisconnect(): Observable<string> {

@@ -931,7 +931,7 @@ namespace Listify.WebAPI.Hubs
                         Token = token
                     });
 
-                    if (response.Claims.ToList().Count > 0)
+                    if (response.Claims != null && response.Claims.ToList().Count > 0)
                     {
                         var username = response.Claims.ToList().First(s => s.Type == "name").Value;
                         //var userId = response.Claims.ToList().First(s => s.Type == "preferred_username").Value;
@@ -1112,12 +1112,14 @@ namespace Listify.WebAPI.Hubs
                     // ToDo: then disconnect all connections, make room offline and send RoomOwnerLogout to client
                     if (applicationUserRoom.IsOwner)
                     {
-                        var connections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
+                        //var connections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
                         var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+
+                        await Clients.Group(room.RoomCode).SendAsync("ReceiveRoomOwnerLogout", true);
 
                         //if (!connections.Any(s => s.ConnectionId != Context.ConnectionId && s.IsOnline))
                         //{
-                            await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
                             {
                                 IsRoomPlaying = false,
                                 Id = room.Id,
