@@ -142,6 +142,6 @@ namespace Listify.DAL
         Task<ApplicationUserVM> UpdateApplicationUserProfileImageUrlAsync(string profileImageUrl, Guid profileId, Guid applicationUserId);
         Task<ApplicationUserVM> UpdateApplicationUserRoomImageUrlAsync(string roomImageUrl, Guid roomId, Guid applicationUserId);
         Task<ApplicationUserVM> UpdatePlaylistImageUrlAsync(string playlistImageUrl, Guid playlistId, Guid applicationUserId);
-        Task<ApplicationUserRoomVM[]> ReadApplicationUserRoomOnlineAsync(string connectionId);
+        Task<ApplicationUserRoomVM[]> ReadApplicationUsersRoomOnlineAsync(string connectionId);
     }
 }

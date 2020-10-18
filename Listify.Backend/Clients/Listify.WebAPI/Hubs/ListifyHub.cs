@@ -971,33 +971,42 @@ namespace Listify.WebAPI.Hubs
         }
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            await base.OnDisconnectedAsync(exception);
-            var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
-            if (connection != null)
+            try
             {
-                if (connection.ApplicationUserRoom.IsOwner)
+                await base.OnDisconnectedAsync(exception);
+                var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                if (connection != null)
                 {
-                    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                    //// if the user which is not owner but logout from different user
+                    //// just update his connection to offline
+                    //if (!connection.ApplicationUserRoom.IsOwner)
+                    //{
+                    //    var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
 
-                    if (applicationUserRoom != null)
+                    //    if (applicationUserRoom != null)
+                    //    {
+                    //        var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
+                    //        await _dal.UpdateRoomAsync(new RoomUpdateRequest
+                    //        {
+                    //            IsRoomPlaying = false,
+                    //            Id = room.Id,
+                    //            IsRoomOnline = false,
+                    //            RoomGenres = room.RoomGenres.ToArray()
+                    //        });
+                    //    }
+                    //}
+
+                    await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
                     {
-                        var room = await _dal.ReadRoomAsync(applicationUserRoom.Room.Id);
-                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
-                        {
-                            IsRoomPlaying = false,
-                            Id = room.Id,
-                            IsRoomOnline = false,
-                            RoomGenres = room.RoomGenres.ToArray()
-                        });
-                    }
+                        Id = connection.Id,
+                        HasPingBeenSent = connection.HasPingBeenSent,
+                        IsOnline = false
+                    });
                 }
-
-                connection = await _dal.UpdateApplicationUserRoomConnectionAsync(new ApplicationUserRoomConnectionUpdateRequest
-                {
-                    Id = connection.Id,
-                    HasPingBeenSent = connection.HasPingBeenSent,
-                    IsOnline = false
-                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 

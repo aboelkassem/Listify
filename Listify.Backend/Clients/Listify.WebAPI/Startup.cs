@@ -34,7 +34,7 @@ namespace Listify.WebAPI
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>();
+            services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
 
             services.AddSignalR(options =>
             {
@@ -84,7 +84,7 @@ namespace Listify.WebAPI
             //services.AddScoped<ICurrencyPoll, CurrencyPoll>();
 
             IRoomsOnlinePoll roomsOnline = new RoomsOnlinePoll(listifyDAL);
-            roomsOnline.Start(45000);
+            roomsOnline.Start(25000);
             services.AddSingleton(roomsOnline);
         }
 

@@ -30,51 +30,48 @@ namespace Listify.BLL
 
                     if (owner != null)
                     {
-                        var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(owner.ApplicationUser.Id, room.Id);
+                        //var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(owner.ApplicationUser.Id, room.Id);
 
-                        if (applicationUserRoom != null)
+                        var ownerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(owner.Id);
+
+                        if (room.IsRoomOnline)
                         {
-                            var ownerConnections = await _dal.ReadApplicationUserRoomConnectionByApplicationUserRoomIdAsync(applicationUserRoom.Id);
-
-                            if (room.IsRoomOnline)
+                            try
                             {
-                                try
+                                if (!ownerConnections.Any(s => s.ConnectionType == ConnectionType.RoomHub && s.IsOnline))
                                 {
-                                    if (!ownerConnections.Any(s => s.ConnectionType == ConnectionType.RoomHub && s.IsOnline))
+                                    await _dal.UpdateRoomAsync(new RoomUpdateRequest
                                     {
-                                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
-                                        {
-                                            IsRoomOnline = false,
-                                            Id = room.Id,
-                                            IsRoomPlaying = false,
-                                            RoomGenres = room.RoomGenres.ToArray()
-                                        });
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine(ex.Message);
+                                        IsRoomOnline = false,
+                                        Id = room.Id,
+                                        IsRoomPlaying = false,
+                                        RoomGenres = room.RoomGenres.ToArray()
+                                    });
                                 }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                try
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                if (ownerConnections.Any(s => s.ConnectionType == ConnectionType.RoomHub && s.IsOnline))
                                 {
-                                    if (ownerConnections.Any(s => s.ConnectionType == ConnectionType.RoomHub && s.IsOnline))
+                                    await _dal.UpdateRoomAsync(new RoomUpdateRequest
                                     {
-                                        await _dal.UpdateRoomAsync(new RoomUpdateRequest
-                                        {
-                                            IsRoomOnline = true,
-                                            Id = room.Id,
-                                            IsRoomPlaying = room.IsRoomPlaying,
-                                            RoomGenres = room.RoomGenres.ToArray()
-                                        });
-                                    }
+                                        IsRoomOnline = true,
+                                        Id = room.Id,
+                                        IsRoomPlaying = room.IsRoomPlaying,
+                                        RoomGenres = room.RoomGenres.ToArray()
+                                    });
                                 }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine(ex.Message);
-                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
                             }
                         }
                     }

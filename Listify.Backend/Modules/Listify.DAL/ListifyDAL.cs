@@ -73,6 +73,7 @@ namespace Listify.DAL
                 }
 
                 var follows = await _context.Follows
+                    .Include(s => s.ApplicationUser)
                     .Where(s => s.RoomId == entity.Room.Id && s.Active)
                     .ToListAsync();
 
@@ -123,6 +124,7 @@ namespace Listify.DAL
                 //}
 
                 var follows = await _context.Follows
+                    .Include(s => s.ApplicationUser)
                     .Where(s => s.RoomId == entity.Room.Id && s.Active)
                     .ToListAsync();
 
@@ -380,7 +382,7 @@ namespace Listify.DAL
                 .CountAsync();
 
             var usersOnline = await _context.ApplicationUsersRooms
-                .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
+                .Where(s => s.RoomId == entity.RoomId && s.IsOnline && s.Active)
                 .CountAsync();
 
             //  entity.Room.RoomKey = string.Empty;
@@ -403,7 +405,7 @@ namespace Listify.DAL
                 .CountAsync();
 
             var usersOnline = await _context.ApplicationUsersRooms
-                .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
+                .Where(s => s.RoomId == entity.RoomId && s.IsOnline && s.Active)
                 .CountAsync();
 
             // entity.Room.RoomKey = string.Empty;
@@ -414,20 +416,23 @@ namespace Listify.DAL
 
             return entity != null ? vm : null;
         }
-        public virtual async Task<ApplicationUserRoomVM[]> ReadApplicationUserRoomOnlineAsync(string connectionId)
+        public virtual async Task<ApplicationUserRoomVM[]> ReadApplicationUsersRoomOnlineAsync(string connectionId)
         {
             var applicationUserRoomConneciton = await _context.ApplicationUsersRoomsConnections
+                .Include(s => s.ApplicationUserRoom)
                 .FirstOrDefaultAsync(s => s.ConnectionId == connectionId && s.IsOnline && s.Active);
 
             if (applicationUserRoomConneciton != null)
             {
                 var applicationUserRoom = await _context.ApplicationUsersRooms
+                    .Include(s => s.Room)
                     .FirstOrDefaultAsync(s => s.Id == applicationUserRoomConneciton.ApplicationUserRoom.Id && s.Active);
 
                 if (applicationUserRoom != null)
                 {
                     var applicationUsersRoom = await _context.ApplicationUsersRooms
                         .Include(s => s.ApplicationUser)
+                        .Include(s => s.Room)
                         .Where(s => s.RoomId == applicationUserRoom.RoomId &&
                             s.IsOnline && s.Active)
                         .ToListAsync();
@@ -453,7 +458,7 @@ namespace Listify.DAL
                     .Include(s => s.ApplicationUser)
                     .Include(s => s.Room)
                     .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId &&
-                    s.RoomId == roomId && s.Active);
+                        s.RoomId == roomId && s.Active);
 
                 if (entity != null)
                 {
@@ -462,7 +467,7 @@ namespace Listify.DAL
                     .CountAsync();
 
                     var usersOnline = await _context.ApplicationUsersRooms
-                        .Where(s => s.RoomId == entity.Room.Id && s.IsOnline && s.Active)
+                        .Where(s => s.RoomId == entity.RoomId && s.IsOnline && s.Active)
                         .CountAsync();
 
                     //if (entity.Room.RoomKey != null)
@@ -2221,35 +2226,43 @@ namespace Listify.DAL
 
         public virtual async Task<RoomVM[]> ReadRoomsAsync()
         {
-            var entities = await _context.Rooms
+            try
+            {
+                var entities = await _context.Rooms
                     .Include(s => s.ApplicationUser)
                     .Where(s => s.IsRoomOnline && s.IsRoomPublic && s.Active)
                     .ToListAsync();
 
-            var vms = new List<RoomVM>();
+                var vms = new List<RoomVM>();
 
-            foreach (var entity in entities)
-            {
-                var usersOnline = await _context.ApplicationUsersRooms
-                    .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
-                    .CountAsync();
+                foreach (var entity in entities)
+                {
+                    var usersOnline = await _context.ApplicationUsersRooms
+                            .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
+                            .CountAsync();
 
-                var follows = await _context.Follows
-                    .Include(s => s.ApplicationUser)
-                    .Where(s => s.RoomId == entity.Id && s.Active)
-                    .ToListAsync();
+                    var follows = await _context.Follows
+                        .Include(s => s.ApplicationUser)
+                        .Where(s => s.RoomId == entity.Id && s.Active)
+                        .ToListAsync();
 
-                var roomGenres = await _context.RoomsGenres
-                    .Include(s => s.Genre)
-                    .Where(s => s.RoomId == entity.Id && s.Active)
-                    .ToListAsync();
+                    var roomGenres = await _context.RoomsGenres
+                        .Include(s => s.Genre)
+                        .Where(s => s.RoomId == entity.Id && s.Active)
+                        .ToListAsync();
+                    
+                    var vm = _mapper.Map<RoomVM>(entity);
+                    vm.NumberUsersOnline = usersOnline;
+                    vms.Add(vm);
+                }
 
-                var vm = _mapper.Map<RoomVM>(entity);
-                vm.NumberUsersOnline = usersOnline;
-                vms.Add(vm);
+                return vms.OrderBy(s => s.NumberUsersOnline).ToArray();
             }
-
-            return vms.OrderBy(s => s.NumberUsersOnline).ToArray();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new List<RoomVM>().ToArray();
+            }
         }
         public virtual async Task<RoomVM[]> ReadRoomsFollowsAsync(Guid applicationUserId)
         {
@@ -2329,7 +2342,7 @@ namespace Listify.DAL
 
                 var usersOnline = await _context.ApplicationUsersRooms
                     .Where(s => s.RoomId == entity.Id && s.IsOnline && s.Active)
-                    .CountAsync();  
+                    .CountAsync();
 
                 vm.NumberUsersOnline = usersOnline;
                 return vm;
@@ -2865,7 +2878,7 @@ namespace Listify.DAL
                             .Where(s => s.RoomId == room.Id && s.Active)
                             .ToListAsync();
 
-                        var isRoomOnline = true;
+                        //var isRoomOnline = true;
 
                         foreach (var applicationUserRoom in applicationUsersRooms)
                         {
@@ -2879,9 +2892,8 @@ namespace Listify.DAL
                                 {
                                     if (applicationUserRoomConnection.HasPingBeenSent)
                                     {
-                                        // Ping was not responded to - remove connection
-                                        // total connection per 1 song/ room without ping is 30 minutes
-                                        if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 30)
+                                        // remove all connections that has been pinged(ended) every 5 minutes
+                                        if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 5)
                                         {
                                             context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
                                         }
@@ -2899,33 +2911,35 @@ namespace Listify.DAL
                                 { Console.WriteLine(ex.Message); }
                             }
 
-                            applicationUserRoom.IsOnline = await context.ApplicationUsersRoomsConnections
-                                .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
-                                    s.IsOnline && s.Active);
+                            //applicationUserRoom.IsOnline = await context.ApplicationUsersRoomsConnections
+                            //    .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
+                            //        s.IsOnline && s.Active);
+
+                            //context.Entry(applicationUserRoom).State = EntityState.Modified;
                         }
 
-                        var ownerRooms = await context.ApplicationUsersRooms
-                            .Where(s => s.RoomId == room.Id &&
-                                s.IsOwner &&
-                                s.Active)
-                            .ToListAsync();
+                        //var ownerRooms = await context.ApplicationUsersRooms
+                        //    .Where(s => s.RoomId == room.Id &&
+                        //        s.IsOwner &&
+                        //        s.Active)
+                        //    .ToListAsync();
 
-                        if (ownerRooms.Count > 0)
-                        {
-                            foreach (var ownerRoom in ownerRooms)
-                            {
-                                if (!await context.ApplicationUsersRoomsConnections
-                                    .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
-                                        s.IsOnline &&
-                                        s.Active)
-                                    .AnyAsync())
-                                {
-                                    isRoomOnline = false;
-                                }
-                            }
-                        }
+                        //if (ownerRooms.Count > 0)
+                        //{
+                        //    foreach (var ownerRoom in ownerRooms)
+                        //    {
+                        //        if (!await context.ApplicationUsersRoomsConnections
+                        //            .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
+                        //                s.IsOnline &&
+                        //                s.Active)
+                        //            .AnyAsync())
+                        //        {
+                        //            isRoomOnline = false;
+                        //        }
+                        //    }
+                        //}
 
-                        room.IsRoomOnline = isRoomOnline;
+                        //room.IsRoomOnline = isRoomOnline;
                     }
 
                     //var applicationUsersRoomsConnections = await context.ApplicationUsersRoomsConnections

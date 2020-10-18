@@ -21,13 +21,17 @@ export class HomeComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.roomCode = params['id'];
       if (this.roomCode) {
-        this.roomService.requestRoom(this.roomCode);
+        // this.roomService.requestRoom(this.roomCode);
+        this.roomService.disconnectFromHub();
+        this.roomService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', this.roomCode);
+        this.roomService.requestApplicationUsersRoomOnline();
       }else {
         // disconnect from your room and
         // get your default room
         if (this.hubService.isConnected && this.hubService.applicationUser && !this.roomService.applicationUserRoom.isOwner) {
           this.roomService.disconnectFromHub();
           this.roomService.connectToHub(this.globalsService.developmentWebAPIUrl + 'roomHub', undefined);
+          this.roomService.requestApplicationUsersRoomOnline();
         }
       }
     });
