@@ -8,11 +8,22 @@
 
   <div class="playerComponent-container">
     <div class="mat-h3">Player</div>
+    <label *ngIf="isPlaying">
+      <img width="30px" height="25px" src="../../../assets/sound.gif" alt="Playing" />
+    </label>
+    <label *ngIf="!isPlaying">
+      <!-- <img width="25px" height="25px" src="../../../assets/pause.svg" alt="Paused" /> -->
+      <span class="material-icons">pause</span>
+    </label>
     <youtube-component
       (ready)="onReady($event)"
       (change)="onStateChange($event)"
     ></youtube-component>
     <app-applicationuserroomcurrencies></app-applicationuserroomcurrencies>
+
+    <button mat-stroked-button mat-accent color="accent" (click)="addToPlaylistDefault()">
+      Add This Song to My Default Playlist
+    </button>
 
     <div class="playerComponent-child">
       <label>Song Name: </label> <b>{{songName}}</b>
@@ -25,10 +36,6 @@
     </div>
     <div class="playerComponent-child">
       <label>Value : </label> <b>{{playValue}}</b>
-      <br>
-      <button *ngIf="isPlaying" mat-stroked-button mat-accent color="accent" (click)="addToPlaylistDefault()">
-        Add to My Default Playlist
-      </button>
     </div>
     <div class="playerComponent-child">
       <label>Room Title: </label> <b>{{roomTitle}}</b>

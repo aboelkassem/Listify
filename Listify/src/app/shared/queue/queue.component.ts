@@ -1,8 +1,9 @@
+import { MatSort } from '@angular/material/sort';
 import { RoomHubService } from './../../services/room-hub.service';
 import { Subscription } from 'rxjs';
 // tslint:disable-next-line:max-line-length
 import { IRoom, IWagerQuantitySongQueuedRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation, ISongQueued, IConfirmationModalData } from './../../interfaces';
-import { Component, OnInit, Input, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { ToastrService } from 'ngx-toastr';
@@ -14,8 +15,10 @@ import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirma
   templateUrl: './queue.component.html',
   styleUrls: ['./queue.component.css']
 })
-export class QueueComponent implements OnInit, OnDestroy {
+export class QueueComponent implements OnInit, OnDestroy, AfterViewInit{
   @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
   displayedColumns: string[] = ['songThumbnail', 'songName', 'weightedValue', 'applicationUserRoomCurrency', 'quantityWagered', 'addQuantityToSongQueued', 'removeFromQueue'];
   dataSource = new MatTableDataSource<ISongQueued>();
 
@@ -39,7 +42,6 @@ export class QueueComponent implements OnInit, OnDestroy {
     private toastrService: ToastrService) {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
-      this.loading = false;
       this.songsQueued = songsQueued;
       this.dataSource.data = this.songsQueued;
       this.loading = false;
@@ -50,12 +52,14 @@ export class QueueComponent implements OnInit, OnDestroy {
       this.room = roomInformation.room;
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
       this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
+      this.loading = false;
     });
 
     // tslint:disable-next-line:max-line-length
     this.$applicationUserRoomCurrenciesReceived = this.roomService.getApplicationUserRoomCurrenciesRoom().subscribe(applicationUserRoomCurrencies => {
       this.applicationUserRoomCurrencies = applicationUserRoomCurrencies;
       this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
+      this.loading = false;
     });
 
     // tslint:disable-next-line:max-line-length
@@ -68,6 +72,7 @@ export class QueueComponent implements OnInit, OnDestroy {
           = applicationUserRoomCurrency;
 
         this.applicationUserRoomCurrency = applicationUserRoomCurrencySelected;
+        this.loading = false;
       }
     });
   }
@@ -76,9 +81,13 @@ export class QueueComponent implements OnInit, OnDestroy {
     this.applicationUserRoomCurrency.currencyRoom = {} as any;
     if (this.roomService.isConnected) {
       this.roomService.requestSongsQueued(this.room.id);
+      this.loading = true;
     }
+  }
 
+  ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {
@@ -89,6 +98,8 @@ export class QueueComponent implements OnInit, OnDestroy {
   }
 
   addQuantityToSongQueued(songQueued: ISongQueued): void {
+    songQueued.applicationUserRoomCurrencyId = this.applicationUserRoomCurrencies[0].id;
+
     if (songQueued.quantityWagered <= 0 || songQueued.quantityWagered === undefined || songQueued.quantityWagered === null) {
       this.toastrService.warning('You must wager more than 0 on a song in the queue, please try again',
       'Not Enough Wagered');
@@ -109,7 +120,8 @@ export class QueueComponent implements OnInit, OnDestroy {
           };
 
           this.roomService.wagerQuantitySongQueued(request);
-          this.toastrService.success('you have added more points to ' + request.songQueued.song.songName, request.quantity + ' added to the song')
+          this.toastrService.success('you have added more points to ' + request.songQueued.song.songName, request.quantity + ' added to the song');
+          this.loading = true;
         }
       }else {
         this.toastrService.warning('You must select a type of currency to wager on a song in the queue, please try again',
@@ -137,6 +149,7 @@ export class QueueComponent implements OnInit, OnDestroy {
         this.loading = true;
         this.roomService.requestQueueClear();
         this.toastrService.success('You have added cleared the entry queue.', 'Clear Success');
+        this.loading = true;
       }
     });
   }
@@ -161,6 +174,7 @@ export class QueueComponent implements OnInit, OnDestroy {
           this.loading = true;
           this.roomService.removeSongFromQueue(songQueued);
           this.toastrService.success('You have removed ' + songQueued.song.songName + ' from the queue', 'Removed success');
+          this.loading = true;
         }
       });
     }

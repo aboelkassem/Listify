@@ -7,7 +7,9 @@
 <button mat-mat-stroked-button color="primary" class="btn btn-default" (click)="clearSearch()">Clear Search</button>
 
 <div *ngIf="songSearchResults.length > 0">
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  <table mat-table matSort [dataSource]="dataSource" class="mat-elevation-z8">
+    <ngx-loading-x [show]="loading"></ngx-loading-x>
+
     <ng-container matColumnDef="songThumbnail">
       <th mat-header-cell  *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
@@ -18,7 +20,7 @@
     </ng-container>
 
     <ng-container matColumnDef="SongName">
-      <th mat-header-cell *matHeaderCellDef>Song Name</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Song Name</th>
       <td mat-cell *matCellDef="let element">
         <a href="https://youtu.be/{{element.videoId}}" target="_blank">{{element.songName}}</a>
       </td>
@@ -33,7 +35,7 @@
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="CurrencyType">
+    <!-- <ng-container matColumnDef="CurrencyType">
       <th mat-header-cell *matHeaderCellDef>Currency Type</th>
       <td mat-cell *matCellDef="let element">
         <mat-form-field>
@@ -44,16 +46,14 @@
           </mat-select>
         </mat-form-field>
       </td>
-    </ng-container>
+    </ng-container> -->
 
-    <!-- <ng-container matColumnDef="CurrencyType">
+    <ng-container matColumnDef="CurrencyType">
       <th mat-header-cell *matHeaderCellDef>Currency</th>
       <td mat-cell *matCellDef="let element">
-        <mat-form-field>
-          {{applicationUserRoomCurrency.currencyRoom.currency.currencyName}}
-        </mat-form-field>
+          {{applicationUserRoomCurrenciesRoom[0]?.currencyRoom?.currency?.currencyName}}
       </td>
-    </ng-container> -->
+    </ng-container>
 
     <ng-container matColumnDef="AddToQueue">
       <th mat-header-cell *matHeaderCellDef></th>
@@ -66,4 +66,4 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 </div>
-<mat-paginator [pageSize]="[5,10,20,25,50]" showFirstLastButtons></mat-paginator>
+<mat-paginator [pageSizeOptions]="[5,10,20,25,50,100]" showFirstLastButtons></mat-paginator>

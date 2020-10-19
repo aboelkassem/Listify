@@ -18,6 +18,7 @@ export class AppComponent implements OnDestroy, OnInit {
   hasLoadedProfile: boolean;
   applicationUser: IApplicationUser = this.hubService.applicationUser;
   username = '';
+  loading = false;
 
   private _hasConnectedToHub: boolean;
 
@@ -47,6 +48,7 @@ export class AppComponent implements OnDestroy, OnInit {
       this.$applicationUserSubscription = this.hubService.getApplicationUser().subscribe(applicationUser => {
         this.username = applicationUser.username;
         this.applicationUser = applicationUser;
+        this.loading = false;
       });
 
       this.$oauthSubscription = this.oauthService.events.subscribe((event: OAuthEvent) => {
@@ -76,6 +78,7 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
+    this.loading = true;
     const accessToken = this.oauthService.getAccessToken();
 
     if (accessToken !== undefined && accessToken !== null && this.isAuthenticated && accessToken !== '' && !this._hasConnectedToHub) {

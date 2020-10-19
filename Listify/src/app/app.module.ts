@@ -8,7 +8,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { ColorPickerModule } from 'ngx-color-picker';
-import { NgxLoadingXModule } from 'ngx-loading-x';
+import { NgxLoadingXConfig, NgxLoadingXModule, POSITION, SPINNER } from 'ngx-loading-x';
 import { YoutubeModule } from 'angularx-youtube';
 // import { YoutubeModule } from './youtube';
 // import { YoutubeModule } from './shared/youtube';
@@ -45,6 +45,20 @@ import { ProfileComponent } from './profile/profile.component';
 import { ProfileplaylistsComponent } from './shared/profileplaylists/profileplaylists.component';
 import { ApplicationusersfollowingmodalComponent } from './shared/modals/applicationusersfollowingmodal/applicationusersfollowingmodal.component';
 import { RoomsfollowedComponent } from './shared/roomsfollowed/roomsfollowed.component';
+
+
+const ngxLoadingXConfig: NgxLoadingXConfig = {
+  show: false,
+  bgBlur: 2,
+  bgOpacity: 5,
+  bgLogoUrl: '',
+  bgLogoUrlPosition: POSITION.topLeft,
+  bgLogoUrlSize: 100,
+  spinnerType: SPINNER.xElapsis,
+  spinnerSize: 120,
+  spinnerColor: '#dd0031',
+  spinnerPosition: POSITION.centerCenter,
+}
 
 @NgModule({
   declarations: [
@@ -96,7 +110,7 @@ import { RoomsfollowedComponent } from './shared/roomsfollowed/roomsfollowed.com
     BrowserAnimationsModule,
     ColorPickerModule,
     MaterialModule,
-    NgxLoadingXModule,
+    NgxLoadingXModule.forRoot(ngxLoadingXConfig),
     ToastrModule.forRoot(),
   ],
   providers: [],

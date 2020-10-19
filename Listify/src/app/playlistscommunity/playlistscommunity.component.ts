@@ -2,7 +2,7 @@ import { IPlaylist } from './../interfaces';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,7 +14,7 @@ import { ConfirmationmodalComponent } from '../shared/modals/confirmationmodal/c
   templateUrl: './playlistscommunity.component.html',
   styleUrls: ['./playlistscommunity.component.css']
 })
-export class PlaylistscommunityComponent implements OnInit, OnDestroy {
+export class PlaylistscommunityComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
@@ -37,15 +37,20 @@ export class PlaylistscommunityComponent implements OnInit, OnDestroy {
     this.$playlistsCommunityReceivedSubscription = this.hubService.getPlaylistsCommunity().subscribe(playlists => {
       this.playlists = playlists;
       this.dataSource.data = this.playlists;
+      this.loading = false;
     });
   }
 
   ngOnInit(): void {
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
+    this.loading = true;
 
     this.hubService.requestPlaylistsCommunity();
     this.hubService.requestGenres();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

@@ -51,6 +51,7 @@ export interface IRoom {
   isRoomLocked: boolean;
   isRoomPublic: boolean;
   isRoomOnline: boolean;
+  isRoomPlaying: boolean;
   matureContent: boolean;
   matureContentChat: boolean;
   songsQueued: ISongQueued[];

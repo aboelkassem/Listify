@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { InputmodalComponent } from './../shared/modals/inputmodal/inputmodal.component';
 import { HubService } from './../services/hub.service';
 import { IRoom } from './../interfaces';
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
@@ -17,7 +17,7 @@ import { MatPaginator } from '@angular/material/paginator';
   templateUrl: './rooms.component.html',
   styleUrls: ['./rooms.component.css']
 })
-export class RoomsComponent implements OnInit, OnDestroy {
+export class RoomsComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
@@ -88,13 +88,15 @@ export class RoomsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-
     this.loading = true;
     this.hubService.requestRooms();
     this.hubService.requestGenres();
     // this.profileService.setApplicationUserId('');
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

@@ -3,22 +3,29 @@ import { Router } from '@angular/router';
 import { IPurchasableItem, IPurchasableLineItem } from './../interfaces';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
 import { GlobalsService } from '../services/globals.service';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-purchasableitems',
   templateUrl: './purchasableitems.component.html',
   styleUrls: ['./purchasableitems.component.css']
 })
-export class PurchasableitemsComponent implements OnInit, OnDestroy {
+export class PurchasableitemsComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
   displayedColumns: string[] = ['image', 'purchasableItemName', 'purchasableItemType', 'quantity', 'unitCost', 'discountApplied'];
   dataSource = new MatTableDataSource<IPurchasableItem>();
 
   purchasableItems: IPurchasableItem[] = [];
   purchasableItemTypes: string[] = [];
+
+  loading = false;
 
   $purchasableItemsSubscription: Subscription;
 
@@ -33,12 +40,21 @@ export class PurchasableitemsComponent implements OnInit, OnDestroy {
       // because purchase currencies will puy only it from the room page including another details
       this.purchasableItems = purchasableItems.filter(x => x.purchasableItemType !== this.globalsService.getPurchasableItemType('PurchaseCurrency'));
       this.dataSource.data = this.purchasableItems;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+      this.loading = false;
     });
    }
 
   ngOnInit(): void {
+    this.loading = true;
     this.hubService.requestPurchasableItems();
     this.purchasableItemTypes = this.getPurchasableItemsTypes();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

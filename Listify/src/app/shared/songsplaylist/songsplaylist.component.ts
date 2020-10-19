@@ -1,6 +1,6 @@
 import { ToastrService } from 'ngx-toastr';
 import { MatSort } from '@angular/material/sort';
-import { Component, OnInit, OnDestroy, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, Input, AfterViewInit } from '@angular/core';
 import { IConfirmationModalData, ISongPlaylist } from 'src/app/interfaces';
 import { HubService } from 'src/app/services/hub.service';
 import { Subscription } from 'rxjs';
@@ -14,7 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './songsplaylist.component.html',
   styleUrls: ['./songsplaylist.component.css']
 })
-export class SongsplaylistComponent implements OnInit, OnDestroy {
+export class SongsplaylistComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
   displayedColumns: string[] = ['songThumbnail', 'songName', 'songLengthSec', 'removeSongPlaylist'];
@@ -47,6 +47,9 @@ export class SongsplaylistComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+  }
+
+  ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }

@@ -18,6 +18,7 @@
 </div>
 
 <div *ngIf="isAuthenticated && claims !== null">
+  <ngx-loading-x [show]="loading"></ngx-loading-x>
   <mat-sidenav-container class="sidenav-full">
     <mat-sidenav class="sidenav-fixed" #sidenav mode="side" opened>
       <mat-list>

@@ -1,6 +1,6 @@
 import { MatDialog } from '@angular/material/dialog';
 import { HubService } from 'src/app/services/hub.service';
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { IConfirmationModalData, IGenre, IPlaylist } from 'src/app/interfaces';
 import { MatPaginator } from '@angular/material/paginator';
@@ -13,7 +13,7 @@ import { ConfirmationmodalComponent } from '../modals/confirmationmodal/confirma
   templateUrl: './profileplaylists.component.html',
   styleUrls: ['./profileplaylists.component.css']
 })
-export class ProfileplaylistsComponent implements OnInit, OnDestroy {
+export class ProfileplaylistsComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
@@ -44,10 +44,12 @@ export class ProfileplaylistsComponent implements OnInit, OnDestroy {
     }
 
   ngOnInit(): void {
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
-
     this.hubService.requestGenres();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

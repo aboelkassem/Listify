@@ -1,18 +1,22 @@
 import { ToastrService } from 'ngx-toastr';
 import { ISongSearchResult, ISong, ISongSearchResults, ISongPlaylist, ISongPlaylistCreateRequest } from './../../interfaces';
-import { Component, OnInit, OnDestroy, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ViewChild, AfterViewInit } from '@angular/core';
 import { IPlaylist } from 'src/app/interfaces';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
 import { Router } from '@angular/router';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-searchsongplaylist',
   templateUrl: './searchsongplaylist.component.html',
   styleUrls: ['./searchsongplaylist.component.css']
 })
-export class SearchsongplaylistComponent implements OnInit, OnDestroy {
+export class SearchsongplaylistComponent implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
 
   displayedColumns: string[] = ['songThumbnail', 'songName', 'addToPlaylist'];
   dataSource = new MatTableDataSource<ISongSearchResult>();
@@ -32,6 +36,8 @@ export class SearchsongplaylistComponent implements OnInit, OnDestroy {
       this.$searchYoutubeSubscription = this.hubService.getSearchYoutube().subscribe((songSearchResults: ISongSearchResults) => {
         this.songSearchResults = songSearchResults.results;
         this.dataSource.data = this.songSearchResults;
+        this.dataSource.paginator = this.paginator;
+        this.dataSource.sort = this.sort;
       });
 
       this.$songPlaylistSubscription = this.hubService.getSongPlaylist().subscribe((songPlaylist: ISongPlaylist) => {
@@ -42,6 +48,11 @@ export class SearchsongplaylistComponent implements OnInit, OnDestroy {
      }
 
   ngOnInit(): void {
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

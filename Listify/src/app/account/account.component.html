@@ -80,7 +80,7 @@
                 <mat-form-field>
                   <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomCode" name="roomCode" placeholder="Room Code" [(ngModel)]="roomCode" required>
                 </mat-form-field>
-
+                <br>
                 <mat-form-field>
                   <input matInput (keyup.enter)="saveApplicationUserInfo()" id="roomTitle" name="roomTitle" placeholder="Room Title" [(ngModel)]="roomTitle">
                 </mat-form-field>
@@ -121,11 +121,13 @@
                 </div>
 
                 <mat-checkbox [(ngModel)]="isPublic" name="isPublic">Is Room Public?</mat-checkbox>
-
+                <br>
                 <mat-checkbox [(ngModel)]="allowRequests" name="allowRequests">Is Room Allowing Song Requests In Queue?</mat-checkbox>
+                <br>
                 <mat-checkbox [(ngModel)]="matureContent" name="matureContent">Does your Room Allow Mature Content?</mat-checkbox>
+                <br>
                 <mat-checkbox [(ngModel)]="matureContentChat" name="matureContent">Does your Room Allow Mature Content in Chat?</mat-checkbox>
-
+                <br>
                 <mat-checkbox [(ngModel)]="isLocked" name="isLocked">Is Room Locked?</mat-checkbox>
 
                 <div *ngIf="isLocked">
@@ -142,12 +144,12 @@
               <div class="mat-h3">Purchases</div>
 
               <button mat-stroked-button color="primary" type="button" id="viewPastPurchases" (click)="viewPastPurchases()">View My Past Purchases</button>
-
+              <br>
               <mat-form-field>
                 <input matInput id="playlistSongCount" name="playlistSongCount" placeholder="Playlist Songs Count" [(ngModel)]="playlistSongCount" disabled>
               </mat-form-field>
               <button type="button" mat-stroked-button appearance="outline" color="primary" type="button" (click)="addPlaylistSongCount()">Add More Songs Per Playlist</button>
-
+              <br>
               <mat-form-field>
                 <input matInput id="playlistCount" name="playlistCount" placeholder="Playlist Count" [(ngModel)]="playlistCount" disabled>
               </mat-form-field>

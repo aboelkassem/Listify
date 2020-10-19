@@ -1,5 +1,5 @@
 import { ProfileService } from './../../services/profile.service';
-import { Component, OnInit, ViewChild, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, Input, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -16,7 +16,7 @@ import { InputmodalComponent } from '../../shared/modals/inputmodal/inputmodal.c
   templateUrl: './roomsfollowed.component.html',
   styleUrls: ['./roomsfollowed.component.css']
 })
-export class RoomsfollowedComponent implements OnInit, OnDestroy {
+export class RoomsfollowedComponent implements OnInit, OnDestroy, AfterViewInit{
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
@@ -67,9 +67,6 @@ export class RoomsfollowedComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-
     this.hubService.requestGenres();
 
     if (this.profileService.applicationUserId !== undefined && this.profileService.applicationUserId !== null) {
@@ -77,6 +74,11 @@ export class RoomsfollowedComponent implements OnInit, OnDestroy {
     }else {
       this.hubService.requestRoomsFollowed();
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {

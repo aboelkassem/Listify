@@ -6,7 +6,7 @@ import { CartService } from './../services/cart.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HubService } from './../services/hub.service';
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { IPlaylist } from '../interfaces';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
@@ -20,7 +20,7 @@ import { InputmodalComponent } from '../shared/modals/inputmodal/inputmodal.comp
   templateUrl: './playlists.component.html',
   styleUrls: ['./playlists.component.css']
 })
-export class PlaylistsComponent implements OnInit, OnDestroy {
+export class PlaylistsComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
@@ -56,6 +56,7 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
 
     this.$playlistsSubscription = this.hubService.getPlaylists().subscribe(playlists => {
       this.playlists = playlists;
+      this.loading = false;
       this.dataSource.data = this.playlists;
     });
 
@@ -75,11 +76,15 @@ export class PlaylistsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
-
+    this.loading = true;
     this.hubService.requestPlaylists();
   }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }
+
   ngOnDestroy(): void {
     this.$playlistsSubscription.unsubscribe();
     this.$playlistSubscription.unsubscribe();

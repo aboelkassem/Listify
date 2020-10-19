@@ -1,7 +1,8 @@
+import { MatSort } from '@angular/material/sort';
 import { GlobalsService } from './../../services/globals.service';
 import { RoomHubService } from './../../services/room-hub.service';
 import { HubService } from './../../services/hub.service';
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { ISongSearchResult, ISongQueuedCreateRequest, IApplicationUserRoomCurrencyRoom, IRoomInformation } from 'src/app/interfaces';
@@ -13,10 +14,13 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './searchsongrequest.component.html',
   styleUrls: ['./searchsongrequest.component.css']
 })
-export class SearchsongrequestComponent implements OnInit, OnDestroy {
+export class SearchsongrequestComponent implements OnInit, OnDestroy, AfterViewInit {
   loading = false;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
+
   displayedColumns: string[] = ['songThumbnail', 'SongName', 'QuantityWager', 'CurrencyType', 'AddToQueue'];
   dataSource = new MatTableDataSource<ISongSearchResult>();
 
@@ -40,6 +44,8 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
     this.$youtubeSearchSubscription = this.hubService.getSearchYoutube().subscribe(songSearchResponse => {
       this.songSearchResults = songSearchResponse.results;
       this.dataSource.data = this.songSearchResults;
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
 
       this.searchSnippet = '';
       this.loading = false;
@@ -68,7 +74,11 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+  }
+
+  ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {
@@ -83,6 +93,7 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
       this.toastrService.warning('No Search terms were input, please try again', 'Invalid Search');
     }else {
       this.hubService.requestSearchYoutube(this.searchSnippet);
+      this.loading = true;
     }
   }
 
@@ -94,9 +105,11 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
   }
 
   addSongToQueue(searchResult: ISongSearchResult): void {
+    searchResult.applicationUserRoomCurrencyId = this.applicationUserRoomCurrenciesRoom[0].id;
+
     if (searchResult.applicationUserRoomCurrencyId === '00000000-0000-0000-0000-000000000000' ||
-      searchResult.applicationUserRoomCurrencyId === undefined ||
-      searchResult.applicationUserRoomCurrencyId === null ) {
+    searchResult.applicationUserRoomCurrencyId === undefined ||
+    searchResult.applicationUserRoomCurrencyId === null ) {
         this.toastrService.error('You must select a currency type to place a song request', 'Invalid Selected Currency');
     }else if (searchResult.quantityWagered <= 0 || searchResult.quantityWagered === undefined || searchResult.quantityWagered === null){
       this.toastrService.error('You must wager more than 0 to place a song request', 'Not Enough Wagered');
@@ -127,6 +140,7 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy {
             this.songSearchResults = [];
             this.toastrService.success('you have successfully added the song ' + request.songSearchResult.songName + 'to queue'
               , 'Song Added to Queue');
+            this.loading = true;
           }
         }
       }

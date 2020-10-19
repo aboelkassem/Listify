@@ -117,6 +117,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.roomOwnerColor = roomInformation.roomOwner.chatColor;
         this.numberFollows = roomInformation.room.follows.length;
         this.numberUsersOnline = this.applicationUsersRoom.length;
+        this.isPlaying = roomInformation.room.isRoomPlaying;
 
         this.isFollowing = roomInformation.room.follows.filter(x => x.applicationUser.id === this.hubService.applicationUser.id).length > 0;
         this.isOwner = roomInformation.applicationUserRoom.isOwner;
@@ -138,6 +139,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           this.requestedBy = this.songQueued.applicationUser.username;
           this.requestedByColor = this.songQueued.applicationUser.chatColor;
           this.playValue = this.songQueued.weightedValue.toString();
+          this.isPlaying = this.songQueued.room.isRoomPlaying;
 
           // this.roomTitle = this.roomService.applicationUserRoom.room.roomTitle;
           // this.roomOwnerUsername = this.roomService.roomOwner.username;
@@ -187,6 +189,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
           this.requestedBy = response.songQueued.applicationUser.username;
           this.requestedByColor = response.songQueued.applicationUser.chatColor;
           this.playValue = response.weight.toString();
+          this.isPlaying = response.songQueued.room.isRoomPlaying;
+
         }else {
           this.songQueued = undefined;
           this.songName = '';
@@ -260,6 +264,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
         break;
 
       case YT.PlayerState.PAUSED:
+        this.isPlaying = false;
         if (this.roomService.applicationUserRoom.isOwner) {
           this.roomService.requestPause();
         }else {

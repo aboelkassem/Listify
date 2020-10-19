@@ -4,11 +4,13 @@ import { HubService } from 'src/app/services/hub.service';
 import { GlobalsService } from './../services/globals.service';
 import { IPurchasableLineItem, IPurchaseConfirmed } from './../interfaces';
 import { CartService } from './../services/cart.service';
-import { Component, OnInit, OnDestroy, AfterContentInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterContentInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { ToastrService } from 'ngx-toastr';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { MatSort } from '@angular/material/sort';
+import { MatPaginator } from '@angular/material/paginator';
 
 declare let paypal: any;
 
@@ -17,7 +19,10 @@ declare let paypal: any;
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css']
 })
-export class CartComponent implements OnInit, OnDestroy, AfterContentInit {
+export class CartComponent implements OnInit, OnDestroy, AfterContentInit, AfterViewInit{
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
   displayedColumns: string[] = ['image', 'itemName', 'orderQuantity', 'cost', 'removeFromCart'];
   dataSource = new MatTableDataSource<IPurchasableLineItem>();
 
@@ -112,6 +117,11 @@ export class CartComponent implements OnInit, OnDestroy, AfterContentInit {
     });
 
     this.dataSource.data = this.purchasableLineItems;
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   ngOnDestroy(): void {
