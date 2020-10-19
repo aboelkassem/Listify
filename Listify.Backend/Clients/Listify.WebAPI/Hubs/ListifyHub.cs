@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace Listify.WebAPI.Hubs
 {
-    public class ListifyHub : Hub, IDisposable
+    public class ListifyHub : Hub
     {
         protected readonly ApplicationDbContext _context;
         protected readonly IHubContext<ListifyHub> _listifyHub;
@@ -1116,14 +1116,14 @@ namespace Listify.WebAPI.Hubs
             return null;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (_pingPoll != null)
-            {
-                _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
-            }
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (_pingPoll != null)
+        //    {
+        //        _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
+        //    }
 
-            base.Dispose(disposing);
-        }
+        //    base.Dispose(disposing);
+        //}
     }
 }

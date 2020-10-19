@@ -22,7 +22,7 @@ using Listify.Services;
 
 namespace Listify.WebAPI.Hubs
 {
-    public class RoomHub : Hub, IDisposable
+    public class RoomHub : Hub
     {
         protected readonly ApplicationDbContext _context;
         protected readonly IHubContext<RoomHub> _roomHub;
@@ -1260,19 +1260,19 @@ namespace Listify.WebAPI.Hubs
             return null;
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (_pingPoll != null)
-            {
-                _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
-            }
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (_pingPoll != null)
+        //    {
+        //        _pingPoll.PollingEvent -= async (s, e) => await OnPingPollEvent(s, e);
+        //    }
 
-            if (_currencyPoll != null)
-            {
-                _currencyPoll.PollingEvent -= async (s, e) => await OnCurrencyPollEvent(s, e);
-            }
+        //    if (_currencyPoll != null)
+        //    {
+        //        _currencyPoll.PollingEvent -= async (s, e) => await OnCurrencyPollEvent(s, e);
+        //    }
 
-            base.Dispose(disposing);
-        }
+        //    base.Dispose(disposing);
+        //}
     }
 }

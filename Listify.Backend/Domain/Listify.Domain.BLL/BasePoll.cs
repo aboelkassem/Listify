@@ -25,11 +25,11 @@ namespace Listify.Domain.BLL
         {
             _timer = new Timer(OnTimerTick, null, pollingIntervalMS, pollingIntervalMS);
         }
-        public virtual void Stop()
+        public virtual async Task Stop()
         {
             if (_timer != null)
             {
-                _timer.Dispose();
+                await _timer.DisposeAsync();
                 _timer = null;
                 _isTimerEventsRunning = false;
             }
@@ -61,9 +61,9 @@ namespace Listify.Domain.BLL
             _pollingEvent?.Invoke(sender, e);
         }
 
-        public void Dispose()
+        public async void Dispose()
         {
-            Stop();
+            await Stop();
         }
 
         public event ListifyEventHandler<T> PollingEvent

@@ -2864,17 +2864,17 @@ namespace Listify.DAL
         {
             try
             {
-                using (var context = new ApplicationDbContext())
-                {
+                //using (var context = new ApplicationDbContext())
+                //{
                     var connectionsPinged = new List<ApplicationUserRoomConnection>();
 
-                    var rooms = await context.Rooms
+                    var rooms = await _context.Rooms
                         .Where(s => s.Active)
                         .ToListAsync();
 
                     foreach (var room in rooms)
                     {
-                        var applicationUsersRooms = await context.ApplicationUsersRooms
+                        var applicationUsersRooms = await _context.ApplicationUsersRooms
                             .Where(s => s.RoomId == room.Id && s.Active)
                             .ToListAsync();
 
@@ -2882,7 +2882,7 @@ namespace Listify.DAL
 
                         foreach (var applicationUserRoom in applicationUsersRooms)
                         {
-                            var applicationUserRoomConnections = await context.ApplicationUsersRoomsConnections
+                            var applicationUserRoomConnections = await _context.ApplicationUsersRoomsConnections
                                 .Where(s => s.ApplicationUserRoomId == applicationUserRoom.Id && s.Active)
                                 .ToListAsync();
 
@@ -2895,7 +2895,7 @@ namespace Listify.DAL
                                         // remove all connections that has been pinged(ended) every 5 minutes
                                         if ((DateTime.UtcNow - applicationUserRoomConnection.TimeStamp).TotalMinutes > 5)
                                         {
-                                            context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
+                                            _context.ApplicationUsersRoomsConnections.Remove(applicationUserRoomConnection);
                                         }
                                         //connectionsRemoved.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(applicationUserRoomConnection));
                                     }
@@ -2903,7 +2903,7 @@ namespace Listify.DAL
                                     {
                                         // Send Ping
                                         applicationUserRoomConnection.HasPingBeenSent = true;
-                                        context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
+                                        _context.Entry(applicationUserRoomConnection).State = EntityState.Modified;
                                         connectionsPinged.Add(applicationUserRoomConnection);
                                     }
                                 }
@@ -2911,14 +2911,14 @@ namespace Listify.DAL
                                 { Console.WriteLine(ex.Message); }
                             }
 
-                            //applicationUserRoom.IsOnline = await context.ApplicationUsersRoomsConnections
+                            //applicationUserRoom.IsOnline = await _context.ApplicationUsersRoomsConnections
                             //    .AnyAsync(s => s.ApplicationUserRoomId == applicationUserRoom.Id &&
                             //        s.IsOnline && s.Active);
 
-                            //context.Entry(applicationUserRoom).State = EntityState.Modified;
+                            //_context.Entry(applicationUserRoom).State = EntityState.Modified;
                         }
 
-                        //var ownerRooms = await context.ApplicationUsersRooms
+                        //var ownerRooms = await _context.ApplicationUsersRooms
                         //    .Where(s => s.RoomId == room.Id &&
                         //        s.IsOwner &&
                         //        s.Active)
@@ -2928,7 +2928,7 @@ namespace Listify.DAL
                         //{
                         //    foreach (var ownerRoom in ownerRooms)
                         //    {
-                        //        if (!await context.ApplicationUsersRoomsConnections
+                        //        if (!await _context.ApplicationUsersRoomsConnections
                         //            .Where(s => s.ApplicationUserRoomId == ownerRoom.Id &&
                         //                s.IsOnline &&
                         //                s.Active)
@@ -2942,13 +2942,13 @@ namespace Listify.DAL
                         //room.IsRoomOnline = isRoomOnline;
                     }
 
-                    //var applicationUsersRoomsConnections = await context.ApplicationUsersRoomsConnections
+                    //var applicationUsersRoomsConnections = await _context.ApplicationUsersRoomsConnections
                     //    .Where(s => s.Active)
                     //    .ToListAsync();
 
                     //var connectionsRemoved = new List<ApplicationUserRoomConnectionVM>();
 
-                    if (await context.SaveChangesAsync() > 0)
+                    if (await _context.SaveChangesAsync() > 0)
                     {
                         var vms = new List<ApplicationUserRoomConnectionVM>();
                         connectionsPinged.ForEach(s => vms.Add(_mapper.Map<ApplicationUserRoomConnectionVM>(s)));
@@ -2961,7 +2961,7 @@ namespace Listify.DAL
                     }
 
                     return null;
-                }
+                //}
             }
             catch (Exception ex)
             {
@@ -3434,7 +3434,7 @@ namespace Listify.DAL
             return (s.Length % 4 == 0) && Regex.IsMatch(s, @"^[a-zA-Z0-9\+/]*={0,3}$", RegexOptions.None);
         }
 
-        public virtual void Dispose()
+        public virtual async void Dispose()
         {
         }
     }

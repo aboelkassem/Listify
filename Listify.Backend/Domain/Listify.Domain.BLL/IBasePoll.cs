@@ -1,5 +1,6 @@
 ﻿using Listify.Domain.BLL.Events;
 using Listify.Domain.BLL.Events.Args;
+using System.Threading.Tasks;
 
 namespace Listify.Domain.BLL
 {
@@ -9,6 +10,6 @@ namespace Listify.Domain.BLL
 
         void Dispose();
         void Start(int pollingIntervalMS);
-        void Stop();
+        Task Stop();
     }
 }
