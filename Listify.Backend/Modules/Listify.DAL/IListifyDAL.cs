@@ -143,5 +143,6 @@ namespace Listify.DAL
         Task<ApplicationUserVM> UpdateApplicationUserRoomImageUrlAsync(string roomImageUrl, Guid roomId, Guid applicationUserId);
         Task<ApplicationUserVM> UpdatePlaylistImageUrlAsync(string playlistImageUrl, Guid playlistId, Guid applicationUserId);
         Task<ApplicationUserRoomVM[]> ReadApplicationUsersRoomOnlineAsync(string connectionId);
+        Task<bool> AddCurrentSongQueuedToDefaultPlaylist(Guid songQueuedId, Guid applicationUserId);
     }
 }

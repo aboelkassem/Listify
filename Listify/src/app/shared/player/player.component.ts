@@ -292,7 +292,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   addToPlaylistDefault(): void {
-    this.roomService.requestAddSongCurrentToPlaylist(this.youtubeService.songCurrent.song.id);
+    this.roomService.requestAddSongCurrentToPlaylist(this.youtubeService.songCurrent.id);
   }
 
   followButtonClick(): void {

@@ -863,7 +863,15 @@ namespace Listify.WebAPI.Hubs
         {
             try
             {
-
+                var userId = await GetUserIdAsync();
+                if (await _dal.AddCurrentSongQueuedToDefaultPlaylist(songQueuedId, userId))
+                {
+                    await Clients.Caller.SendAsync("ReceiveAddSongCurrentToPlaylist", true);
+                }
+                else
+                {
+                    await Clients.Caller.SendAsync("ReceiveAddSongCurrentToPlaylist", false);
+                }
             }
             catch (Exception ex)
             {

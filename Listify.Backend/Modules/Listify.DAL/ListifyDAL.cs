@@ -2228,6 +2228,7 @@ namespace Listify.DAL
         {
             try
             {
+                // ToDo: need to solve this exception
                 var entities = await _context.Rooms
                     .Include(s => s.ApplicationUser)
                     .Where(s => s.IsRoomOnline && s.IsRoomPublic && s.Active)
@@ -3254,6 +3255,45 @@ namespace Listify.DAL
             }
 
             return await _context.SaveChangesAsync() > 0;
+        }
+        public virtual async Task<bool> AddCurrentSongQueuedToDefaultPlaylist(Guid songQueuedId, Guid applicationUserId)
+        {
+            var applicationUser = await _context.ApplicationUsers
+                .FirstOrDefaultAsync(s => s.Id == applicationUserId && s.Active);
+
+            var defaultPlaylist = await _context.Playlists
+                .FirstOrDefaultAsync(s => s.ApplicationUserId == applicationUserId && s.IsSelected && s.Active);
+
+            var songsPlaylist = await _context.SongsPlaylists
+                .Include(s => s.Song)
+                .Include(s => s.Playlist)
+                .Where(s => s.PlaylistId == defaultPlaylist.Id && s.Active)
+                .ToListAsync();
+
+            var songQueued = await _context.SongsQueued
+                .Include(s => s.Song)
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(s => s.Id == songQueuedId);
+
+            var counter = songsPlaylist.Count();
+
+            if (applicationUser.PlaylistSongCount > counter && !songsPlaylist.Any(s => s.SongId == songQueued.SongId))
+            {
+                await _context.SongsPlaylists.AddAsync(new SongPlaylist
+                {
+                    PlaylistId = defaultPlaylist.Id,
+                    SongId = songQueued.Song.Id,
+                    SongRequestType = SongRequestType.Playlist,
+                    PlayCount = 0
+                });
+            }
+
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
         //public virtual async Task<bool> UpvoteSongQueuedNoWager(Guid songQueuedId)
         //{
