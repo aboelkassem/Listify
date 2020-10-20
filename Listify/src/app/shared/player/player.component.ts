@@ -46,6 +46,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   $addCurrentSongToPlaylistSubscription: Subscription;
   $followReceived: Subscription;
   $followsReceived: Subscription;
+  $updatedChatColorSubscription: Subscription;
 
   constructor(
     private roomService: RoomHubService,
@@ -155,8 +156,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
         }
 
         this.playerService.setCurrentSong(this.songQueued);
-        // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
-        // this.youtubeService.play();
+        this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+        this.youtubeService.play();
       });
 
       // this is to return the state of the server to each client
@@ -202,8 +203,16 @@ export class PlayerComponent implements OnInit, OnDestroy {
         }
 
         this.playerService.setCurrentSong(this.songQueued);
-        // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
-        // this.youtubeService.play();
+        this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+        this.youtubeService.play();
+      });
+
+      this.$updatedChatColorSubscription = this.roomService.getUpdatedChatColor().subscribe(applicationUser => {
+        if (this.roomOwnerUsername === applicationUser.username) {
+          this.roomOwnerColor = applicationUser.chatColor;
+        }else if (this.requestedBy === applicationUser.username) {
+          this.requestedByColor = applicationUser.chatColor;
+        }
       });
     }
 
@@ -225,6 +234,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.$addCurrentSongToPlaylistSubscription.unsubscribe();
     this.$followReceived.unsubscribe();
     this.$followsReceived.unsubscribe();
+    this.$updatedChatColorSubscription.unsubscribe();
   }
 
   onReady(player: any): void {

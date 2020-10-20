@@ -918,6 +918,24 @@ namespace Listify.WebAPI.Hubs
                 Console.WriteLine(ex.Message);
             }
         }
+        public async Task RequestUpdatedChatColor()
+        {
+            try
+            {
+                var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
+                var applicationUserRoom = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
+                var applicationUser = await GetApplicationUserAsync();
+
+                if (applicationUser != null)
+                {
+                    await Clients.Group(applicationUserRoom.Room.RoomCode).SendAsync("ReceiveUpdatedUserChatColor", applicationUser);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Write(ex.Message);
+            }
+        }
 
         public override async Task OnConnectedAsync()
         {

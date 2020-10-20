@@ -41,6 +41,7 @@ export class RoomHubService {
   $requestRoomChange = new Subject<IRoom>();
   $addSongCurrentToPlaylistReceived = new Subject<boolean>();
   $RoomOwnerLogoutReceived = new Subject<boolean>();
+  $UpdatedChatColorReceived = new Subject<IApplicationUser>();
 
   constructor(private oauthService: OAuthService) { }
 
@@ -156,6 +157,10 @@ export class RoomHubService {
       this.$RoomOwnerLogoutReceived.next(isLogged);
     });
 
+    this._hubConnection.on('ReceiveUpdatedUserChatColor', (applicationUser: IApplicationUser) => {
+      this.$UpdatedChatColorReceived.next(applicationUser);
+    });
+
     this._hubConnection.on('ReceivePause', () => {
       this.$pauseRequestReceived.next('ReceivePause');
     });
@@ -265,6 +270,12 @@ export class RoomHubService {
   requestPause(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestPause');
+    }
+  }
+
+  requestUpdatedChatColor(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestUpdatedChatColor');
     }
   }
 
@@ -443,6 +454,10 @@ export class RoomHubService {
 
   getRoomOwnerLogout(): Observable<boolean> {
     return this.$RoomOwnerLogoutReceived.asObservable();
+  }
+
+  getUpdatedChatColor(): Observable<IApplicationUser> {
+    return this.$UpdatedChatColorReceived.asObservable();
   }
 
   getForceDisconnect(): Observable<string> {

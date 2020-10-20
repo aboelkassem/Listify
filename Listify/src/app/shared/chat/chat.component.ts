@@ -15,7 +15,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<IChatMessage>();
 
   $chatMessageSubscription: Subscription;
-  $applicationUserSubscription: Subscription;
+  $updatedChatColorSubscription: Subscription;
 
   messages: IChatMessage[] = [];
   message = '';
@@ -32,16 +32,22 @@ export class ChatComponent implements OnInit, OnDestroy {
       // this.receiveMessage(message);
     });
 
-    this.$applicationUserSubscription = this.roomService.getApplicationUser().subscribe(applicationUser => {
+    this.$updatedChatColorSubscription = this.roomService.getUpdatedChatColor().subscribe(applicationUser => {
+      if (this.roomService.applicationUserRoom.applicationUser.id === applicationUser.id) {
+        this.roomService.applicationUserRoom.applicationUser.chatColor = applicationUser.chatColor;
+      }
+
       this.messages.forEach(s => {
-        s.applicationUserRoom.applicationUser.chatColor = applicationUser.chatColor;
+        if (s.applicationUserRoom.applicationUser.id === applicationUser.id) {
+          s.applicationUserRoom.applicationUser.chatColor = applicationUser.chatColor;
+        }
       });
     });
    }
 
   ngOnDestroy(): void {
     this.$chatMessageSubscription.unsubscribe();
-    this.$applicationUserSubscription.unsubscribe();
+    this.$updatedChatColorSubscription.unsubscribe();
   }
 
   ngOnInit(): void {

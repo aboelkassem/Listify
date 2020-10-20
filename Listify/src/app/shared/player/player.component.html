@@ -30,8 +30,8 @@
     </div>
     <div class="playerComponent-child">
       <label>Requested By: </label>
-        <b [ngStyle]="{color: requestedByColor}">
-          <a [routerLink]="['/profile', requestedBy]">{{requestedBy}}</a>
+        <b>
+          <a [ngStyle]="{color: requestedByColor}" [routerLink]="['/profile', requestedBy]">{{requestedBy}}</a>
         </b>
     </div>
     <div class="playerComponent-child">
@@ -42,8 +42,8 @@
     </div>
     <div class="playerComponent-child">
       <label>Room Owner: </label>
-        <b [ngStyle]="{color: roomOwnerColor}">
-          <a [routerLink]="['/profile', roomOwnerUsername]">{{roomOwnerUsername}}</a>
+        <b>
+          <a [ngStyle]="{color: roomOwnerColor}" [routerLink]="['/profile', roomOwnerUsername]">{{roomOwnerUsername}}</a>
         </b>
     </div>
     <div class="playerComponent-child">
