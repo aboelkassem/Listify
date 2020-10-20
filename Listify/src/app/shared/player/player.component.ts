@@ -77,8 +77,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
       this.$addCurrentSongToPlaylistSubscription = this.roomService.getAddSongCurrentToPlaylist()
         .subscribe((wasSongQueuedSuccessful: boolean) => {
           if (wasSongQueuedSuccessful) {
+            this.loading = false;
             this.toastrService.success('The current song was added to the default playlist.', 'Added to Playlist');
           }else {
+            this.loading = false;
             this.toastrService.error('The current song is already in your default playlist, so could not be added again.', 'Failed to Added to Playlist');
           }
       });
@@ -122,11 +124,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.isFollowing = roomInformation.room.follows.filter(x => x.applicationUser.id === this.hubService.applicationUser.id).length > 0;
         this.isOwner = roomInformation.applicationUserRoom.isOwner;
 
-        this.songQueued = undefined;
-        this.songName = '';
-        this.requestedBy = '';
-        this.requestedByColor = '';
-        this.playValue = '';
+        // this.songQueued = undefined;
+        // this.songName = '';
+        // this.requestedBy = '';
+        // this.requestedByColor = '';
+        // this.playValue = '';
 
         this.roomService.requestApplicationUsersRoomOnline();
       });
@@ -292,6 +294,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   addToPlaylistDefault(): void {
+    this.loading = true;
     this.roomService.requestAddSongCurrentToPlaylist(this.youtubeService.songCurrent.id);
   }
 

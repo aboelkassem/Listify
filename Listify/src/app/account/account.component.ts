@@ -152,6 +152,7 @@ export class AccountComponent implements OnInit, OnDestroy {
               };
 
               this.roomService.updateApplicationUser(request);
+              this.roomService.requestApplicationUser();
 
               this.router.navigate(['/', 'account']);
 

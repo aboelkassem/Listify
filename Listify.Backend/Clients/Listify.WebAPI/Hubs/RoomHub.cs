@@ -148,7 +148,7 @@ namespace Listify.WebAPI.Hubs
                 var connection = await _dal.ReadApplicationUserRoomConnectionAsync(Context.ConnectionId);
                 var applicationUserRoomOwner = await _dal.ReadApplicationUserRoomAsync(connection.ApplicationUserRoom.Id);
 
-                await RequestRoom(applicationUserRoomOwner.Room.RoomCode);
+                //await RequestRoom(applicationUserRoomOwner.Room.RoomCode);
 
                 var owner = await _dal.ReadApplicationUserRoomOwnerAsync(applicationUserRoomOwner.Room.Id);
 

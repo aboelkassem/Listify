@@ -97,6 +97,23 @@ namespace Listify.WebAPI.Hubs
         //        Console.WriteLine(ex.Message);
         //    }
         //}
+        public async Task RequestApplicationUserUpdatedPlaylistsCount()
+        {
+            try
+            {
+                var userId = await GetUserIdAsync();
+                var applicationUser = await _dal.ReadApplicationUserAsync(userId);
+
+                if (applicationUser != null)
+                {
+                    await Clients.Caller.SendAsync("ReceiveUpdatedPlaylistsCount", applicationUser.PlaylistSongCount);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
         public async Task RequestValidatedText(ContentAvailabilityRequest request)
         {
             var userId = await GetUserIdAsync();

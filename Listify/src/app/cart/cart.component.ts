@@ -1,3 +1,4 @@
+import { RoomHubService } from 'src/app/services/room-hub.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { HubService } from 'src/app/services/hub.service';
@@ -28,6 +29,7 @@ export class CartComponent implements OnInit, OnDestroy, AfterContentInit, After
 
   subTotal: number = this.cartService.getSubtotal();
   purchasableLineItems: IPurchasableLineItem[] = this.cartService.purchasableLineItems;
+  loading = false;
 
   paypalLoad = false;
   addScript = false;
@@ -77,8 +79,11 @@ export class CartComponent implements OnInit, OnDestroy, AfterContentInit, After
                     payerID: data.payerID,
                     order: this.cartService.purchaseOrderRequest,
                 }, options).subscribe((purchase: IPurchaseConfirmed) => {
+                  this.loading = true;
                   this.cartService.createPurchaseConfirmed(purchase);
                   this.router.navigateByUrl('/checkout');
+                  this.hubService.requestApplicationUserUpdatedPlaylistsCount();
+                  this.loading = false;
                 }, error => {
                   console.log(error);
                 });

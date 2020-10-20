@@ -182,6 +182,11 @@ export class HubService {
         this.$roomsFollowedReceived.next(rooms);
       });
 
+      this._hubConnection.on('ReceiveUpdatedPlaylistsCount', (playlistCountMax: number) => {
+        this.applicationUser.playlistCountMax = playlistCountMax;
+      });
+
+
       this._hubConnection.on('PingRequest', (ping: string) => {
         // if (ping === 'Ping') {
         //   this._hubConnection.invoke('PingResponse');
@@ -208,6 +213,12 @@ export class HubService {
   updateApplicationUserInformation(applicationUser: IApplicationUserRequest): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('UpdateApplicationUserInformation', applicationUser);
+    }
+  }
+
+  requestApplicationUserUpdatedPlaylistsCount(): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestApplicationUserUpdatedPlaylistsCount');
     }
   }
 
