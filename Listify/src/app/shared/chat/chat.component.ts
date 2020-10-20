@@ -15,14 +15,20 @@ export class ChatComponent implements OnInit, OnDestroy {
   dataSource = new MatTableDataSource<IChatMessage>();
 
   $chatMessageSubscription: Subscription;
+  $chatMessagesSubscription: Subscription;
   $updatedChatColorSubscription: Subscription;
 
   messages: IChatMessage[] = [];
   message = '';
 
   constructor(private roomService: RoomHubService) {
+    this.$chatMessagesSubscription = this.roomService.getLastMessages().subscribe(messages => {
+      this.messages = messages;
+      this.dataSource.data = this.messages;
+    });
+
     this.$chatMessageSubscription = this.roomService.getMessageReceived().subscribe(message => {
-      if (this.messages.length > 50) {
+      if (this.messages.length > 30) {
         this.messages.splice(0, 1);
       }
 
@@ -47,12 +53,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.$chatMessageSubscription.unsubscribe();
+    this.$chatMessagesSubscription.unsubscribe();
     this.$updatedChatColorSubscription.unsubscribe();
   }
 
   ngOnInit(): void {
     // this.hubService.connectToHub(this.globalsService.developmentWebAPIUrl + 'chathub');
     // this.dataSource.data = this.messages;
+    this.roomService.requestLastMessagesForRoom(this.roomService.applicationUserRoom?.room?.id);
   }
 
   sendMessage(): void {

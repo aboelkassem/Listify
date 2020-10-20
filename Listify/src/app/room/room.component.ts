@@ -69,6 +69,7 @@ export class RoomComponent implements OnInit, OnDestroy {
         this.roomCode = roomInformation.room.roomCode;
         this.allowRequests = roomInformation.room.allowRequests;
         this.isRoomOwner = this.roomService.applicationUserRoom.isOwner;
+        this.roomService.requestLastMessagesForRoom(this.roomService.applicationUserRoom?.room?.id);
 
         // deleted
         if (!this.roomService.applicationUserRoom.isOwner) {

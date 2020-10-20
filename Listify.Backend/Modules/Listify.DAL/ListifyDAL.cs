@@ -671,9 +671,29 @@ namespace Listify.DAL
         public virtual async Task<ChatMessageVM> ReadChatMessageAsync(Guid id)
         {
             var entity = await _context.ChatMessages
+                .Include(s => s.ApplicationUserRoom)
+                .Include(s => s.ApplicationUserRoom.Room)
+                .Include(s => s.ApplicationUserRoom.ApplicationUser)
                 .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             return entity != null ? _mapper.Map<ChatMessageVM>(entity) : null;
+        }
+        public virtual async Task<ChatMessageVM[]> ReadChatMessagesAsync(Guid roomId)
+        {
+            var entities = await _context.ChatMessages
+                .Include(s => s.ApplicationUserRoom)
+                .Include(s => s.ApplicationUserRoom.Room)
+                .Include(s => s.ApplicationUserRoom.ApplicationUser)
+                .Where(s => s.ApplicationUserRoom.Room.Id == roomId && s.Active)
+                .OrderByDescending(s => s.TimeStamp)
+                .Take(30)
+                .ToListAsync();
+
+            var vms = new List<ChatMessageVM>();
+
+            entities.ForEach(s => vms.Add(_mapper.Map<ChatMessageVM>(s)));
+
+            return entities != null ? vms.ToArray() : null;
         }
         public virtual async Task<ChatMessageVM> CreateChatMessageAsync(ChatMessageCreateRequest request)
         {

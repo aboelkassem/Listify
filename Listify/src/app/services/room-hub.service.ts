@@ -31,6 +31,7 @@ export class RoomHubService {
   $applicationUserRoomCurrencyRoomReceived = new Subject<IApplicationUserRoomCurrencyRoom>();
   $applicationUserRoomCurrenciesRoomReceived = new Subject<IApplicationUserRoomCurrencyRoom[]>();
   $messageReceived = new Subject<IChatMessage>();
+  $messagesReceived = new Subject<IChatMessage[]>();
   $pauseRequestReceived = new Subject<string>();
   $forceDisconnectReceived = new Subject<string>();
   $applicationUserReceived = new Subject<IApplicationUser>();
@@ -98,6 +99,10 @@ export class RoomHubService {
 
     this._hubConnection.on('ReceiveMessage', (message: IChatMessage) => {
       this.$messageReceived.next(message);
+    });
+
+    this._hubConnection.on('ReceiveLastMessages', (messages: IChatMessage[]) => {
+      this.$messagesReceived.next(messages);
     });
 
     this._hubConnection.on('ReceiveApplicationUserRoomCurrencyRoom', (applicationUserRoomCurrency: IApplicationUserRoomCurrencyRoom) => {
@@ -206,6 +211,12 @@ export class RoomHubService {
   requestApplicationUsersRoomOnline(): void {
     if (this._hubConnection) {
       this._hubConnection.invoke('RequestApplicationUsersRoomOnline');
+    }
+  }
+
+  requestLastMessagesForRoom(roomId: string): void {
+    if (this._hubConnection) {
+      this._hubConnection.invoke('RequestLastMessagesForRoom', roomId);
     }
   }
 
@@ -450,6 +461,10 @@ export class RoomHubService {
 
   getFollows(): Observable<IFollow[]> {
     return this.$followsReceived.asObservable();
+  }
+
+  getLastMessages(): Observable<IChatMessage[]> {
+    return this.$messagesReceived.asObservable();
   }
 
   getRoomOwnerLogout(): Observable<boolean> {

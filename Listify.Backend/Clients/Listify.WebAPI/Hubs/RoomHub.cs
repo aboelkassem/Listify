@@ -495,7 +495,28 @@ namespace Listify.WebAPI.Hubs
 
             if (!string.IsNullOrEmpty(message.Message))
             {
-                await Clients.All.SendAsync("ReceiveMessage", message);
+                var chatMessage = await _dal.CreateChatMessageAsync(new ChatMessageCreateRequest
+                {
+                    ApplicationUserRoomId = message.ApplicationUserRoom.Id,
+                    Message = message.Message
+                });
+
+                await Clients.Group(chatMessage.ApplicationUserRoom.Room.RoomCode).SendAsync("ReceiveMessage", chatMessage);
+            }
+        }
+        public async Task RequestLastMessagesForRoom(Guid roomId)
+        {
+            try
+            {
+                var chatMessages = await _dal.ReadChatMessagesAsync(roomId);
+                if (chatMessages != null)
+                {
+                    await Clients.Caller.SendAsync("ReceiveLastMessages", chatMessages);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
         public async Task CreateSongQueued(SongQueuedCreateRequest request)

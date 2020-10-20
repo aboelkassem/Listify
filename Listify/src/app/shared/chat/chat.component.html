@@ -4,11 +4,11 @@
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef>Username</th>
         <td mat-cell *matCellDef="let element">
-          <div *ngIf="element.applicationUserRoom.isOwner" [ngStyle]="{color: element.applicationUserRoom.applicationUser.chatColor}">
-            {{element.applicationUserRoom.applicationUser.username}}
+          <div *ngIf="element.applicationUserRoom.isOwner">
+            <a [ngStyle]="{color: element.applicationUserRoom.applicationUser.chatColor}" [routerLink]="['/profile', element.applicationUserRoom.applicationUser.username]">{{element.applicationUserRoom.applicationUser.username}}</a>
           </div>
           <div *ngIf="!element.applicationUserRoom.isOwner">
-            {{element.applicationUserRoom.applicationUser.username}}
+            <a style ="color: black;" [routerLink]="['/profile', element.applicationUserRoom.applicationUser.username]">{{element.applicationUserRoom.applicationUser.username}}</a>
           </div>
         </td>
       </ng-container>
