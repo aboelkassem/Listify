@@ -1,7 +1,11 @@
 
 <div *ngIf="!isAuthenticated">
   <div class="bg-dark">
-    <div class="mat-display-1 title-text">{{title}}</div>
+    <div class="mat-display-1 title-text">
+      <div style="display: flex;">
+        <img width="50px" height="50px" src="../assets/listifylogo.png" alt=""> {{title}}
+      </div>
+    </div>
     <div class="mat-display-1 lsfyContainer">A Music Sharing And Streaming Experience ...</div>
     <!-- <slideshow [imageUrls]="imageUrlArray"
       [showArrows] = "false"
@@ -21,6 +25,9 @@
   <ngx-loading-x [show]="loading"></ngx-loading-x>
   <mat-sidenav-container class="sidenav-full">
     <mat-sidenav class="sidenav-fixed" #sidenav mode="side" opened>
+      <div class="logo-nav">
+        <img width="200px" src="../assets/listifyfulllogo.png" alt="">
+      </div>
       <mat-list>
         <mat-list-item class="cursor-link" routerLink="/" ><mat-icon mat-list-icon>radio</mat-icon>My Room</mat-list-item>
         <mat-list-item class="cursor-link" routerLink="/rooms"><mat-icon mat-list-icon>room</mat-icon>Rooms</mat-list-item>

@@ -2,6 +2,11 @@
   height: 100%;
 }
 
+.logo-nav {
+  min-width: 230px;
+  text-align: center;
+}
+
 .sidenav-fixed {
   position:fixed;
 }
