@@ -10,6 +10,6 @@ namespace Listify.Domain.BLL
 
         void Dispose();
         void Start(int pollingIntervalMS);
-        Task Stop();
+        Task StopAync();
     }
 }

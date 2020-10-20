@@ -7,6 +7,8 @@
   <ItemGroup>
     <Compile Remove="Migrations\20201013120133_Added final changes to database.cs" />
     <Compile Remove="Migrations\20201013120133_Added final changes to database.Designer.cs" />
+    <Compile Remove="Migrations\20201020114909_some changes.cs" />
+    <Compile Remove="Migrations\20201020114909_some changes.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

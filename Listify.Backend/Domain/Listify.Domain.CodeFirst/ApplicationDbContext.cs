@@ -349,7 +349,10 @@ namespace Listify.Domain.CodeFirst
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(Globals.DEV_CONNECTION_STRING);
+            optionsBuilder.UseSqlServer(Globals.DEV_CONNECTION_STRING, opts =>
+            {
+                opts.EnableRetryOnFailure();
+            });
         }
     }
 }

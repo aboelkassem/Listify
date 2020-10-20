@@ -34,7 +34,7 @@ namespace Listify.WebAPI
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(ServiceLifetime.Transient);
+            services.AddDbContext<ApplicationDbContext>();
 
             services.AddSignalR(options =>
             {
