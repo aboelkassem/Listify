@@ -88,7 +88,6 @@ export class ProfileplaylistsComponent implements OnInit, OnDestroy, AfterViewIn
         });
 
         confirmationModal.afterClosed().subscribe(randomizeResult => {
-          this.loading = true;
           if (randomizeResult !== undefined) {
             this.hubService.requestQueuePlaylistInRoomHome(id, true);
           }else {

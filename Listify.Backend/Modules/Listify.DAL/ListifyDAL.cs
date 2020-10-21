@@ -1128,6 +1128,16 @@ namespace Listify.DAL
                     _context.Entry(playlistGenre).State = EntityState.Modified;
                 }
 
+                var songsPlaylist = await _context.SongsPlaylists
+                    .Where(s => s.PlaylistId == entity.Id && s.Active)
+                    .ToListAsync();
+
+                foreach (var songPlaylist in songsPlaylist)
+                {
+                    songPlaylist.Active = false;
+                    _context.Entry(songPlaylist).State = EntityState.Modified;
+                }
+
                 _context.Entry(entity).State = EntityState.Modified;
 
                 if (await _context.SaveChangesAsync() > 0)
@@ -3215,22 +3225,22 @@ namespace Listify.DAL
 
                             if (songVM == null)
                             {
-                                //var songNew = await CreateSongAsync(new SongCreateRequest
-                                //{
-                                //    YoutubeId = song.YoutubeId,
-                                //    SongName = song.SongName,
-                                //    SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(song.YoutubeId),
-                                //    ThumbnailUrl = song.ThumbnailUrl,
-                                //    ThumbnailHeight = song.ThumbnailHeight,
-                                //    ThumbnailWidth = song.ThumbnailWidth
-                                //});
+                                var songNew = await CreateSongAsync(new SongCreateRequest
+                                {
+                                    YoutubeId = song.YoutubeId,
+                                    SongName = song.SongName,
+                                    SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(song.YoutubeId),
+                                    ThumbnailUrl = song.ThumbnailUrl,
+                                    ThumbnailHeight = song.ThumbnailHeight,
+                                    ThumbnailWidth = song.ThumbnailWidth
+                                });
 
                                 await _context.SongsPlaylists.AddAsync(new SongPlaylist
                                 {
                                     PlaylistId = playlist.Id,
-                                    SongId = song.Id,
+                                    SongId = songNew.Id,
+                                    PlayCount = 0,
                                     SongRequestType = SongRequestType.Playlist,
-                                    TimeStamp = DateTime.UtcNow,
                                 });
                             }
                             else
@@ -3239,8 +3249,8 @@ namespace Listify.DAL
                                 {
                                     PlaylistId = playlist.Id,
                                     SongId = songVM.Id,
+                                    PlayCount = 0,
                                     SongRequestType = SongRequestType.Playlist,
-                                    TimeStamp = DateTime.UtcNow,
                                 });
                             }
                         }
@@ -3280,26 +3290,29 @@ namespace Listify.DAL
 
                 foreach (var songPlaylist in songsPlaylist)
                 {
-                    var song = await ReadSongAsync(songPlaylist.Snippet.ResourceId.VideoId);
-                    if (song != null)
+                    if (songPlaylist.Snippet != null)
                     {
-                        songs.Add(song);
-                    }
-                    else
-                    {
-                        // create the public songVM and add it to the list
-                        if (songPlaylist.Snippet.Title != "Private video")
+                        var song = await ReadSongAsync(songPlaylist.Snippet.ResourceId.VideoId);
+                        if (song != null)
                         {
-                            var songVM = new SongVM
+                            songs.Add(song);
+                        }
+                        else
+                        {
+                            // create the public songVM and add it to the list
+                            if (songPlaylist.Snippet.Title != "Private video")
                             {
-                                SongName = songPlaylist.Snippet.Title,
-                                YoutubeId = songPlaylist.Snippet.ResourceId.VideoId,
-                                SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(songPlaylist.Snippet.ResourceId.VideoId),
-                                ThumbnailUrl = songPlaylist.Snippet.Thumbnails.Default.Url,
-                                ThumbnailHeight = songPlaylist.Snippet.Thumbnails.Default.Height,
-                                ThumbnailWidth = songPlaylist.Snippet.Thumbnails.Default.Width
-                            };
-                            songs.Add(songVM);
+                                var songVM = new SongVM
+                                {
+                                    SongName = songPlaylist.Snippet.Title,
+                                    YoutubeId = songPlaylist.Snippet.ResourceId.VideoId,
+                                    SongLengthSeconds = await GetTimeOfYoutubeVideoBySeconds(songPlaylist.Snippet.ResourceId.VideoId),
+                                    ThumbnailUrl = songPlaylist.Snippet.Thumbnails.Default.Url,
+                                    ThumbnailHeight = songPlaylist.Snippet.Thumbnails.Default.Height,
+                                    ThumbnailWidth = songPlaylist.Snippet.Thumbnails.Default.Width
+                                };
+                                songs.Add(songVM);
+                            }
                         }
                     }
                 }

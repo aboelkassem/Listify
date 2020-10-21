@@ -186,7 +186,6 @@ export class PlaylistsComponent implements OnInit, OnDestroy, AfterViewInit {
         });
 
         confirmationModal.afterClosed().subscribe(randomizeResult => {
-          this.loading = true;
           if (randomizeResult !== undefined) {
             this.hubService.requestQueuePlaylistInRoomHome(id, true);
           }else {

@@ -42,24 +42,24 @@ export class QueueComponent implements OnInit, OnDestroy, AfterViewInit{
     private toastrService: ToastrService) {
 
     this.$songsQueuedSubscription = this.roomService.getSongsQueued().subscribe((songsQueued: ISongQueued[]) => {
+      this.loading = false;
       this.songsQueued = songsQueued;
       this.dataSource.data = this.songsQueued;
-      this.loading = false;
     });
 
     this.$roomReceivedSubscription = this.roomService.getRoomInformation().subscribe((roomInformation: IRoomInformation) => {
+      this.loading = false;
       this.isRoomOwner = roomInformation.applicationUserRoom.isOwner;
       this.room = roomInformation.room;
       this.applicationUserRoomCurrencies = roomInformation.applicationUserRoomCurrenciesRoom;
       this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
-      this.loading = false;
     });
 
     // tslint:disable-next-line:max-line-length
     this.$applicationUserRoomCurrenciesReceived = this.roomService.getApplicationUserRoomCurrenciesRoom().subscribe(applicationUserRoomCurrencies => {
+      this.loading = false;
       this.applicationUserRoomCurrencies = applicationUserRoomCurrencies;
       this.applicationUserRoomCurrency = this.applicationUserRoomCurrencies[0];
-      this.loading = false;
     });
 
     // tslint:disable-next-line:max-line-length
@@ -68,11 +68,11 @@ export class QueueComponent implements OnInit, OnDestroy, AfterViewInit{
         .filter(x => x.id === applicationUserRoomCurrency.id)[0];
 
       if (applicationUserRoomCurrencySelected) {
+        this.loading = false;
         this.applicationUserRoomCurrencies[this.applicationUserRoomCurrencies.indexOf(applicationUserRoomCurrency)]
           = applicationUserRoomCurrency;
 
         this.applicationUserRoomCurrency = applicationUserRoomCurrencySelected;
-        this.loading = false;
       }
     });
   }
