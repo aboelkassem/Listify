@@ -29,6 +29,7 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
 
   $roomReceivedSubscription: Subscription;
   $applicationUserRoomCurrencySubscription: Subscription;
+  $applicationUserRoomCurrenciesSubscription: Subscription;
   $purchasableItemsSubscription: Subscription;
 
   constructor(
@@ -59,12 +60,19 @@ export class ApplicationuserroomcurrenciesComponent implements OnInit, OnDestroy
       }
     });
 
+    this.$applicationUserRoomCurrenciesSubscription = this.roomHubService.getApplicationUserRoomCurrenciesRoom()
+      .subscribe(applicationUserRoomCurrenciesRoom => {
+        this.applicationUserRoomCurrencies = applicationUserRoomCurrenciesRoom;
+        this.dataSource.data = this.applicationUserRoomCurrencies;
+    });
+
     this.$purchasableItemsSubscription = this.hubService.getPurchasableItems().subscribe(purchasableItems => {
       this.purchasableItems = purchasableItems;
     });
   }
   ngOnDestroy(): void {
     this.$applicationUserRoomCurrencySubscription.unsubscribe();
+    this.$applicationUserRoomCurrenciesSubscription.unsubscribe();
     this.$roomReceivedSubscription.unsubscribe();
     this.$purchasableItemsSubscription.unsubscribe();
   }

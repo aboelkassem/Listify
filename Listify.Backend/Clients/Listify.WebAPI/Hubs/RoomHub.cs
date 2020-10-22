@@ -915,7 +915,7 @@ namespace Listify.WebAPI.Hubs
                     var connections = await _dal.ReadApplicationUsersRoomsConnectionsAsync(applicationUser.Room.Id);
                     var currenciesRoom = await _dal.ReadCurrenciesRoomAsync(applicationUser.Room.Id);
 
-                    foreach (var connection in connections)
+                    foreach (var connection in connections.Where(s => s.ConnectionType == ConnectionType.RoomHub))
                     {
                         var applicationUserRoomCurrenciesRoom = new List<ApplicationUserRoomCurrencyRoomVM>();
 

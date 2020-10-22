@@ -17,9 +17,12 @@ namespace Listify.Lib.VMs
         // This is the number of Songs That are allowed in each Song Pool, it should be purchasable
         // Default starting value is 100 songs
         public int PlaylistSongCount { get; set; }
-        public int QueueCount { get; set; }
+        public int QueueSongsCount { get; set; }
         public string ChatColor { get; set; }
         public DateTime DateJoined { get; set; }
+        public string ProfileTitle { get; set; }
+        public string ProfileDescription { get; set; }
+        public string ProfileImageUrl { get; set; }
 
         public RoomVM Room { get; set; }
 

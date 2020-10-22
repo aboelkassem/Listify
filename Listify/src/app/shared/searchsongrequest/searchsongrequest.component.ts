@@ -67,10 +67,10 @@ export class SearchsongrequestComponent implements OnInit, OnDestroy, AfterViewI
     });
 
     this.$applicationUserRoomCurrenciesSubscription = this.roomService.getApplicationUserRoomCurrenciesRoom()
-    .subscribe(applicationUserRoomCurrenciesRoom => {
-      this.applicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom;
-      this.applicationUserRoomCurrency = applicationUserRoomCurrenciesRoom[0];
-  });
+      .subscribe(applicationUserRoomCurrenciesRoom => {
+        this.applicationUserRoomCurrenciesRoom = applicationUserRoomCurrenciesRoom;
+        this.applicationUserRoomCurrency = applicationUserRoomCurrenciesRoom[0];
+    });
   }
 
   ngOnInit(): void {

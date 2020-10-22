@@ -70,10 +70,10 @@ namespace Listify.DAL
                     {
                         entity.Room.RoomKey = Encoding.UTF8.GetString(Convert.FromBase64String(entity.Room.RoomKey));
                     }
-                    else
-                    {
-                        entity.Room.RoomKey = string.Empty;
-                    }
+                    //else
+                    //{
+                    //    entity.Room.RoomKey = string.Empty;
+                    //}
                 }
 
                 var follows = await _context.Follows
@@ -1826,7 +1826,7 @@ namespace Listify.DAL
                 .Include(s => s.Song)
                 .Include(s => s.Room)
                 .Include(s => s.ApplicationUser)
-                .Where(s => s.RoomId == roomId && s.Active)
+                .Where(s => s.RoomId == roomId && !s.HasBeenPlayed && !s.HasBeenSkipped && s.Active)
                 .OrderByDescending(s => s.WeightedValue)
                 .ThenBy(s => s.TimeStamp)
                 .ToListAsync();
@@ -3457,7 +3457,7 @@ namespace Listify.DAL
         public virtual async Task<ApplicationUserRoomCurrencyRoomVM[]> SkipSongAsync(Guid songQueuedId)
         {
             var songQueued = await _context.SongsQueued
-                .FirstOrDefaultAsync(s => s.Id == songQueuedId && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == songQueuedId);
 
             if (songQueued != null)
             {
@@ -3477,7 +3477,8 @@ namespace Listify.DAL
                 foreach (var transaction in transactions)
                 {
                     var applicationUserRoomCurrencyRoom = await _context.ApplicationUsersRoomsCurrenciesRooms
-                    .FirstOrDefaultAsync(s => s.Id == transaction.ApplicationUserRoomCurrency.Id);
+                        .Include(s => s.ApplicationUserRoom)
+                        .FirstOrDefaultAsync(s => s.Id == transaction.ApplicationUserRoomCurrencyId);
 
                     if (applicationUserRoomCurrencyRoom != null)
                     {

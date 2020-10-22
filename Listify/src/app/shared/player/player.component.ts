@@ -180,7 +180,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
             weight: 0
           };
         }
-
+        this.playerService.setCurrentSong(this.songQueued);
         this.roomService.sendServerState(response);
       });
 

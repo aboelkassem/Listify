@@ -1,5 +1,9 @@
 <mat-card>
-  <div class="mat-h3">Songs In The Queue</div>
+  <div class="mat-h3">
+    Songs In The Queue
+    <br>
+    Maximum number of songs In Queue: <b>100</b>
+  </div>
   <button *ngIf="isRoomOwner" mat-stroked-button color='accent' (click)="clearQueue()">Clear The Queue</button>
 
   <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
