@@ -1,4 +1,11 @@
-# Listify
+<h1 align="center">
+  <br>
+   <img src="https://res.cloudinary.com/dvdcninhs/image/upload/v1603567008/Listify%20Photos/listifylogo_hav32f.png" alt="Markdownify" width="150" height="150">
+  <br>
+  Listify
+  <br>
+</h1>
+
 [![Issues](https://img.shields.io/github/issues/aboelkassem/Listify)](https://github.com/aboelkassem/Listify/issues) 
 
 Listify is an interactive platform where users can Join an Online Room. Your room includes Songs, and songs can be added to your room's Queue, Which enable all the connecitons in the same room to watch the same song/video at the same time. Including Streaming experience like having a nice chat in the room and Currency to upvote the song on queue to played first.
