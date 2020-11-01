@@ -47,8 +47,8 @@ Imagine you are attending your friend's birthday party and guests have song requ
 # Links 
 
 * [Jira Kanban Board Requirements](https://drive.google.com/file/d/1G0BYctL73ou7H5bwDvd9L2zD3ZfQJJBd/view?usp=sharing)
-* [Project Diagram](https://drive.google.com/file/d/1C7xjkgxr0kjzXIuHHiBPdBilV6JDjzW-/view?usp=sharing)
-* [Database Diagram](https://drive.google.com/file/d/1OnioWe1-C_8e6LzytadPxKO9lgFpi8qq/view?usp=sharing)
+* [Project Diagram](https://drive.google.com/file/d/1OnioWe1-C_8e6LzytadPxKO9lgFpi8qq/view?usp=sharing)
+* [Database Diagram](https://drive.google.com/file/d/1C7xjkgxr0kjzXIuHHiBPdBilV6JDjzW-/view?usp=sharing)
 
 # Contributors
 <a href="https://github.com/aboelkassem/Listify/graphs/contributors">
