@@ -15,7 +15,7 @@ This currency will gain while you active in the room.
 Imagine you are attending your friend's birthday party and guests have song requests they would like to play but differ in tastes of music. Or imagine board game night where everyone has differing music tastes but only 1 device connected to the speaker. Or imagine a situtation where your significant other is remote but you would like to have a shared music experience. Or imagine growing your own following by hosting your own music request channel where members from around the globe can request, upvote, and suggest other songs, or imagine an application to create and manage your own playlists and/or can share them with a global community
 
 ## Technical Points
-* Backend web api build with <b>Asp.net core 3.1</b>
+* Backend web api build with <b>ASP.NET core 3.1</b>
 * ORM with SQL Server via <b>Entity Framework core</b>
 * Real time communication via <b>SignalR</b>
 * OAuth with <b>IdentityServer4</b>
