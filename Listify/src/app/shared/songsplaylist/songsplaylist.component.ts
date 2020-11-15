@@ -41,7 +41,6 @@ export class SongsplaylistComponent implements OnInit, OnDestroy, AfterViewInit 
           this.songsPlaylist = playlist.songsPlaylist;
 
           this.dataSource.data = this.songsPlaylist;
-          this.dataSource.sort = this.sort;
         }
       });
   }

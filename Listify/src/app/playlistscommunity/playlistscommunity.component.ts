@@ -35,9 +35,9 @@ export class PlaylistscommunityComponent implements OnInit, OnDestroy, AfterView
     });
 
     this.$playlistsCommunityReceivedSubscription = this.hubService.getPlaylistsCommunity().subscribe(playlists => {
+      this.loading = false;
       this.playlists = playlists;
       this.dataSource.data = this.playlists;
-      this.loading = false;
     });
   }
 

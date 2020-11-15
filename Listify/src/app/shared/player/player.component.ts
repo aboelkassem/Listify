@@ -203,8 +203,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
         }
 
         this.playerService.setCurrentSong(this.songQueued);
-        this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
-        this.youtubeService.play();
+        // this.youtubeService.loadVideoAndSeek(response.songQueued.song.youtubeId, response.currentTime);
+        // this.youtubeService.play();
       });
 
       this.$updatedChatColorSubscription = this.roomService.getUpdatedChatColor().subscribe(applicationUser => {

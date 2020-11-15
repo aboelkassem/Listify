@@ -979,7 +979,7 @@ namespace Listify.DAL
             var entity = await _context.Playlists
                 .Include(s => s.PlaylistGenres)
                 .Include(s => s.ApplicationUser)
-                .FirstOrDefaultAsync(s => s.Id == id && s.ApplicationUserId == applicationUserId && s.Active);
+                .FirstOrDefaultAsync(s => s.Id == id && s.Active);
 
             if (entity != null)
             {

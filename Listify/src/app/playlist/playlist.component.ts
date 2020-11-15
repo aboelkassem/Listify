@@ -104,6 +104,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
       this.playlistGenres = playlist?.playlistGenres;
       this.songsPlaylist = playlist?.songsPlaylist;
       this.playlistImageUrl = playlist.playlistImageUrl;
+      this.loading = false;
 
       if (this.playlist.applicationUser.id === this.hubService.applicationUser.id) {
         this.isOwner = true;
@@ -133,6 +134,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
     this.route.params.subscribe(params => {
       const id = params['id']; // + params converts id to numbers
       if (id != null) {
+        this.id = id;
         this.hubService.requestPlaylist(id);
       }
     });
@@ -141,6 +143,7 @@ export class PlaylistComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // this.hubService.requestSongsPlaylist(this.playlist.id);
+    this.loading = true;
     this.hubService.requestGenres();
   }
 
